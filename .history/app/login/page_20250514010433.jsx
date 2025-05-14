@@ -2,16 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 
-export default function RegisterPage() {
+export default function Login() {
   const router = useRouter();
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,21 +19,22 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("/api/auth/register", {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
 
     const data = await res.json();
-
     if (!res.ok) {
-      setError(data.error || "Error al registrar");
+      setError(data.error || "Error al iniciar sesión");
       return;
     }
 
+    login(data.user);
+
     setTimeout(() => {
-      router.push("/login");
+      router.push("/screenhome");
     }, 100);
   };
 
@@ -45,16 +44,11 @@ export default function RegisterPage() {
         <div className="transition-all duration-500 hover:scale-[1.01]">
           {/* LOGO */}
           <div className="flex justify-center mb-6">
-            <Image
-              src="/Assets/LoginRegister/logo.jpg"
-              alt="Logo"
-              width={64}
-              height={64}
-            />
+            <Image src="/logo.png" alt="Logo" width={64} height={64} />
           </div>
 
           <h2 className="text-white text-2xl font-semibold text-center mb-4">
-            Crear cuenta
+            Iniciar sesión
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,15 +56,6 @@ export default function RegisterPage() {
               type="text"
               name="username"
               placeholder="Usuario"
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
-              required
-            />
-
-            <input
-              type="email"
-              name="email"
-              placeholder="Correo electrónico"
               onChange={handleChange}
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
@@ -95,17 +80,17 @@ export default function RegisterPage() {
               type="submit"
               className="w-full bg-orange-500 text-white py-2 rounded-md font-semibold hover:bg-orange-600 transition-all duration-300"
             >
-              Registrarse
+              Iniciar sesión
             </button>
           </form>
 
           <p className="text-gray-300 text-center text-sm mt-6">
-            ¿Ya tenés cuenta?{" "}
+            ¿No tenés cuenta?{" "}
             <a
-              href="/login"
+              href="/register"
               className="text-orange-400 font-semibold hover:underline"
             >
-              Iniciar sesión
+              Registrarse
             </a>
           </p>
         </div>
