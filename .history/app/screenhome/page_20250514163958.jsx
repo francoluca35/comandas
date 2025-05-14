@@ -1,6 +1,6 @@
 "use client";
 
-import PrivateRoute from "../models/PrivateRoute";
+import PrivateRoute from "../components/PrivateRoute";
 import { useAuth } from "@/context/AuthContext";
 import TablaMetrica from "../components/ui/TablaMetrica";
 import BotonesMenu from "../components/ui/BotonesMenu";
