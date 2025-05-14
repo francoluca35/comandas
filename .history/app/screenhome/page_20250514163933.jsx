@@ -1,10 +1,10 @@
 "use client";
 
-import PrivateRoute from "../models/PrivateRoute";
+import PrivateRoute from "../components/PrivateRoute";
 import { useAuth } from "@/context/AuthContext";
-import TablaMetrica from "../components/ui/TablaMetrica";
+import TablaMetrica from "../components/TablaMetrica";
 import BotonesMenu from "../components/ui/BotonesMenu";
-import UserDropdown from "../components/ui/UserDropdown";
+import UserDropdown from "../components/UserDropdown";
 import { Suspense } from "react";
 
 export default function ScreenHome() {

@@ -7,14 +7,14 @@ export default function BotonesMenu() {
   const router = useRouter();
 
   const botones = [
-    { texto: "Mesas", icono: <FaChair size={24} />, ruta: "/mesas" },
+    { texto: "Mesas", icono: <FaChair size={24} />, ruta: "/tavolo" },
     {
       texto: "Pedidos",
       icono: <FaConciergeBell size={24} />,
       ruta: "/pedidos",
     },
     { texto: "Delivery", icono: <FaChartBar size={24} />, ruta: "/delivery" },
-    { texto: "A. Menú", icono: <FaPlus size={24} />, ruta: "/addmenu" },
+    { texto: "A. Elementos", icono: <FaPlus size={24} />, ruta: "/addmenu" },
   ];
 
   return (
