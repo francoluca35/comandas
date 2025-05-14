@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import TablaMetrica from "../components/TablaMetrica";
 import BotonesMenu from "../components/BotonesMenu";
 import UserDropdown from "../components/UserDropdown";
-import { Suspense } from "react";
 
 export default function ScreenHome() {
   const { user } = useAuth();
@@ -24,17 +23,8 @@ export default function ScreenHome() {
 
         {/* Contenido Principal */}
         <div className="flex flex-col lg:flex-row items-center justify-center gap-16 flex-grow">
-          <Suspense
-            fallback={<p className="text-gray-400">Cargando métricas...</p>}
-          >
-            <TablaMetrica />
-          </Suspense>
-
-          <Suspense
-            fallback={<p className="text-gray-400">Cargando menú...</p>}
-          >
-            <BotonesMenu />
-          </Suspense>
+          <TablaMetrica />
+          <BotonesMenu />
         </div>
       </main>
     </PrivateRoute>
