@@ -10,7 +10,7 @@ export default function UserDropdown() {
   const closeTimeoutRef = useRef(null);
 
   const handleMouseEnter = () => {
-    clearTimeout(closeTimeoutRef.current);
+    clearTimeout(closeTimeoutRef.current); // prevenir cierre
     setOpen(true);
   };
 
@@ -40,7 +40,7 @@ export default function UserDropdown() {
               Cambiar datos
             </li>
             <li
-              onClick={() => router.push("/cambiarpassword")}
+              onClick={() => router.push("/cambiar-password")}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
             >
               Cambiar contraseña
