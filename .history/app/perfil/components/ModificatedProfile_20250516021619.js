@@ -1,26 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
 
-export default function ModificatedPass() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
+export default function ModificatedProfile() {
   const [form, setForm] = useState({
-    oldPassword: "",
-    newPassword: "",
+    username: "",
+    email: "",
   });
-  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (user?.username) {
-      setUsername(user.username);
-    }
-  }, [user]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,15 +18,10 @@ export default function ModificatedPass() {
     e.preventDefault();
     setLoading(true);
 
-    if (!username) {
-      setLoading(false);
-      return Swal.fire("Error", "Usuario no logueado", "error");
-    }
-
-    const res = await fetch("/api/auth/change-password", {
+    const res = await fetch("/api/auth/update-profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, ...form }),
+      body: JSON.stringify(form),
     });
 
     const data = await res.json();
@@ -48,9 +31,7 @@ export default function ModificatedPass() {
       return Swal.fire("Error", data.error || "Algo falló", "error");
     }
 
-    await Swal.fire("Éxito", "Contraseña actualizada correctamente", "success");
-    logout();
-    router.push("/login");
+    Swal.fire("Éxito", "Perfil actualizado correctamente", "success");
   };
 
   return (
@@ -60,32 +41,24 @@ export default function ModificatedPass() {
         className="bg-white/5 backdrop-blur p-8 rounded-xl w-full max-w-md shadow-xl"
       >
         <h2 className="text-white text-2xl font-bold mb-6 text-center">
-          Cambiar Contraseña 🔐
+          Editar Perfil 📝
         </h2>
 
-        <label className="text-white text-sm mb-1 block">Usuario</label>
         <input
           type="text"
-          value={username}
-          disabled
-          className="w-full px-4 py-2 rounded bg-gray-800 text-gray-400 mb-4 border border-gray-600"
-        />
-
-        <input
-          type="password"
-          name="oldPassword"
-          placeholder="Contraseña actual"
-          value={form.oldPassword}
+          name="username"
+          placeholder="Nuevo usuario"
+          value={form.username}
           onChange={handleChange}
           className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
           required
         />
 
         <input
-          type="password"
-          name="newPassword"
-          placeholder="Nueva contraseña"
-          value={form.newPassword}
+          type="email"
+          name="email"
+          placeholder="Nuevo correo"
+          value={form.email}
           onChange={handleChange}
           className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
           required
@@ -96,7 +69,7 @@ export default function ModificatedPass() {
           disabled={loading}
           className="w-full bg-orange-500 text-white font-semibold py-2 rounded hover:bg-orange-600 transition"
         >
-          {loading ? "Guardando..." : "Actualizar Contraseña"}
+          {loading ? "Guardando..." : "Actualizar Perfil"}
         </button>
       </form>
     </div>

@@ -1,26 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
 
-export default function ModificatedPass() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
+export default function ModificatedProfile() {
+  const [currentUser, setCurrentUser] = useState("");
   const [form, setForm] = useState({
-    oldPassword: "",
-    newPassword: "",
+    newUsername: "",
+    email: "",
   });
-  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.username) {
-      setUsername(user.username);
+    const savedUser = localStorage.getItem("usuario");
+    if (savedUser) {
+      setCurrentUser(savedUser);
     }
-  }, [user]);
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,29 +24,26 @@ export default function ModificatedPass() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setError("");
 
-    if (!username) {
-      setLoading(false);
-      return Swal.fire("Error", "Usuario no logueado", "error");
-    }
-
-    const res = await fetch("/api/auth/change-password", {
-      method: "PUT",
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, ...form }),
+      body: JSON.stringify(form),
     });
 
     const data = await res.json();
-    setLoading(false);
-
     if (!res.ok) {
-      return Swal.fire("Error", data.error || "Algo falló", "error");
+      setError(data.error || "Error al iniciar sesión");
+      return;
     }
 
-    await Swal.fire("Éxito", "Contraseña actualizada correctamente", "success");
-    logout();
-    router.push("/login");
+    login(data.user);
+    localStorage.setItem("usuario", data.user.username); // <-- GUARDAMOS EL USUARIO
+
+    setTimeout(() => {
+      router.push("/screenhome");
+    }, 100);
   };
 
   return (
@@ -60,35 +53,35 @@ export default function ModificatedPass() {
         className="bg-white/5 backdrop-blur p-8 rounded-xl w-full max-w-md shadow-xl"
       >
         <h2 className="text-white text-2xl font-bold mb-6 text-center">
-          Cambiar Contraseña 🔐
+          Editar Perfil 📝
         </h2>
 
-        <label className="text-white text-sm mb-1 block">Usuario</label>
+        <label className="text-white text-sm mb-1 block">Usuario actual</label>
         <input
           type="text"
-          value={username}
+          value={currentUser}
           disabled
           className="w-full px-4 py-2 rounded bg-gray-800 text-gray-400 mb-4 border border-gray-600"
         />
 
+        <label className="text-white text-sm mb-1 block">Nuevo usuario</label>
         <input
-          type="password"
-          name="oldPassword"
-          placeholder="Contraseña actual"
-          value={form.oldPassword}
+          type="text"
+          name="newUsername"
+          placeholder="Nuevo usuario"
+          value={form.newUsername}
           onChange={handleChange}
           className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
-          required
         />
 
+        <label className="text-white text-sm mb-1 block">Nuevo correo</label>
         <input
-          type="password"
-          name="newPassword"
-          placeholder="Nueva contraseña"
-          value={form.newPassword}
+          type="email"
+          name="email"
+          placeholder="Nuevo correo electrónico"
+          value={form.email}
           onChange={handleChange}
           className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
-          required
         />
 
         <button
@@ -96,7 +89,7 @@ export default function ModificatedPass() {
           disabled={loading}
           className="w-full bg-orange-500 text-white font-semibold py-2 rounded hover:bg-orange-600 transition"
         >
-          {loading ? "Guardando..." : "Actualizar Contraseña"}
+          {loading ? "Guardando..." : "Actualizar Perfil"}
         </button>
       </form>
     </div>
