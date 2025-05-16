@@ -40,7 +40,7 @@ export default function UserDropdown() {
               Cambiar datos
             </li>
             <li
-              onClick={() => router.push("/cambiarpassword")}
+              onClick={() => router.push("/cambiarpasswrd")}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
             >
               Cambiar contraseña

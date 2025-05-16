@@ -10,7 +10,7 @@ export default function UserDropdown() {
   const closeTimeoutRef = useRef(null);
 
   const handleMouseEnter = () => {
-    clearTimeout(closeTimeoutRef.current);
+    clearTimeout(closeTimeoutRef.current); // prevenir cierre
     setOpen(true);
   };
 
