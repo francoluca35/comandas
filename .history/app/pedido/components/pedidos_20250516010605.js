@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import useProductos from "@/app/hooks/useProductos";
 import BackArrow from "@/app/components/ui/BackArrow";
-import { FiPlusCircle } from "react-icons/fi";
 
 export default function Pedidos() {
   const { productos } = useProductos();
@@ -98,31 +97,32 @@ export default function Pedidos() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] to-black text-white px-4 py-12 flex items-center justify-center">
-      <div className="relative w-full max-w-4xl rounded-3xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-2xl p-8">
-        {/* Back button */}
-        <div className="mb-6">
-          <BackArrow label="Volver al panel" />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 flex flex-col items-center">
+      {/* BackArrow FUERA del card principal */}
+      <div className="w-full max-w-3xl mb-4">
+        <BackArrow label="Volver al panel" />
+      </div>
 
-        <h2 className="text-4xl font-bold text-white mb-8 text-center">
-          🍽 Nuevo Pedido
+      {/* Card de pedido */}
+      <div className="bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-3xl">
+        <h2 className="text-3xl font-bold text-orange-500 mb-8 text-center uppercase">
+          Nuevo Pedido
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Columna izquierda */}
           <div>
+            <label className="block mb-1 text-sm">Nombre del cliente</label>
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
-              placeholder="Nombre del cliente"
+              className="w-full p-3 mb-4 bg-gray-200 text-black rounded-lg"
             />
 
+            <label className="block mb-1 text-sm">Comida</label>
             <select
               value={comida}
               onChange={(e) => setComida(e.target.value)}
-              className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
+              className="w-full p-3 mb-4 bg-gray-200 text-black rounded-lg"
             >
               <option value="">Selecciona una comida</option>
               {productos.map((p) => (
@@ -134,13 +134,10 @@ export default function Pedidos() {
 
             {adicionalesDisponibles.length > 0 && (
               <div className="mb-4">
-                <p className="mb-2 text-sm text-gray-300">Adicionales:</p>
+                <label className="block mb-1 text-sm">Adicionales</label>
                 <div className="flex flex-wrap gap-3">
                   {adicionalesDisponibles.map((ad, i) => (
-                    <label
-                      key={i}
-                      className="flex items-center gap-2 text-sm text-gray-200"
-                    >
+                    <label key={i} className="flex items-center text-sm gap-2">
                       <input
                         type="checkbox"
                         value={ad}
@@ -163,20 +160,15 @@ export default function Pedidos() {
 
             <button
               onClick={agregarAlPresupuesto}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl transition mt-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded mb-6"
             >
-              <div className="flex items-center justify-center gap-2">
-                <FiPlusCircle />
-                Agregar al presupuesto
-              </div>
+              Agregar al presupuesto
             </button>
 
             {presupuesto.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-cyan-400 mb-2">
-                  Resumen:
-                </h3>
-                <ul className="list-disc list-inside text-sm text-gray-200">
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2 text-orange-400">Resumen:</h3>
+                <ul className="list-disc list-inside text-sm">
                   {presupuesto.map((item, index) => (
                     <li key={index}>
                       {item.comida}
@@ -190,40 +182,41 @@ export default function Pedidos() {
             )}
           </div>
 
-          {/* Columna derecha */}
           <div>
+            <label className="block mb-1 text-sm">Dirección</label>
             <input
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
-              className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
-              placeholder="Dirección (ej: Brasil 3421, Merlo)"
+              className="w-full p-3 mb-4 bg-gray-200 text-black rounded-lg"
+              placeholder="Ej: Brasil 3421, Merlo, Buenos Aires"
             />
 
+            <label className="block mb-1 text-sm">Observación</label>
             <textarea
               value={observacion}
               onChange={(e) => setObservacion(e.target.value)}
-              className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
+              className="w-full p-3 mb-4 bg-gray-200 text-black rounded-lg"
               rows={4}
-              placeholder="Observaciones (opcional)"
             />
 
+            <label className="block mb-1 text-sm">Forma de pago</label>
             <select
               value={pago}
               onChange={(e) => setPago(e.target.value)}
-              className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none"
+              className="w-full p-3 mb-4 bg-gray-200 text-black rounded-lg"
             >
-              <option value="">Forma de pago</option>
+              <option value="">Selecciona</option>
               <option value="efectivo">Efectivo</option>
               <option value="mercado pago">Mercado Pago</option>
             </select>
 
-            <p className="text-right text-lg font-bold text-cyan-300 mb-4">
+            <p className="text-right text-lg font-bold text-orange-400 mb-4">
               Total: ${total.toFixed(2)}
             </p>
 
             <button
               onClick={enviarPedido}
-              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded"
             >
               Pagar
             </button>

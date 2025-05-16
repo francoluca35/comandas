@@ -207,7 +207,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           <select
             value={seleccionado}
             onChange={(e) => setSeleccionado(e.target.value)}
-            className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full bg-white/10 text-gray-700 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
           >
             <option value="">Selecciona un producto</option>
             {productos.map((p) => (
