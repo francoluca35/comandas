@@ -149,13 +149,11 @@ export default function Pedidos() {
               onChange={(e) => setComida(e.target.value)}
               className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
             >
-              <option className="text-black" value="">
-                Selecciona una comida
-              </option>
+              <option className="text-black" value="">Selecciona una comida</option className="text-black">
               {comidas.map((p) => (
                 <option className="text-black" key={p._id} value={p.nombre}>
                   {p.nombre}
-                </option>
+                </option className="text-black">
               ))}
             </select>
 
@@ -202,13 +200,11 @@ export default function Pedidos() {
               onChange={(e) => setBebida(e.target.value)}
               className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none"
             >
-              <option className="text-black" value="">
-                Selecciona una bebida
-              </option>
+              <option className="text-black" value="">Selecciona una bebida</option className="text-black">
               {bebidas.map((p) => (
                 <option className="text-black" key={p._id} value={p.nombre}>
                   {p.nombre}
-                </option>
+                </option className="text-black">
               ))}
             </select>
 
@@ -273,15 +269,9 @@ export default function Pedidos() {
               onChange={(e) => setPago(e.target.value)}
               className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none"
             >
-              <option className="text-black" value="">
-                Forma de pago
-              </option>
-              <option className="text-black" value="efectivo">
-                Efectivo
-              </option>
-              <option className="text-black" value="mercado pago">
-                Mercado Pago
-              </option>
+              <option className="text-black" className="text-black" value="">Forma de pago</option className="text-black">
+              <option className="text-black" value="efectivo">Efectivo</option className="text-black">
+              <option className="text-black" value="mercado pago">Mercado Pago</option className="text-black">
             </select>
 
             <p className="text-right text-lg font-bold text-cyan-300 mb-4">
@@ -292,7 +282,7 @@ export default function Pedidos() {
               onClick={enviarPedido}
               className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition"
             >
-              Hacer Pedido
+              Pagar
             </button>
           </div>
         </div>
