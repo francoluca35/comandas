@@ -12,18 +12,18 @@ import { GiMeal } from "react-icons/gi";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
-  const [comidaSeleccionada, setComidaSeleccionada] = useState("");
-  const [bebidaSeleccionada, setBebidaSeleccionada] = useState("");
-  const comidas = productos.filter((p) => p.tipo !== "bebida");
-  const bebidas = productos.filter((p) => p.tipo === "bebida");
 
   const [nombreCliente, setNombreCliente] = useState("");
-  const [seleccionado, setSeleccionado] = useState("");
+  const [comidaSeleccionada, setComidaSeleccionada] = useState("");
+  const [bebidaSeleccionada, setBebidaSeleccionada] = useState("");
   const [lista, setLista] = useState([]);
   const [mostrarPago, setMostrarPago] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
   const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
+
+  const comidas = productos.filter((p) => p.tipo !== "bebida");
+  const bebidas = productos.filter((p) => p.tipo === "bebida");
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
@@ -44,9 +44,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   }, [comidaSeleccionada]);
 
   const agregarProducto = () => {
-    const producto = productos.find(
-      (p) => p.nombre === comidaSeleccionada && p.tipo !== "bebida"
-    );
+    const producto =
+      productos.find((p) => p.nombre === comidaSeleccionada) ||
+      productos.find((p) => p.nombre === bebidaSeleccionada);
 
     if (!producto) return;
 
@@ -69,36 +69,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
 
     setComidaSeleccionada("");
+    setBebidaSeleccionada("");
     setAdicionalesDisponibles([]);
     setAdicionalesSeleccionados([]);
-  };
-
-  const agregarBebida = () => {
-    const producto = productos.find(
-      (p) => p.nombre === bebidaSeleccionada && p.tipo === "bebida"
-    );
-
-    if (!producto) return;
-
-    const nuevoProducto = {
-      ...producto,
-      cantidad: 1,
-      descuento: producto.descuento || 0,
-      adicionales: [], // Las bebidas no tienen adicionales
-    };
-
-    const itemExistente = lista.find((p) => p.nombre === producto.nombre);
-    if (itemExistente) {
-      setLista(
-        lista.map((p) =>
-          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
-        )
-      );
-    } else {
-      setLista([...lista, nuevoProducto]);
-    }
-
-    setBebidaSeleccionada("");
   };
 
   const eliminarProducto = (nombre) => {
@@ -177,7 +150,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl md:max-w-4xl lg:max-w-5xl rounded-3xl p-4 md:p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
+      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl rounded-3xl p-6 shadow-2xl text-white">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-orange-400 flex items-center gap-2">
@@ -207,31 +180,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           />
         </div>
 
-        {/* Botones principales */}
-        <div className="grid grid-cols-3 gap-3 mb-5 text-sm font-semibold">
-          <button
-            onClick={enviarPedido}
-            className="bg-green-500 hover:bg-green-600 py-2 rounded-xl transition flex items-center justify-center gap-2"
-          >
-            <FaPlus /> Enviar
-          </button>
-          <button className="bg-gray-600 text-white py-2 rounded-xl">
-            Cuenta
-          </button>
-          <button
-            onClick={() => setMostrarPago(!mostrarPago)}
-            className="bg-blue-500 hover:bg-blue-600 py-2 rounded-xl"
-          >
-            Cobrar
-          </button>
-          <button
-            onClick={eliminarTodo}
-            className="col-span-3 bg-red-600 hover:bg-red-700 py-2 rounded-xl"
-          >
-            Eliminar Comanda
-          </button>
-        </div>
-
         {/* Producto */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 flex items-center gap-1">
@@ -249,6 +197,23 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </option>
             ))}
           </select>
+
+          <label className="block text-sm font-medium mb-1 flex items-center gap-1 mt-4">
+            🥤 Bebida(s)
+          </label>
+          <select
+            value={bebidaSeleccionada}
+            onChange={(e) => setBebidaSeleccionada(e.target.value)}
+            className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            <option value="">Selecciona una bebida</option>
+            {bebidas.map((b) => (
+              <option key={b._id} value={b.nombre}>
+                {b.nombre}
+              </option>
+            ))}
+          </select>
+
           {/* Adicionales */}
           {adicionalesDisponibles.length > 0 && (
             <div className="mt-3">
@@ -275,84 +240,13 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </div>
             </div>
           )}
+
           <button
             onClick={agregarProducto}
             className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
           >
             Agregar Producto
           </button>
-
-          {/* BEBIDAS */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 flex items-center gap-1 mt-4">
-              🥤 Bebida(s)
-            </label>
-            <select
-              value={bebidaSeleccionada}
-              onChange={(e) => setBebidaSeleccionada(e.target.value)}
-              className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            >
-              <option value="">Selecciona una bebida</option>
-              {bebidas.map((b) => (
-                <option key={b._id} value={b.nombre}>
-                  {b.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={agregarBebida}
-            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
-          >
-            Agregar Bebida
-          </button>
-        </div>
-
-        {/* Tabla */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs mt-5 text-white/90">
-            <thead className="bg-white/10 rounded-xl">
-              <tr>
-                <th className="p-2 text-left">Descripción</th>
-                <th className="p-2">Cant.</th>
-                <th className="p-2">Precio</th>
-                <th className="p-2">Desc.</th>
-                <th className="p-2">Total</th>
-                <th className="p-2">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((p, i) => (
-                <tr key={i} className="border-t border-white/10">
-                  <td className="p-2">
-                    {p.nombre}
-                    {p.adicionales?.length > 0 && (
-                      <div className="text-[10px] text-gray-400">
-                        + {p.adicionales.join(", ")}
-                      </div>
-                    )}
-                  </td>
-                  <td className="text-center">{p.cantidad}</td>
-                  <td className="text-center">{p.precio.toFixed(2)}</td>
-                  <td className="text-center">
-                    {(p.descuento || 0).toFixed(2)}
-                  </td>
-                  <td className="text-center">
-                    {(
-                      p.precio * p.cantidad -
-                      (p.descuento || 0) * p.cantidad
-                    ).toFixed(2)}
-                  </td>
-                  <td className="text-center">
-                    <button onClick={() => eliminarProducto(p.nombre)}>
-                      <FaTrash className="text-red-400 hover:text-red-600" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
 
         {/* Totales */}

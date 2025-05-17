@@ -6,7 +6,7 @@ export default function useProductos() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("/api/products");
+      const res = await fetch("/api/productos");
       const data = await res.json();
       setProductos(data);
       setBebidas(data.filter((item) => item.tipo === "bebida"));

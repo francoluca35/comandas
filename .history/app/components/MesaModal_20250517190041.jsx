@@ -177,7 +177,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl md:max-w-4xl lg:max-w-5xl rounded-3xl p-4 md:p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
+      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-4xl sm:max-w-2xl md:max-w-3xl rounded-3xl p-6 shadow-2xl text-white overflow-y-auto max-h-[95vh]">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-orange-400 flex items-center gap-2">
@@ -310,8 +310,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs mt-5 text-white/90">
+        <div className="overflow-x-auto mt-5">
+          <table className="min-w-[600px] w-full text-xs text-white/90">
             <thead className="bg-white/10 rounded-xl">
               <tr>
                 <th className="p-2 text-left">Descripción</th>
