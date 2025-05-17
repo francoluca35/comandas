@@ -292,7 +292,7 @@ export default function Pedidos() {
               onClick={enviarPedido}
               className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition"
             >
-              Hacer Pedido
+              Pagar
             </button>
           </div>
         </div>

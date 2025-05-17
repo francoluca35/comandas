@@ -27,36 +27,22 @@ export default function Pedidos() {
     setAdicionalesSeleccionados([]);
   }, [comida]);
 
-  const agregarComida = () => {
+  const agregarAlPresupuesto = () => {
     if (!comida) return;
 
     setPresupuesto((prev) => [
       ...prev,
       {
         comida,
-        bebida: "",
+        bebida,
         adicionales: [...adicionalesSeleccionados],
       },
     ]);
 
     setComida("");
+    setBebida("");
     setAdicionalesSeleccionados([]);
     setAdicionalesDisponibles([]);
-  };
-
-  const agregarBebida = () => {
-    if (!bebida) return;
-
-    setPresupuesto((prev) => [
-      ...prev,
-      {
-        comida: "",
-        bebida,
-        adicionales: [],
-      },
-    ]);
-
-    setBebida("");
   };
 
   const eliminarItem = (index) => {
@@ -149,11 +135,9 @@ export default function Pedidos() {
               onChange={(e) => setComida(e.target.value)}
               className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
             >
-              <option className="text-black" value="">
-                Selecciona una comida
-              </option>
+              <option value="">Selecciona una comida</option>
               {comidas.map((p) => (
-                <option className="text-black" key={p._id} value={p.nombre}>
+                <option key={p._id} value={p.nombre}>
                   {p.nombre}
                 </option>
               ))}
@@ -188,36 +172,26 @@ export default function Pedidos() {
               </div>
             )}
 
-            <button
-              onClick={agregarComida}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition mb-6"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <FiPlusCircle /> Agregar comida
-              </div>
-            </button>
-
             <select
               value={bebida}
               onChange={(e) => setBebida(e.target.value)}
               className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none"
             >
-              <option className="text-black" value="">
-                Selecciona una bebida
-              </option>
+              <option value="">Selecciona una bebida (opcional)</option>
               {bebidas.map((p) => (
-                <option className="text-black" key={p._id} value={p.nombre}>
+                <option key={p._id} value={p.nombre}>
                   {p.nombre}
                 </option>
               ))}
             </select>
 
             <button
-              onClick={agregarBebida}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-xl transition"
+              onClick={agregarAlPresupuesto}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl transition mt-2"
             >
               <div className="flex items-center justify-center gap-2">
-                <FiPlusCircle /> Agregar bebida
+                <FiPlusCircle />
+                Agregar al presupuesto
               </div>
             </button>
 
@@ -233,11 +207,11 @@ export default function Pedidos() {
                       className="flex justify-between items-center"
                     >
                       <span>
-                        {item.comida && <>{item.comida}</>}
+                        {item.comida}
                         {item.adicionales?.length > 0 && (
                           <> + {item.adicionales.join(", ")}</>
                         )}
-                        {item.bebida && <>{item.bebida}</>}
+                        {item.bebida && <> + {item.bebida}</>}
                       </span>
                       <button
                         onClick={() => eliminarItem(index)}
@@ -273,15 +247,9 @@ export default function Pedidos() {
               onChange={(e) => setPago(e.target.value)}
               className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none"
             >
-              <option className="text-black" value="">
-                Forma de pago
-              </option>
-              <option className="text-black" value="efectivo">
-                Efectivo
-              </option>
-              <option className="text-black" value="mercado pago">
-                Mercado Pago
-              </option>
+              <option value="">Forma de pago</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="mercado pago">Mercado Pago</option>
             </select>
 
             <p className="text-right text-lg font-bold text-cyan-300 mb-4">
@@ -292,7 +260,7 @@ export default function Pedidos() {
               onClick={enviarPedido}
               className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition"
             >
-              Hacer Pedido
+              Pagar
             </button>
           </div>
         </div>
