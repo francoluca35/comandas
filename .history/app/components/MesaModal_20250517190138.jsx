@@ -310,8 +310,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs mt-5 text-white/90">
+        <div className="overflow-x-auto mt-5">
+          <table className="min-w-[600px] w-full text-xs text-white/90">
             <thead className="bg-white/10 rounded-xl">
               <tr>
                 <th className="p-2 text-left">Descripción</th>

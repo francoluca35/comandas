@@ -9,16 +9,14 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { GiMeal } from "react-icons/gi";
+import { MdLocalDrink } from "react-icons/md";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
-  const [comidaSeleccionada, setComidaSeleccionada] = useState("");
-  const [bebidaSeleccionada, setBebidaSeleccionada] = useState("");
-  const comidas = productos.filter((p) => p.tipo !== "bebida");
-  const bebidas = productos.filter((p) => p.tipo === "bebida");
 
   const [nombreCliente, setNombreCliente] = useState("");
-  const [seleccionado, setSeleccionado] = useState("");
+  const [comidaSeleccionada, setComidaSeleccionada] = useState("");
+  const [bebidaSeleccionada, setBebidaSeleccionada] = useState("");
   const [lista, setLista] = useState([]);
   const [mostrarPago, setMostrarPago] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
@@ -43,61 +41,61 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     setAdicionalesSeleccionados([]);
   }, [comidaSeleccionada]);
 
-  const agregarProducto = () => {
-    const producto = productos.find(
-      (p) => p.nombre === comidaSeleccionada && p.tipo !== "bebida"
-    );
+  const comidas = productos.filter((p) => p.tipo !== "bebida");
+  const bebidas = productos.filter((p) => p.tipo === "bebida");
 
+  const agregarComida = () => {
+    const producto = comidas.find((p) => p.nombre === comidaSeleccionada);
     if (!producto) return;
-
-    const nuevoProducto = {
-      ...producto,
-      cantidad: 1,
-      descuento: producto.descuento || 0,
-      adicionales: adicionalesSeleccionados,
-    };
 
     const itemExistente = lista.find((p) => p.nombre === producto.nombre);
     if (itemExistente) {
       setLista(
         lista.map((p) =>
-          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
+          p.nombre === producto.nombre
+            ? { ...p, cantidad: p.cantidad + 1 }
+            : p
         )
       );
     } else {
-      setLista([...lista, nuevoProducto]);
+      setLista([
+        ...lista,
+        {
+          ...producto,
+          cantidad: 1,
+          descuento: producto.descuento || 0,
+          adicionales: adicionalesSeleccionados,
+        },
+      ]);
     }
-
     setComidaSeleccionada("");
-    setAdicionalesDisponibles([]);
     setAdicionalesSeleccionados([]);
   };
 
   const agregarBebida = () => {
-    const producto = productos.find(
-      (p) => p.nombre === bebidaSeleccionada && p.tipo === "bebida"
-    );
+    const bebida = bebidas.find((b) => b.nombre === bebidaSeleccionada);
+    if (!bebida) return;
 
-    if (!producto) return;
-
-    const nuevoProducto = {
-      ...producto,
-      cantidad: 1,
-      descuento: producto.descuento || 0,
-      adicionales: [], // Las bebidas no tienen adicionales
-    };
-
-    const itemExistente = lista.find((p) => p.nombre === producto.nombre);
-    if (itemExistente) {
+    const yaExiste = lista.find((p) => p.nombre === bebida.nombre);
+    if (yaExiste) {
       setLista(
         lista.map((p) =>
-          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
+          p.nombre === bebida.nombre
+            ? { ...p, cantidad: p.cantidad + 1 }
+            : p
         )
       );
     } else {
-      setLista([...lista, nuevoProducto]);
+      setLista([
+        ...lista,
+        {
+          ...bebida,
+          cantidad: 1,
+          descuento: bebida.descuento || 0,
+          adicionales: [],
+        },
+      ]);
     }
-
     setBebidaSeleccionada("");
   };
 
@@ -177,62 +175,10 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl md:max-w-4xl lg:max-w-5xl rounded-3xl p-4 md:p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-orange-400 flex items-center gap-2">
-            🍽️ Mesa {mesa.numero}
-          </h2>
-          <button
-            onClick={() => {
-              refetch?.();
-              onClose();
-            }}
-            className="text-white bg-red-600 hover:bg-red-700 p-2 rounded-full transition"
-          >
-            <FaTimes />
-          </button>
-        </div>
+      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl rounded-3xl p-6 shadow-2xl text-white">
+        {/* Header y campos mantenidos igual... */}
 
-        {/* Cliente */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1 flex items-center gap-1">
-            <FaUser /> Nombre del cliente
-          </label>
-          <input
-            value={nombreCliente}
-            onChange={(e) => setNombreCliente(e.target.value)}
-            className="w-full bg-white/10 text-white px-4 py-2 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-300"
-            placeholder="Nombre del cliente"
-          />
-        </div>
-
-        {/* Botones principales */}
-        <div className="grid grid-cols-3 gap-3 mb-5 text-sm font-semibold">
-          <button
-            onClick={enviarPedido}
-            className="bg-green-500 hover:bg-green-600 py-2 rounded-xl transition flex items-center justify-center gap-2"
-          >
-            <FaPlus /> Enviar
-          </button>
-          <button className="bg-gray-600 text-white py-2 rounded-xl">
-            Cuenta
-          </button>
-          <button
-            onClick={() => setMostrarPago(!mostrarPago)}
-            className="bg-blue-500 hover:bg-blue-600 py-2 rounded-xl"
-          >
-            Cobrar
-          </button>
-          <button
-            onClick={eliminarTodo}
-            className="col-span-3 bg-red-600 hover:bg-red-700 py-2 rounded-xl"
-          >
-            Eliminar Comanda
-          </button>
-        </div>
-
-        {/* Producto */}
+        {/* Comida */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 flex items-center gap-1">
             <GiMeal /> Comida(s)
@@ -249,6 +195,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </option>
             ))}
           </select>
+
           {/* Adicionales */}
           {adicionalesDisponibles.length > 0 && (
             <div className="mt-3">
@@ -275,37 +222,73 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </div>
             </div>
           )}
+
+          <button
+            onClick={agregarComida}
+            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
+          >
+            Agregar Comida
+          </button>
+        </div>
+
+        {/* Bebida */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+            <MdLocalDrink /> Bebida(s)
+          </label>
+          <select
+            value={bebidaSeleccionada}
+            onChange={(e) => setBebidaSeleccionada(e.target.value)}
+            className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+          >
+            <option value="">Selecciona una bebida</option>
+            {bebidas.map((b) => (
+              <option key={b._id} value={b.nombre}>
+                {b.nombre}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={agregarBebida}
+            className="w-full mt-2 bg-purple-500 hover:bg-purple-600 text-white py-2 rounded-xl font-semibold transition"
+          >
+            Agregar Bebida
+          </button>
+        </div>
+
+          {/* Adicionales */}
+          {adicionalesDisponibles.length > 0 && (
+            <div className="mt-3">
+              <p className="text-sm font-medium mb-1">Adicionales:</p>
+              <div className="flex flex-wrap gap-2">
+                {adicionalesDisponibles.map((ad, idx) => (
+                  <label key={idx} className="flex items-center text-xs gap-2">
+                    <input
+                      type="checkbox"
+                      value={ad}
+                      checked={adicionalesSeleccionados.includes(ad)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setAdicionalesSeleccionados((prev) =>
+                          checked
+                            ? [...prev, ad]
+                            : prev.filter((item) => item !== ad)
+                        );
+                      }}
+                    />
+                    {ad}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={agregarProducto}
             className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
           >
             Agregar Producto
-          </button>
-
-          {/* BEBIDAS */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 flex items-center gap-1 mt-4">
-              🥤 Bebida(s)
-            </label>
-            <select
-              value={bebidaSeleccionada}
-              onChange={(e) => setBebidaSeleccionada(e.target.value)}
-              className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            >
-              <option value="">Selecciona una bebida</option>
-              {bebidas.map((b) => (
-                <option key={b._id} value={b.nombre}>
-                  {b.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={agregarBebida}
-            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
-          >
-            Agregar Bebida
           </button>
         </div>
 

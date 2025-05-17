@@ -34,19 +34,19 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   }, [mesa]);
 
   useEffect(() => {
-    const prod = productos.find((p) => p.nombre === comidaSeleccionada);
+    const prod = productos.find((p) => p.nombre === seleccionado);
     if (prod && prod.adicionales) {
       setAdicionalesDisponibles(prod.adicionales);
     } else {
       setAdicionalesDisponibles([]);
     }
     setAdicionalesSeleccionados([]);
-  }, [comidaSeleccionada]);
+  }, [seleccionado]);
 
   const agregarProducto = () => {
-    const producto = productos.find(
-      (p) => p.nombre === comidaSeleccionada && p.tipo !== "bebida"
-    );
+    const producto =
+      productos.find((p) => p.nombre === comidaSeleccionada) ||
+      productos.find((p) => p.nombre === bebidaSeleccionada);
 
     if (!producto) return;
 
@@ -69,36 +69,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
 
     setComidaSeleccionada("");
+    setBebidaSeleccionada("");
     setAdicionalesDisponibles([]);
     setAdicionalesSeleccionados([]);
-  };
-
-  const agregarBebida = () => {
-    const producto = productos.find(
-      (p) => p.nombre === bebidaSeleccionada && p.tipo === "bebida"
-    );
-
-    if (!producto) return;
-
-    const nuevoProducto = {
-      ...producto,
-      cantidad: 1,
-      descuento: producto.descuento || 0,
-      adicionales: [], // Las bebidas no tienen adicionales
-    };
-
-    const itemExistente = lista.find((p) => p.nombre === producto.nombre);
-    if (itemExistente) {
-      setLista(
-        lista.map((p) =>
-          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
-        )
-      );
-    } else {
-      setLista([...lista, nuevoProducto]);
-    }
-
-    setBebidaSeleccionada("");
   };
 
   const eliminarProducto = (nombre) => {
@@ -177,7 +150,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl md:max-w-4xl lg:max-w-5xl rounded-3xl p-4 md:p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
+      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl rounded-3xl p-6 shadow-2xl text-white">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-orange-400 flex items-center gap-2">
@@ -275,12 +248,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </div>
             </div>
           )}
-          <button
-            onClick={agregarProducto}
-            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
-          >
-            Agregar Producto
-          </button>
 
           {/* BEBIDAS */}
           <div className="mb-4">
@@ -302,10 +269,10 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </div>
 
           <button
-            onClick={agregarBebida}
+            onClick={agregarProducto}
             className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
           >
-            Agregar Bebida
+            Agregar Producto
           </button>
         </div>
 
