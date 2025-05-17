@@ -24,7 +24,7 @@ export async function POST(req) {
 
     const nuevoMenu = {
       nombre,
-      tipo,
+      tipo, // ✅ este campo es clave
       adicionales,
       precio,
       precioConIVA,

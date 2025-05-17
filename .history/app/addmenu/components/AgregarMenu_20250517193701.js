@@ -5,7 +5,7 @@ import { useState } from "react";
 import useAgregarMenu from "@/app/hooks/useAgregarMenu";
 import useProductos from "@/app/hooks/useProductos";
 import BackArrow from "@/app/components/ui/BackArrow";
-import { FiPlusCircle, FiX } from "react-icons/fi";
+import { FiPlusCircle } from "react-icons/fi";
 import Swal from "sweetalert2";
 
 export default function AgregarMenu() {
@@ -41,7 +41,7 @@ export default function AgregarMenu() {
       tipo,
       precio: parseInt(precio),
       precioConIVA: parseInt(precioConIVA),
-      adicionales: tipo === "comida" ? adicionales : [],
+      adicionales,
       ...(descuento && { descuento: parseInt(descuento) }),
     };
     await agregarMenu(data);
@@ -155,111 +155,7 @@ export default function AgregarMenu() {
             </button>
           </div>
         </div>
-        {productoEditar && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md text-gray-800 relative">
-              <button
-                onClick={() => setProductoEditar(null)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-              >
-                <FiX size={20} />
-              </button>
-              <h3 className="text-xl font-bold mb-4">Editar Menú</h3>
-              <input
-                type="text"
-                value={productoEditar.nombre}
-                onChange={(e) =>
-                  setProductoEditar({
-                    ...productoEditar,
-                    nombre: e.target.value,
-                  })
-                }
-                placeholder="Nombre"
-                className="w-full mb-3 px-4 py-2 border rounded"
-              />
-              <input
-                type="number"
-                value={productoEditar.precio}
-                onChange={(e) =>
-                  setProductoEditar({
-                    ...productoEditar,
-                    precio: e.target.value,
-                  })
-                }
-                placeholder="Precio"
-                className="w-full mb-3 px-4 py-2 border rounded"
-              />
-              <input
-                type="number"
-                value={productoEditar.precioConIVA}
-                onChange={(e) =>
-                  setProductoEditar({
-                    ...productoEditar,
-                    precioConIVA: e.target.value,
-                  })
-                }
-                placeholder="Precio con IVA"
-                className="w-full mb-3 px-4 py-2 border rounded"
-              />
-              <input
-                type="number"
-                value={productoEditar.descuento || ""}
-                onChange={(e) =>
-                  setProductoEditar({
-                    ...productoEditar,
-                    descuento: e.target.value,
-                  })
-                }
-                placeholder="Descuento (opcional)"
-                className="w-full mb-3 px-4 py-2 border rounded"
-              />
-              <div className="flex gap-2 mb-3">
-                <button
-                  onClick={() =>
-                    setProductoEditar({ ...productoEditar, tipo: "comida" })
-                  }
-                  className={`px-4 py-1 rounded ${
-                    productoEditar.tipo === "comida"
-                      ? "bg-orange-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  🍽 Comida
-                </button>
-                <button
-                  onClick={() =>
-                    setProductoEditar({ ...productoEditar, tipo: "bebida" })
-                  }
-                  className={`px-4 py-1 rounded ${
-                    productoEditar.tipo === "bebida"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  🥤 Bebida
-                </button>
-              </div>
-              <textarea
-                value={productoEditar.adicionales?.join(", ") || ""}
-                onChange={(e) =>
-                  setProductoEditar({
-                    ...productoEditar,
-                    adicionales: e.target.value.split(",").map((a) => a.trim()),
-                  })
-                }
-                placeholder="Adicionales (separados por coma)"
-                className="w-full mb-3 px-4 py-2 border rounded"
-                rows={2}
-              />
-              <button
-                onClick={guardarEdicion}
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded"
-              >
-                Guardar Cambios
-              </button>
-            </div>
-          </div>
-        )}
+
         {modo === "agregar" ? (
           <form
             onSubmit={handleAgregar}
@@ -293,9 +189,7 @@ export default function AgregarMenu() {
             </div>
             <input
               type="text"
-              placeholder={`Nombre del ${
-                tipo === "bebida" ? "bebida" : "plato"
-              }`}
+              placeholder="Nombre del plato"
               className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
@@ -324,34 +218,30 @@ export default function AgregarMenu() {
               value={descuento}
               onChange={(e) => setDescuento(e.target.value)}
             />
-            {tipo === "comida" && (
-              <>
-                <div className="flex gap-3 col-span-1 md:col-span-2">
-                  <input
-                    type="text"
-                    placeholder="Adicional"
-                    className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
-                    value={adicional}
-                    onChange={(e) => setAdicional(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={agregarAdicional}
-                    className="bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-3 flex items-center gap-2"
-                  >
-                    <FiPlusCircle /> Agregar
-                  </button>
-                </div>
-                {adicionales.length > 0 && (
-                  <div className="col-span-2">
-                    <ul className="list-disc pl-6 text-sm text-cyan-300">
-                      {adicionales.map((a, i) => (
-                        <li key={i}>{a}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
+            <div className="flex gap-3 col-span-1 md:col-span-2">
+              <input
+                type="text"
+                placeholder="Adicional"
+                className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
+                value={adicional}
+                onChange={(e) => setAdicional(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={agregarAdicional}
+                className="bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-3 flex items-center gap-2"
+              >
+                <FiPlusCircle /> Agregar
+              </button>
+            </div>
+            {adicionales.length > 0 && (
+              <div className="col-span-2">
+                <ul className="list-disc pl-6 text-sm text-cyan-300">
+                  {adicionales.map((a, i) => (
+                    <li key={i}>{a}</li>
+                  ))}
+                </ul>
+              </div>
             )}
             <div className="col-span-2">
               <button
@@ -369,17 +259,11 @@ export default function AgregarMenu() {
               <select
                 value={filtroTipo}
                 onChange={(e) => setFiltroTipo(e.target.value)}
-                className="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-xl"
+                className="bg-white/10 text-white placeholder:text-black border border-white/20 px-4 py-2 rounded-xl"
               >
-                <option className="text-black" value="todos">
-                  🍽 Todos
-                </option>
-                <option className="text-black" value="comida">
-                  🍝 Solo comidas
-                </option>
-                <option className="text-black" value="bebida">
-                  🥤 Solo bebidas
-                </option>
+                <option value="todos">🍽 Todos</option>
+                <option value="comida">🍝 Solo comidas</option>
+                <option value="bebida">🥤 Solo bebidas</option>
               </select>
             </div>
             <div className="space-y-4">
@@ -414,7 +298,6 @@ export default function AgregarMenu() {
                     >
                       Editar
                     </button>
-
                     <button
                       onClick={() => handleEliminar(p._id)}
                       className="bg-red-600 hover:bg-red-700 text-sm px-3 py-1 rounded-xl"
