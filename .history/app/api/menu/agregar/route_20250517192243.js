@@ -1,18 +1,13 @@
+// app/api/menu/agregar/route.js
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { nombre, adicionales, precio, precioConIVA, descuento, tipo } = body;
+    const { nombre, adicionales, precio, precioConIVA, descuento } = body;
 
-    if (
-      !nombre ||
-      !precio ||
-      !precioConIVA ||
-      !Array.isArray(adicionales) ||
-      !tipo
-    ) {
+    if (!nombre || !precio || !precioConIVA || !Array.isArray(adicionales)) {
       return NextResponse.json(
         { message: "Faltan datos obligatorios" },
         { status: 400 }
@@ -24,7 +19,6 @@ export async function POST(req) {
 
     const nuevoMenu = {
       nombre,
-      tipo,
       adicionales,
       precio,
       precioConIVA,

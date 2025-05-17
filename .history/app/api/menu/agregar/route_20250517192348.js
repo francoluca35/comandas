@@ -1,6 +1,6 @@
+// app/api/menu/agregar/route.js
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
-
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -24,7 +24,7 @@ export async function POST(req) {
 
     const nuevoMenu = {
       nombre,
-      tipo,
+      tipo, // ✅ este campo es clave
       adicionales,
       precio,
       precioConIVA,
