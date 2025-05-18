@@ -4,9 +4,9 @@ import { hashPassword } from "@/utils/encrypt";
 
 export async function POST(req) {
   try {
-    const { username, nombreCompleto, email, password, rol } = await req.json();
+    const { username, email, password, rol } = await req.json();
 
-    if (!username || !nombreCompleto || !email || !password || !rol) {
+    if (!username || !email || !password || !rol) {
       return NextResponse.json(
         { error: "Todos los campos son requeridos" },
         { status: 400 }

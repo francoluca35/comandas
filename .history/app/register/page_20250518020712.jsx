@@ -71,8 +71,8 @@ export default function RegisterPage() {
 
             <input
               type="text"
-              name="username"
-              placeholder="Nombre de usuario"
+              name="Nombre de usuario"
+              placeholder="username"
               onChange={handleChange}
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
