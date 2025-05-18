@@ -8,7 +8,7 @@ import { FiPlusCircle, FiX } from "react-icons/fi";
 import Swal from "sweetalert2";
 
 export default function AgregarMenu() {
-  const { agregarMenu, loading, error, success } = useAgregarMenu();
+  const { agregarMenu, loading } = useAgregarMenu();
   const { productos } = useProductos();
 
   const [modo, setModo] = useState("agregar");
@@ -57,65 +57,6 @@ export default function AgregarMenu() {
     if (adicional) {
       setAdicionales([...adicionales, adicional]);
       setAdicional("");
-    }
-  };
-
-  const handleEliminar = async (id) => {
-    const confirm = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Este menú será eliminado permanentemente.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    });
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await fetch("/api/menu/eliminar", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      Swal.fire("Eliminado", "El menú ha sido eliminado.", "success");
-      location.reload();
-    } catch (error) {
-      Swal.fire("Error", "Hubo un error al eliminar el menú.", "error");
-    }
-  };
-
-  const handleEditar = (producto) => {
-    setProductoEditar({ ...producto, tipo: producto.tipo || "comida" });
-  };
-
-  const guardarEdicion = async () => {
-    const { _id, nombre, precio, precioConIVA, descuento, adicionales, tipo } =
-      productoEditar;
-    try {
-      await fetch("/api/menu/editar", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: _id,
-          nombre,
-          tipo,
-          precio: parseInt(precio),
-          precioConIVA: parseInt(precioConIVA),
-          descuento: parseInt(descuento || 0),
-          adicionales,
-        }),
-      });
-      Swal.fire(
-        "Actualizado",
-        "El menú ha sido editado correctamente.",
-        "success"
-      );
-      setProductoEditar(null);
-      location.reload();
-    } catch (err) {
-      Swal.fire("Error", "Hubo un error al editar el menú.", "error");
     }
   };
 
@@ -263,87 +204,9 @@ export default function AgregarMenu() {
             </div>
           </form>
         ) : (
-          <>
-            <div className="mb-4 flex justify-center">
-              <select
-                value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
-                className="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-xl"
-              >
-                <option className="text-black" value="todos">
-                  🍽 Todos
-                </option>
-                <option className="text-black" value="comida">
-                  🍝 Solo comidas
-                </option>
-                <option className="text-black" value="bebida">
-                  🥤 Solo bebidas
-                </option>
-              </select>
-            </div>
-            <div className="space-y-4">
-              {productosPaginados.map((p) => (
-                <div
-                  key={p._id}
-                  className="flex justify-between items-center bg-white/10 p-4 rounded-xl border border-white/10 text-white"
-                >
-                  <div>
-                    <p className="font-bold">{p.nombre}</p>
-                    <p className="text-sm text-cyan-300">
-                      Precio: ${p.precio} / IVA: ${p.precioConIVA}
-                    </p>
-                    <p className="text-xs text-gray-400 uppercase">
-                      Tipo: {p.tipo === "bebida" ? "🥤 Bebida" : "🍽 Comida"}
-                    </p>
-                    {p.descuento && (
-                      <p className="text-xs text-yellow-400">
-                        Descuento: {p.descuento}
-                      </p>
-                    )}
-                    {p.adicionales?.length > 0 && (
-                      <p className="text-xs text-gray-300">
-                        Adicionales: {p.adicionales.join(", ")}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditar(p)}
-                      className="bg-orange-500 hover:bg-orange-600 text-sm px-3 py-1 rounded-xl"
-                    >
-                      Editar
-                    </button>
-
-                    <button
-                      onClick={() => handleEliminar(p._id)}
-                      className="bg-red-600 hover:bg-red-700 text-sm px-3 py-1 rounded-xl"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <div className="flex justify-center mt-6 gap-2">
-                <button
-                  onClick={() => setPaginaActual(paginaActual - 1)}
-                  disabled={paginaActual === 1}
-                  className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white hover:bg-white/20 disabled:opacity-40"
-                >
-                  ← Anterior
-                </button>
-                <span className="text-white px-3 py-1">
-                  Página {paginaActual} de {totalPaginas}
-                </span>
-                <button
-                  onClick={() => setPaginaActual(paginaActual + 1)}
-                  disabled={paginaActual === totalPaginas}
-                  className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white hover:bg-white/20 disabled:opacity-40"
-                >
-                  Siguiente →
-                </button>
-              </div>
-            </div>
-          </>
+          <p className="text-white text-center">
+            Editar / Eliminar menú (sección omitida aquí)
+          </p>
         )}
       </div>
     </section>

@@ -120,18 +120,18 @@ export default function AgregarMenu() {
   };
 
   return (
-    <section className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black py-16 px-4">
-      <div className="max-w-3xl mx-auto backdrop-blur-lg bg-white/5 rounded-3xl p-6 md:p-10 border border-gray-700 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-4 left-4">
+    <section className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black py-16 px-6">
+      <div className="max-w-3xl mx-auto backdrop-blur-lg bg-white/5 rounded-3xl p-10 border border-gray-700 shadow-2xl relative">
+        <div className="absolute top-6 left-6">
           <BackArrow label="Volver al panel" />
         </div>
 
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 text-center">
+        <h2 className="text-4xl font-bold text-white mb-6 text-center">
           🍽 Gestión de Menú
         </h2>
 
         <div className="flex justify-center mb-8">
-          <div className="bg-white/10 rounded-xl p-1 flex flex-wrap justify-center gap-2 w-full md:w-auto border border-white/20">
+          <div className="bg-white/10 rounded-xl p-1 inline-flex border border-white/20">
             <button
               onClick={() => setModo("agregar")}
               className={`px-4 py-2 rounded-xl transition ${
@@ -154,14 +154,118 @@ export default function AgregarMenu() {
             </button>
           </div>
         </div>
-
+        {productoEditar && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md text-gray-800 relative">
+              <button
+                onClick={() => setProductoEditar(null)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              >
+                <FiX size={20} />
+              </button>
+              <h3 className="text-xl font-bold mb-4">Editar Menú</h3>
+              <input
+                type="text"
+                value={productoEditar.nombre}
+                onChange={(e) =>
+                  setProductoEditar({
+                    ...productoEditar,
+                    nombre: e.target.value,
+                  })
+                }
+                placeholder="Nombre"
+                className="w-full mb-3 px-4 py-2 border rounded"
+              />
+              <input
+                type="number"
+                value={productoEditar.precio}
+                onChange={(e) =>
+                  setProductoEditar({
+                    ...productoEditar,
+                    precio: e.target.value,
+                  })
+                }
+                placeholder="Precio"
+                className="w-full mb-3 px-4 py-2 border rounded"
+              />
+              <input
+                type="number"
+                value={productoEditar.precioConIVA}
+                onChange={(e) =>
+                  setProductoEditar({
+                    ...productoEditar,
+                    precioConIVA: e.target.value,
+                  })
+                }
+                placeholder="Precio con IVA"
+                className="w-full mb-3 px-4 py-2 border rounded"
+              />
+              <input
+                type="number"
+                value={productoEditar.descuento || ""}
+                onChange={(e) =>
+                  setProductoEditar({
+                    ...productoEditar,
+                    descuento: e.target.value,
+                  })
+                }
+                placeholder="Descuento (opcional)"
+                className="w-full mb-3 px-4 py-2 border rounded"
+              />
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() =>
+                    setProductoEditar({ ...productoEditar, tipo: "comida" })
+                  }
+                  className={`px-4 py-1 rounded ${
+                    productoEditar.tipo === "comida"
+                      ? "bg-orange-500 text-white"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  🍽 Comida
+                </button>
+                <button
+                  onClick={() =>
+                    setProductoEditar({ ...productoEditar, tipo: "bebida" })
+                  }
+                  className={`px-4 py-1 rounded ${
+                    productoEditar.tipo === "bebida"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  🥤 Bebida
+                </button>
+              </div>
+              <textarea
+                value={productoEditar.adicionales?.join(", ") || ""}
+                onChange={(e) =>
+                  setProductoEditar({
+                    ...productoEditar,
+                    adicionales: e.target.value.split(",").map((a) => a.trim()),
+                  })
+                }
+                placeholder="Adicionales (separados por coma)"
+                className="w-full mb-3 px-4 py-2 border rounded"
+                rows={2}
+              />
+              <button
+                onClick={guardarEdicion}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded"
+              >
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        )}
         {modo === "agregar" ? (
           <form
             onSubmit={handleAgregar}
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
-            <div className="sm:col-span-2 flex justify-center">
-              <div className="bg-white/10 rounded-xl p-1 flex flex-wrap justify-center gap-2 w-full sm:w-auto border border-white/20">
+            <div className="col-span-1 md:col-span-2 mb-2 flex justify-center">
+              <div className="bg-white/10 rounded-xl p-1 inline-flex border border-white/20">
                 <button
                   type="button"
                   onClick={() => setTipo("comida")}
@@ -186,7 +290,6 @@ export default function AgregarMenu() {
                 </button>
               </div>
             </div>
-
             <input
               type="text"
               placeholder={`Nombre del ${
@@ -220,10 +323,9 @@ export default function AgregarMenu() {
               value={descuento}
               onChange={(e) => setDescuento(e.target.value)}
             />
-
             {tipo === "comida" && (
               <>
-                <div className="flex gap-3 sm:col-span-2 flex-col sm:flex-row">
+                <div className="flex gap-3 col-span-1 md:col-span-2">
                   <input
                     type="text"
                     placeholder="Adicional"
@@ -234,14 +336,13 @@ export default function AgregarMenu() {
                   <button
                     type="button"
                     onClick={agregarAdicional}
-                    className="bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-3 flex items-center gap-2 justify-center"
+                    className="bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-3 flex items-center gap-2"
                   >
                     <FiPlusCircle /> Agregar
                   </button>
                 </div>
-
                 {adicionales.length > 0 && (
-                  <div className="sm:col-span-2">
+                  <div className="col-span-2">
                     <ul className="list-disc pl-6 text-sm text-cyan-300">
                       {adicionales.map((a, i) => (
                         <li key={i}>{a}</li>
@@ -251,8 +352,7 @@ export default function AgregarMenu() {
                 )}
               </>
             )}
-
-            <div className="sm:col-span-2">
+            <div className="col-span-2">
               <button
                 type="submit"
                 disabled={loading}
