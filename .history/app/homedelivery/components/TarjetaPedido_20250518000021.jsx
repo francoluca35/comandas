@@ -20,14 +20,8 @@ export default function TarjetaPedido({ pedido, entregado = false }) {
 
       <div className="text-sm text-gray-200">
         {pedido.comidas?.map((item, idx) => (
-          <div key={idx} className="mb-1">
-            {item.comida && <strong> 🍽 {item.comida}</strong>}
-            {item.bebida && (
-              <>
-                {item.comida && " + "}
-                🥤 <strong>{item.bebida}</strong>
-              </>
-            )}
+          <div key={idx}>
+            🍽 <strong>{item.comida}</strong>
             {item.adicionales?.length > 0 && (
               <span> + {item.adicionales.join(", ")}</span>
             )}
