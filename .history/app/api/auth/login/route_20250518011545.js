@@ -1,13 +1,20 @@
-// ⚠️ Agregá esta línea justo al principio del archivo
-export const dynamic = "force-dynamic";
-
 import clientPromise from "@/lib/mongodb";
 import { comparePasswords } from "@/utils/encrypt";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req) {
   try {
-    const { username, password } = await req.json();
+    const body = await req.text(); // <-- CAMBIO CRÍTICO
+    const { username, password } = JSON.parse(body); // <-- DECODEO MANUAL
+
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: "Faltan credenciales" },
+        { status: 400 }
+      );
+    }
 
     const client = await clientPromise;
     const db = client.db("comandas");
@@ -15,12 +22,14 @@ export async function POST(req) {
     const user = await db.collection("users").findOne({ username });
 
     if (!user) {
-      return NextResponse.json({ error: "No existe usuario" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Usuario no encontrado" },
+        { status: 401 }
+      );
     }
 
-    const valid = await comparePasswords(password, user.password);
-
-    if (!valid) {
+    const isValid = await comparePasswords(password, user.password);
+    if (!isValid) {
       return NextResponse.json(
         { error: "Contraseña incorrecta" },
         { status: 401 }
@@ -35,8 +44,8 @@ export async function POST(req) {
         nombreCompleto: user.nombreCompleto,
       },
     });
-  } catch (err) {
-    console.error("💥 Error en /api/auth/login:", err);
+  } catch (error) {
+    console.error("🔥 Error en login:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 500 }

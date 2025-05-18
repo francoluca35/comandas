@@ -1,15 +1,13 @@
-// app/api/auth/login/route.js
 import clientPromise from "@/lib/mongodb";
 import { comparePasswords } from "@/utils/encrypt";
 import { NextResponse } from "next/server";
 
-// 🛠️ Obligatorio para evitar errores en Vercel
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { username, password } = body;
+    const body = await req.text(); // <-- CAMBIO CRÍTICO
+    const { username, password } = JSON.parse(body); // <-- DECODEO MANUAL
 
     if (!username || !password) {
       return NextResponse.json(
