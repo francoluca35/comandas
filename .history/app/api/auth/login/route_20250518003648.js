@@ -4,23 +4,24 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const body = await req.json().catch(() => null);
-    if (!body) {
+    const rawBody = await req.text();
+    if (!rawBody) {
       return NextResponse.json({ error: "Cuerpo vacío" }, { status: 400 });
     }
 
-    const { username, password } = body;
+    const { username, password } = JSON.parse(rawBody);
+
     if (!username || !password) {
       return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
     }
 
     const client = await clientPromise;
     const db = client.db("comandas");
-    const user = await db.collection("users").findOne({ username });
 
+    const user = await db.collection("users").findOne({ username });
     if (!user) {
       return NextResponse.json(
-        { error: "Usuario no encontrado" },
+        { error: "No existe el usuario" },
         { status: 401 }
       );
     }
@@ -37,12 +38,12 @@ export async function POST(req) {
       user: {
         username: user.username,
         email: user.email,
-        nombreCompleto: user.nombreCompleto,
         rol: user.rol,
+        nombreCompleto: user.nombreCompleto,
       },
     });
   } catch (err) {
-    console.error("💥 Error en /api/auth/login:", err.message);
+    console.error("💥 Error en login:", err);
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 500 }
