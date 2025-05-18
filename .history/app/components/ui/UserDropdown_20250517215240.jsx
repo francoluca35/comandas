@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function UserDropdown() {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const closeTimeoutRef = useRef(null);
@@ -15,20 +15,8 @@ export default function UserDropdown() {
   };
 
   const handleMouseLeave = () => {
-    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200); // pequeño delay
   };
-
-  // Función para obtener iniciales de nombreCompleto
-  const getInitials = (name) => {
-    if (!name) return "CH";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  const initials = getInitials(user?.nombreCompleto || "CH");
 
   return (
     <div
@@ -36,11 +24,12 @@ export default function UserDropdown() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Avatar con iniciales */}
+      {/* Botón de usuario */}
       <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer hover:ring-2 hover:ring-orange-400 transition">
-        {initials}
+        CH
       </div>
 
+      {/* Dropdown */}
       {open && (
         <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-50">
           <ul className="py-1 text-sm">

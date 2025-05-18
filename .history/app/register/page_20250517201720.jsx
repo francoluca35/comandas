@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 
-export default function Login() {
+export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    rol: "delivery", // valor por defecto
+  });
+
   const [error, setError] = useState("");
-  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,31 +23,22 @@ export default function Login() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("/api/auth/login", {
+    const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
 
     const data = await res.json();
+
     if (!res.ok) {
-      setError(data.error || "Error al iniciar sesión");
+      setError(data.error || "Error al registrar");
       return;
     }
 
-    // Guardamos el usuario en el contexto
-    login(data.user);
-
-    // Redirigimos según el rol
-    const rol = data.user?.rol;
-
-    if (rol === "admin") {
-      router.push("/screenhome");
-    } else if (rol === "delivery") {
-      router.push("/homedelivery");
-    } else {
-      setError("Rol no autorizado");
-    }
+    setTimeout(() => {
+      router.push("/login");
+    }, 100);
   };
 
   return (
@@ -61,7 +56,7 @@ export default function Login() {
           </div>
 
           <h2 className="text-white text-2xl font-semibold text-center mb-4">
-            Iniciar sesión
+            Crear cuenta
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,6 +64,15 @@ export default function Login() {
               type="text"
               name="username"
               placeholder="Usuario"
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
+              required
+            />
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Correo electrónico"
               onChange={handleChange}
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
@@ -93,27 +97,17 @@ export default function Login() {
               type="submit"
               className="w-full bg-orange-500 text-white py-2 rounded-md font-semibold hover:bg-orange-600 transition-all duration-300"
             >
-              Iniciar sesión
+              Registrarse
             </button>
           </form>
 
-          <p className="text-center text-sm mt-3">
-            {" "}
-            ¿Olvidaste tu contraseña? <br />
-            <a
-              href="/recuperar"
-              className="text-cyan-400 font-bold hover:underline hover:text-cyan-300 transition"
-            >
-              Haz clic aquí para recuperarla
-            </a>
-          </p>
           <p className="text-gray-300 text-center text-sm mt-6">
-            ¿No tenés cuenta?{" "}
+            ¿Ya tenés cuenta?{" "}
             <a
-              href="/register"
+              href="/login"
               className="text-orange-400 font-semibold hover:underline"
             >
-              Registrarse
+              Iniciar sesión
             </a>
           </p>
         </div>

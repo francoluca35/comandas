@@ -98,13 +98,11 @@ export default function Login() {
           </form>
 
           <p className="text-center text-sm mt-3">
-            {" "}
-            ¿Olvidaste tu contraseña? <br />
             <a
               href="/recuperar"
-              className="text-cyan-400 font-bold hover:underline hover:text-cyan-300 transition"
+              className="text-cyan-400 hover:underline hover:text-cyan-300 transition"
             >
-              Haz clic aquí para recuperarla
+              ¿Olvidaste tu contraseña? Haz clic aquí para recuperarla
             </a>
           </p>
           <p className="text-gray-300 text-center text-sm mt-6">

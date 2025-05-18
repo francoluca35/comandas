@@ -28,7 +28,7 @@ export default function UserDropdown() {
       .toUpperCase();
   };
 
-  const initials = getInitials(user?.nombreCompleto || "CH");
+  const initials = getInitials(user?.nombreCompleto || user?.username || "CH");
 
   return (
     <div

@@ -102,7 +102,7 @@ export default function Login() {
             ¿Olvidaste tu contraseña? <br />
             <a
               href="/recuperar"
-              className="text-cyan-400 font-bold hover:underline hover:text-cyan-300 transition"
+              className="text-cyan-400 hover:underline hover:text-cyan-300 transition"
             >
               Haz clic aquí para recuperarla
             </a>

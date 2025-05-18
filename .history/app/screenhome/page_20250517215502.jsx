@@ -17,7 +17,7 @@ export default function ScreenHome() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-lg font-semibold">
-            Bienvenido {user?.nombreCompleto} - {fecha}
+            Bienvenido {user?.nombreompleto} - {fecha}
           </h2>
           <UserDropdown />
         </div>

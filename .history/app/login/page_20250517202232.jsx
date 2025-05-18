@@ -99,10 +99,10 @@ export default function Login() {
 
           <p className="text-center text-sm mt-3">
             {" "}
-            ¿Olvidaste tu contraseña? <br />
+            ¿Olvidaste tu contraseña?
             <a
               href="/recuperar"
-              className="text-cyan-400 font-bold hover:underline hover:text-cyan-300 transition"
+              className="text-cyan-400 hover:underline hover:text-cyan-300 transition"
             >
               Haz clic aquí para recuperarla
             </a>

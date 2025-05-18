@@ -24,8 +24,7 @@ export async function POST(req) {
     user: {
       username: user.username,
       email: user.email,
-      rol: user.rol,
-      nombreCompleto: user.nombreCompleto,
+      rol: user.rol, // <-- esto es lo que faltaba
     },
   });
 }

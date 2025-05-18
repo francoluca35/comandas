@@ -25,7 +25,7 @@ export async function POST(req) {
       username: user.username,
       email: user.email,
       rol: user.rol,
-      nombreCompleto: user.nombreCompleto,
+      nombrecompleto: user.nombreCompleto,
     },
   });
 }

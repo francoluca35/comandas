@@ -33,7 +33,6 @@ export async function POST(req) {
       username,
       email,
       password: hashedPassword,
-      rol, // ✅ guardar rol
       createdAt: new Date(),
     });
 
