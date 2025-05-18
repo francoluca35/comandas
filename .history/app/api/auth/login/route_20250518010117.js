@@ -1,13 +1,10 @@
-// ⚠️ Agregá esta línea justo al principio del archivo
-export const dynamic = "force-dynamic";
-
 import clientPromise from "@/lib/mongodb";
 import { comparePasswords } from "@/utils/encrypt";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { username, password } = await req.json();
+    const { username, password } = await req.json(); // 👈 necesario
 
     const client = await clientPromise;
     const db = client.db("comandas");
