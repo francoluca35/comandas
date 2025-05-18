@@ -13,11 +13,10 @@ export default function RootLayout({ children }) {
     <html lang="es">
       <head>
         {/* Google Maps Script */}
-        <script
+        <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_MAPS_KEY}`}
-          async
-          defer
-        ></script>
+          strategy="beforeInteractive"
+        />
       </head>
       <body>
         <AuthProvider>{children}</AuthProvider>

@@ -4,7 +4,12 @@ import Boton from "./Boton";
 import { FiMapPin, FiCheck } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
-export default function TarjetaPedido({ pedido, entregado = false }) {
+export default function TarjetaPedido({
+  pedido,
+  onEntregar,
+  entregado = false,
+}) {
+  // dentro del componente:
   const router = useRouter();
 
   return (
@@ -20,14 +25,8 @@ export default function TarjetaPedido({ pedido, entregado = false }) {
 
       <div className="text-sm text-gray-200">
         {pedido.comidas?.map((item, idx) => (
-          <div key={idx} className="mb-1">
-            {item.comida && <strong> 🍽 {item.comida}</strong>}
-            {item.bebida && (
-              <>
-                {item.comida && " + "}
-                🥤 <strong>{item.bebida}</strong>
-              </>
-            )}
+          <div key={idx}>
+            🍽 <strong>{item.comida}</strong>
             {item.adicionales?.length > 0 && (
               <span> + {item.adicionales.join(", ")}</span>
             )}
@@ -48,17 +47,21 @@ export default function TarjetaPedido({ pedido, entregado = false }) {
         </p>
       )}
 
-      <div className="flex gap-4 mt-4">
+      <div className="flex gap-4">
+        <Boton
+          color="gray"
+          onClick={() => router.push(`/ver-mapa?id=${pedido._id}`)}
+        >
+          <FiMapPin /> Ver Mapa
+        </Boton>
+
         {entregado ? (
           <Boton disabled color="gray">
             <FiCheck /> Entregado
           </Boton>
         ) : (
-          <Boton
-            color="gray"
-            onClick={() => router.push(`/vermapa?id=${pedido._id}`)}
-          >
-            <FiMapPin /> Ver Mapa
+          <Boton color="green" onClick={() => onEntregar(pedido._id)}>
+            <FiCheck /> Entregar
           </Boton>
         )}
       </div>
