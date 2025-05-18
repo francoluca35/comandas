@@ -8,9 +8,9 @@ export async function GET() {
 
     const pedidos = await db
       .collection("pedidos")
-      .find({ timestamp: { $exists: true } }) // ✅ solo pedidos válidos
       .sort({ timestamp: -1 })
-      .toArray();
+      .find()
+      .toArray(); // ✅ sin filtro
 
     return NextResponse.json(pedidos);
   } catch (error) {

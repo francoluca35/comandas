@@ -36,7 +36,6 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("comandas");
     const pedidos = await db.collection("pedidos").find().toArray();
-
     return NextResponse.json(pedidos);
   } catch (error) {
     console.error("Error al obtener pedidos:", error);

@@ -35,7 +35,11 @@ export async function GET() {
   try {
     const client = await clientPromise;
     const db = client.db("comandas");
-    const pedidos = await db.collection("pedidos").find().toArray();
+    const pedidos = await db
+      .collection("pedidos")
+      .sort({ timestamp: -1 })
+      .find()
+      .toArray();
 
     return NextResponse.json(pedidos);
   } catch (error) {

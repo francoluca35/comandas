@@ -7,6 +7,7 @@ import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 
 export default function Pedidos() {
   const { productos } = useProductos();
+
   const [nombre, setNombre] = useState("");
   const [comida, setComida] = useState("");
   const [bebida, setBebida] = useState("");
@@ -28,10 +29,16 @@ export default function Pedidos() {
 
   const agregarComida = () => {
     if (!comida) return;
+
     setPresupuesto((prev) => [
       ...prev,
-      { comida, bebida: "", adicionales: [...adicionalesSeleccionados] },
+      {
+        comida,
+        bebida: "",
+        adicionales: [...adicionalesSeleccionados],
+      },
     ]);
+
     setComida("");
     setAdicionalesSeleccionados([]);
     setAdicionalesDisponibles([]);
@@ -39,10 +46,16 @@ export default function Pedidos() {
 
   const agregarBebida = () => {
     if (!bebida) return;
+
     setPresupuesto((prev) => [
       ...prev,
-      { comida: "", bebida, adicionales: [] },
+      {
+        comida: "",
+        bebida,
+        adicionales: [],
+      },
     ]);
+
     setBebida("");
   };
 
@@ -69,7 +82,6 @@ export default function Pedidos() {
       return;
     }
 
-    const now = new Date();
     const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       direccion
     )}`;
@@ -83,8 +95,7 @@ export default function Pedidos() {
       comidas: presupuesto,
       total,
       estado: "en curso",
-      fecha: now.toLocaleString("es-AR"),
-      timestamp: now, // ✅ FECHA REAL PARA ORDENAR
+      fecha: new Date().toLocaleString("es-AR"),
     };
 
     try {

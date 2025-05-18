@@ -6,6 +6,7 @@ import BackArrow from "@/app/components/ui/BackArrow";
 
 export default function Maps() {
   const { pedidos, loading, refetch } = useMaps();
+
   const [detalle, setDetalle] = useState(null);
   const [enviandoId, setEnviandoId] = useState(null);
 
@@ -17,11 +18,11 @@ export default function Maps() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, nuevoEstado: "en camino" }),
       });
+
       await refetch();
+      setEnviandoId(null);
     } catch (err) {
       console.error("Error al enviar:", err);
-    } finally {
-      setEnviandoId(null);
     }
   };
 
@@ -30,6 +31,7 @@ export default function Maps() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f172a] to-black text-white px-6 py-12 flex flex-col items-center">
+      {/* BackArrow */}
       <div className="w-full max-w-4xl mb-6">
         <BackArrow label="Volver al panel" />
       </div>
@@ -48,9 +50,6 @@ export default function Maps() {
               <div>
                 <p className="text-lg font-bold">{pedido.nombre}</p>
                 <p className="text-sm text-gray-300">{pedido.direccion}</p>
-                <p className="text-xs text-gray-400 mb-1">
-                  Fecha: {pedido.fecha}
-                </p>
                 <p className="text-sm text-gray-400 mb-2">
                   Total: ${pedido.total}
                 </p>
@@ -103,7 +102,7 @@ export default function Maps() {
         </ul>
       </div>
 
-      {/* Modal de detalle */}
+      {/* Modal */}
       {detalle && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-white text-black p-6 rounded-2xl max-w-lg w-full shadow-2xl relative border border-gray-200">
@@ -123,9 +122,6 @@ export default function Maps() {
                 <strong>📍 Dirección:</strong> {detalle.direccion}
               </p>
               <p>
-                <strong>🗓 Fecha:</strong> {detalle.fecha}
-              </p>
-              <p>
                 <strong>💳 Forma de pago:</strong> {detalle.formaDePago}
               </p>
               <p>
@@ -140,7 +136,7 @@ export default function Maps() {
                 <ul className="list-disc list-inside mt-1">
                   {detalle.comidas.map((c, i) => (
                     <li key={i}>
-                      {c.comida || c.bebida}
+                      {c.comida}
                       {c.adicionales?.length > 0 && (
                         <> + {c.adicionales.join(", ")}</>
                       )}
