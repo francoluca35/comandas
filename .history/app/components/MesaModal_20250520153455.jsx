@@ -175,7 +175,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           total: 0,
           estado: "libre",
           hora: "",
-          fecha: "",
         }),
       });
 

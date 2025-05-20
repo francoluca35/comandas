@@ -8,7 +8,7 @@ import {
   FaPlus,
   FaTimes,
 } from "react-icons/fa";
-import Resumen from "./Resumen";
+import { GiMeal } from "react-icons/gi";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -16,7 +16,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   const [bebidaSeleccionada, setBebidaSeleccionada] = useState("");
   const comidas = productos.filter((p) => p.tipo !== "bebida");
   const bebidas = productos.filter((p) => p.tipo === "bebida");
-  const [mostrarResumen, setMostrarResumen] = useState(false);
+
   const [nombreCliente, setNombreCliente] = useState("");
   const [mostrarPago, setMostrarPago] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
@@ -109,8 +109,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       minute: "2-digit",
     });
 
-    const fecha = new Date().toLocaleDateString("es-AR");
-
     const actualizados = [...historial, ...pedidoActual];
 
     const total = actualizados.reduce(
@@ -129,7 +127,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       total: totalConIva,
       estado: "ocupado",
       hora,
-      fecha,
     };
 
     try {
@@ -147,7 +144,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           cliente: nombreCliente,
           productos: pedidoActual,
           hora,
-          fecha,
         }),
       });
 
@@ -175,7 +171,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           total: 0,
           estado: "libre",
           hora: "",
-          fecha: "",
         }),
       });
 
@@ -249,13 +244,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           >
             <FaPlus className="inline mr-1" /> Enviar
           </button>
-          <button
-            onClick={() => setMostrarResumen(true)}
-            className="bg-gray-600 text-white py-2 rounded-xl"
-          >
-            Cuenta
-          </button>
-
+          <button className="bg-gray-600 py-2 rounded-xl">Cuenta</button>
           <button
             onClick={() => setMostrarPago(!mostrarPago)}
             className="bg-blue-500 hover:bg-blue-600 py-2 rounded-xl"
@@ -420,9 +409,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </div>
         )}
       </div>
-      {mostrarResumen && (
-        <Resumen mesa={mesa} onClose={() => setMostrarResumen(false)} />
-      )}
     </div>
   );
 }

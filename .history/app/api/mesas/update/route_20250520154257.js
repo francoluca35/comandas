@@ -14,7 +14,6 @@ export async function POST(req) {
         $set: {
           usuario,
           hora,
-          fecha,
           estado,
         },
       }
