@@ -129,7 +129,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       total: totalConIva,
       estado: "ocupado",
       hora,
-      fecha,
     };
 
     try {
@@ -147,7 +146,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           cliente: nombreCliente,
           productos: pedidoActual,
           hora,
-          fecha,
         }),
       });
 
@@ -175,7 +173,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           total: 0,
           estado: "libre",
           hora: "",
-          fecha: "",
         }),
       });
 

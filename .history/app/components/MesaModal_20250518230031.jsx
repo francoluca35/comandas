@@ -8,7 +8,7 @@ import {
   FaPlus,
   FaTimes,
 } from "react-icons/fa";
-import Resumen from "./Resumen";
+import { GiMeal } from "react-icons/gi";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -16,26 +16,30 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   const [bebidaSeleccionada, setBebidaSeleccionada] = useState("");
   const comidas = productos.filter((p) => p.tipo !== "bebida");
   const bebidas = productos.filter((p) => p.tipo === "bebida");
-  const [mostrarResumen, setMostrarResumen] = useState(false);
+
   const [nombreCliente, setNombreCliente] = useState("");
+  const [seleccionado, setSeleccionado] = useState("");
+  const [lista, setLista] = useState([]);
   const [mostrarPago, setMostrarPago] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
   const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
-  const [historial, setHistorial] = useState([]); // resumen acumulado
-  const [pedidoActual, setPedidoActual] = useState([]); // pedido nuevo
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
       setNombreCliente(mesa.cliente || "");
-      setHistorial(mesa.productos || []);
+      setLista(mesa.productos || []);
       setMetodoPago(mesa.metodoPago || "");
     }
   }, [mesa]);
 
   useEffect(() => {
     const prod = productos.find((p) => p.nombre === comidaSeleccionada);
-    setAdicionalesDisponibles(prod?.adicionales || []);
+    if (prod && prod.adicionales) {
+      setAdicionalesDisponibles(prod.adicionales);
+    } else {
+      setAdicionalesDisponibles([]);
+    }
     setAdicionalesSeleccionados([]);
   }, [comidaSeleccionada]);
 
@@ -43,64 +47,76 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     const producto = productos.find(
       (p) => p.nombre === comidaSeleccionada && p.tipo !== "bebida"
     );
+
     if (!producto) return;
 
-    const nuevo = {
+    const nuevoProducto = {
       ...producto,
       cantidad: 1,
       descuento: producto.descuento || 0,
       adicionales: adicionalesSeleccionados,
     };
 
-    const existente = pedidoActual.find((p) => p.nombre === nuevo.nombre);
-    if (existente) {
-      setPedidoActual(
-        pedidoActual.map((p) =>
-          p.nombre === nuevo.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
+    const itemExistente = lista.find((p) => p.nombre === producto.nombre);
+    if (itemExistente) {
+      setLista(
+        lista.map((p) =>
+          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
         )
       );
     } else {
-      setPedidoActual([...pedidoActual, nuevo]);
+      setLista([...lista, nuevoProducto]);
     }
 
     setComidaSeleccionada("");
+    setAdicionalesDisponibles([]);
     setAdicionalesSeleccionados([]);
   };
 
   const agregarBebida = () => {
-    const bebida = productos.find(
+    const producto = productos.find(
       (p) => p.nombre === bebidaSeleccionada && p.tipo === "bebida"
     );
-    if (!bebida) return;
 
-    const nuevo = {
-      ...bebida,
+    if (!producto) return;
+
+    const nuevoProducto = {
+      ...producto,
       cantidad: 1,
-      descuento: bebida.descuento || 0,
-      adicionales: [],
+      descuento: producto.descuento || 0,
+      adicionales: [], // Las bebidas no tienen adicionales
     };
 
-    const existente = pedidoActual.find((p) => p.nombre === nuevo.nombre);
-    if (existente) {
-      setPedidoActual(
-        pedidoActual.map((p) =>
-          p.nombre === nuevo.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
+    const itemExistente = lista.find((p) => p.nombre === producto.nombre);
+    if (itemExistente) {
+      setLista(
+        lista.map((p) =>
+          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
         )
       );
     } else {
-      setPedidoActual([...pedidoActual, nuevo]);
+      setLista([...lista, nuevoProducto]);
     }
 
     setBebidaSeleccionada("");
   };
 
   const eliminarProducto = (nombre) => {
-    setPedidoActual(pedidoActual.filter((p) => p.nombre !== nombre));
+    setLista(lista.filter((p) => p.nombre !== nombre));
   };
 
+  const subtotal = lista.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const descuento = lista.reduce(
+    (acc, p) => acc + (p.descuento || 0) * p.cantidad,
+    0
+  );
+  const totalSinIva = subtotal - descuento;
+  const iva = totalSinIva * 0.18;
+  const totalConIva = totalSinIva + iva;
+
   const enviarPedido = async () => {
-    if (!nombreCliente || pedidoActual.length === 0) {
-      alert("Completa el nombre y agrega productos.");
+    if (!nombreCliente || lista.length === 0) {
+      alert("Completa el nombre y al menos un producto.");
       return;
     }
 
@@ -109,59 +125,48 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       minute: "2-digit",
     });
 
-    const fecha = new Date().toLocaleDateString("es-AR");
-
-    const actualizados = [...historial, ...pedidoActual];
-
-    const total = actualizados.reduce(
-      (acc, p) =>
-        acc + (p.precio * p.cantidad - (p.descuento || 0) * p.cantidad),
-      0
-    );
-    const totalConIva = total * 1.18;
-
     const payload = {
       codigo: mesa.codigo,
       numero: mesa.numero,
       cliente: nombreCliente,
-      productos: actualizados,
+      productos: lista,
       metodoPago,
       total: totalConIva,
       estado: "ocupado",
       hora,
-      fecha,
     };
 
     try {
+      // 1. Guardar en la mesa
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
+      // 2. Enviar a cocina
       await fetch("/api/cocina", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mesa: mesa.numero,
           cliente: nombreCliente,
-          productos: pedidoActual,
+          productos: lista,
           hora,
-          fecha,
         }),
       });
 
-      setHistorial(actualizados);
-      setPedidoActual([]);
-      alert("Pedido enviado a cocina.");
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Error al enviar pedido.");
+      alert("Comanda enviada correctamente");
+      location.reload();
+    } catch (error) {
+      console.error("Error al enviar comanda:", error);
+      alert("Error al enviar comanda");
     }
   };
 
-  const eliminarComanda = async () => {
-    if (!confirm("¿Eliminar toda la comanda y liberar mesa?")) return;
+  const eliminarTodo = async () => {
+    const confirm = window.confirm("¿Eliminar pedido y liberar mesa?");
+    if (!confirm) return;
 
     try {
       await fetch("/api/mesas", {
@@ -175,45 +180,23 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           total: 0,
           estado: "libre",
           hora: "",
-          fecha: "",
         }),
       });
 
-      alert("Mesa liberada.");
+      alert("Mesa liberada correctamente");
       location.reload();
-    } catch (err) {
-      console.error("Error:", err);
-      alert("No se pudo liberar mesa.");
+    } catch (error) {
+      console.error("Error al liberar mesa:", error);
+      alert("Hubo un error al liberar la mesa");
     }
   };
-
-  const marcarComoEntregada = async () => {
-    try {
-      await fetch("/api/cocina", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mesa: mesa.numero }),
-      });
-      alert("Comida marcada como entregada.");
-    } catch (err) {
-      alert("Error al eliminar pedido de cocina.");
-    }
-  };
-
-  const subtotal = historial.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
-  const descuento = historial.reduce(
-    (acc, p) => acc + (p.descuento || 0) * p.cantidad,
-    0
-  );
-  const iva = (subtotal - descuento) * 0.18;
-  const total = subtotal - descuento + iva;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white/5 border border-white/10 backdrop-blur-lg w-full max-w-4xl rounded-3xl p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-orange-400">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
+      <div className="bg-white/5 backdrop-blur-lg border border-white/10 w-full max-w-3xl md:max-w-4xl lg:max-w-5xl rounded-3xl p-4 md:p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-orange-400 flex items-center gap-2">
             🍽️ Mesa {mesa.numero}
           </h2>
           <button
@@ -221,41 +204,36 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               refetch?.();
               onClose();
             }}
-            className="bg-red-600 hover:bg-red-700 p-2 rounded-full"
+            className="text-white bg-red-600 hover:bg-red-700 p-2 rounded-full transition"
           >
             <FaTimes />
           </button>
         </div>
 
-        {/* CLIENTE */}
-        <div className="mb-3">
-          <label className="text-sm flex items-center gap-1 font-medium">
+        {/* Cliente */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 flex items-center gap-1">
             <FaUser /> Nombre del cliente
           </label>
           <input
             value={nombreCliente}
             onChange={(e) => setNombreCliente(e.target.value)}
-            className="w-full px-4 py-2 mt-1 bg-white/10 border border-white/20 rounded-xl placeholder-gray-300 text-white"
+            className="w-full bg-white/10 text-white px-4 py-2 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-300"
             placeholder="Nombre del cliente"
           />
         </div>
 
-        {/* BOTONES */}
-        <div className="grid grid-cols-3 gap-3 mb-4 text-sm font-semibold">
+        {/* Botones principales */}
+        <div className="grid grid-cols-3 gap-3 mb-5 text-sm font-semibold">
           <button
             onClick={enviarPedido}
-            className="bg-green-500 hover:bg-green-600 py-2 rounded-xl"
-            disabled={pedidoActual.length === 0}
+            className="bg-green-500 hover:bg-green-600 py-2 rounded-xl transition flex items-center justify-center gap-2"
           >
-            <FaPlus className="inline mr-1" /> Enviar
+            <FaPlus /> Enviar
           </button>
-          <button
-            onClick={() => setMostrarResumen(true)}
-            className="bg-gray-600 text-white py-2 rounded-xl"
-          >
+          <button className="bg-gray-600 text-white py-2 rounded-xl">
             Cuenta
           </button>
-
           <button
             onClick={() => setMostrarPago(!mostrarPago)}
             className="bg-blue-500 hover:bg-blue-600 py-2 rounded-xl"
@@ -263,29 +241,22 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             Cobrar
           </button>
           <button
-            onClick={eliminarComanda}
+            onClick={eliminarTodo}
             className="col-span-3 bg-red-600 hover:bg-red-700 py-2 rounded-xl"
           >
             Eliminar Comanda
           </button>
-          <button
-            onClick={marcarComoEntregada}
-            className="col-span-3 bg-yellow-500 hover:bg-yellow-600 py-2 rounded-xl"
-          >
-            ✅ Comida entregada
-          </button>
         </div>
 
-        {/* FORMULARIO DE PEDIDO */}
-        {/* COMIDA */}
+        {/* Producto */}
         <div className="mb-4">
-          <label className="text-sm font-medium mb-1 flex items-center gap-1">
-            🍽️ Comida
+          <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+            <GiMeal /> Comida(s)
           </label>
           <select
             value={comidaSeleccionada}
             onChange={(e) => setComidaSeleccionada(e.target.value)}
-            className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2"
+            className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
           >
             <option value="">Selecciona una comida</option>
             {comidas.map((p) => (
@@ -294,79 +265,81 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </option>
             ))}
           </select>
-
           {/* Adicionales */}
           {adicionalesDisponibles.length > 0 && (
-            <div className="mt-2 text-xs">
-              <p className="font-semibold mb-1">Adicionales:</p>
+            <div className="mt-3">
+              <p className="text-sm font-medium mb-1">Adicionales:</p>
               <div className="flex flex-wrap gap-2">
-                {adicionalesDisponibles.map((a, i) => (
-                  <label key={i} className="flex items-center gap-1">
+                {adicionalesDisponibles.map((ad, idx) => (
+                  <label key={idx} className="flex items-center text-xs gap-2">
                     <input
                       type="checkbox"
-                      value={a}
-                      checked={adicionalesSeleccionados.includes(a)}
-                      onChange={(e) =>
+                      value={ad}
+                      checked={adicionalesSeleccionados.includes(ad)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
                         setAdicionalesSeleccionados((prev) =>
-                          e.target.checked
-                            ? [...prev, a]
-                            : prev.filter((x) => x !== a)
-                        )
-                      }
+                          checked
+                            ? [...prev, ad]
+                            : prev.filter((item) => item !== ad)
+                        );
+                      }}
                     />
-                    {a}
+                    {ad}
                   </label>
                 ))}
               </div>
             </div>
           )}
-
           <button
             onClick={agregarProducto}
-            className="w-full mt-3 bg-orange-500 hover:bg-orange-600 py-2 rounded-xl font-semibold"
+            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
           >
-            Agregar Comida
+            Agregar Producto
           </button>
-        </div>
 
-        {/* BEBIDA */}
-        <div className="mb-4">
-          <label className="text-sm font-medium mb-1">🥤 Bebida</label>
-          <select
-            value={bebidaSeleccionada}
-            onChange={(e) => setBebidaSeleccionada(e.target.value)}
-            className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2"
-          >
-            <option value="">Selecciona una bebida</option>
-            {bebidas.map((p) => (
-              <option key={p._id} value={p.nombre}>
-                {p.nombre}
-              </option>
-            ))}
-          </select>
+          {/* BEBIDAS */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 flex items-center gap-1 mt-4">
+              🥤 Bebida(s)
+            </label>
+            <select
+              value={bebidaSeleccionada}
+              onChange={(e) => setBebidaSeleccionada(e.target.value)}
+              className="w-full bg-white/10 text-gray-500 px-3 py-2 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            >
+              <option value="">Selecciona una bebida</option>
+              {bebidas.map((b) => (
+                <option key={b._id} value={b.nombre}>
+                  {b.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <button
             onClick={agregarBebida}
-            className="w-full mt-3 bg-orange-500 hover:bg-orange-600 py-2 rounded-xl font-semibold"
+            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
           >
             Agregar Bebida
           </button>
         </div>
 
-        {/* TABLA DE PEDIDOS (RESUMEN COMPLETO) */}
-        <div className="overflow-x-auto mt-6">
-          <table className="w-full text-xs">
-            <thead className="bg-white/10">
+        {/* Tabla */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs mt-5 text-white/90">
+            <thead className="bg-white/10 rounded-xl">
               <tr>
                 <th className="p-2 text-left">Descripción</th>
                 <th className="p-2">Cant.</th>
                 <th className="p-2">Precio</th>
                 <th className="p-2">Desc.</th>
                 <th className="p-2">Total</th>
+                <th className="p-2">Acción</th>
               </tr>
             </thead>
             <tbody>
-              {historial.map((p, i) => (
+              {lista.map((p, i) => (
                 <tr key={i} className="border-t border-white/10">
                   <td className="p-2">
                     {p.nombre}
@@ -377,13 +350,20 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
                     )}
                   </td>
                   <td className="text-center">{p.cantidad}</td>
-                  <td className="text-center">{p.precio}</td>
-                  <td className="text-center">{p.descuento || 0}</td>
+                  <td className="text-center">{p.precio.toFixed(2)}</td>
+                  <td className="text-center">
+                    {(p.descuento || 0).toFixed(2)}
+                  </td>
                   <td className="text-center">
                     {(
                       p.precio * p.cantidad -
                       (p.descuento || 0) * p.cantidad
                     ).toFixed(2)}
+                  </td>
+                  <td className="text-center">
+                    <button onClick={() => eliminarProducto(p.nombre)}>
+                      <FaTrash className="text-red-400 hover:text-red-600" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -391,26 +371,26 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </table>
         </div>
 
-        {/* TOTALES */}
-        <div className="text-right text-sm mt-6">
-          <p>Subtotal: ${subtotal.toFixed(2)}</p>
-          <p>Descuento: -${descuento.toFixed(2)}</p>
-          <p>IVA: +${iva.toFixed(2)}</p>
-          <p className="text-cyan-400 font-bold text-lg mt-1">
-            Total: ${total.toFixed(2)}
+        {/* Totales */}
+        <div className="text-right mt-6 text-sm text-white/80">
+          <p className="mb-1">Subtotal: ${subtotal.toFixed(2)}</p>
+          <p className="mb-1">Descuento: -${descuento.toFixed(2)}</p>
+          <p className="mb-1">IVA (18%): +${iva.toFixed(2)}</p>
+          <p className="font-bold text-lg text-cyan-300 mt-2">
+            Total con IVA: ${totalConIva.toFixed(2)}
           </p>
         </div>
 
-        {/* MÉTODO DE PAGO */}
+        {/* Método de pago */}
         {mostrarPago && (
           <div className="mt-6">
             <label className="text-sm font-medium flex items-center gap-1">
-              <FaMoneyBillWave /> Método de pago
+              <FaMoneyBillWave /> Método de Pago:
             </label>
             <select
               value={metodoPago}
               onChange={(e) => setMetodoPago(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border border-white/20 rounded-xl bg-white/10 text-white"
+              className="w-full px-3 py-2 border border-white/20 rounded-xl bg-white/10 text-white mt-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Selecciona</option>
               <option value="efectivo">Efectivo</option>
@@ -420,9 +400,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </div>
         )}
       </div>
-      {mostrarResumen && (
-        <Resumen mesa={mesa} onClose={() => setMostrarResumen(false)} />
-      )}
     </div>
   );
 }
