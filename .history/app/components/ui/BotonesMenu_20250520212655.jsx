@@ -10,7 +10,7 @@ export default function BotonesMenu() {
   const botonesSuperiores = [
     { texto: "Mesas", icono: <FaChair size={24} />, ruta: "/tavolo" },
     { texto: "Pedidos", icono: <FaConciergeBell size={24} />, ruta: "/pedido" },
-
+    { texto: "Pedidos", icono: <FaConciergeBell size={24} />, ruta: "/photo" },
     { texto: "Delivery", icono: <FaChartBar size={24} />, ruta: "/delivery" },
     { texto: "A. Comidas", icono: <FaPlus size={24} />, ruta: "/addmenu" },
   ];

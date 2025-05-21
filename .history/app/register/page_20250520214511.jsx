@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -123,6 +122,7 @@ export default function RegisterPage() {
               onChange={handleFileChange}
               required
             />
+            <button type="submit">Registrarse</button>
 
             <button
               type="submit"
