@@ -1,9 +1,7 @@
 "use client";
-
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import Image from "next/image";
 
 export default function UserDropdown() {
   const { logout, user } = useAuth();
@@ -20,6 +18,7 @@ export default function UserDropdown() {
     closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
   };
 
+  // Función para obtener iniciales de nombreCompleto
   const getInitials = (name) => {
     if (!name) return "CH";
     return name
@@ -29,7 +28,7 @@ export default function UserDropdown() {
       .toUpperCase();
   };
 
-  const initials = getInitials(user?.nombreCompleto);
+  const initials = getInitials(user?.nombreCompleto || "CH");
 
   return (
     <div
@@ -37,20 +36,16 @@ export default function UserDropdown() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Si hay imagen la mostramos, si no usamos iniciales */}
-      {user?.imagen ? (
+      {/* Avatar con iniciales */}
+      <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer hover:ring-2 hover:ring-orange-400 transition">
         <Image
-          src={user.imagen}
-          alt="Foto de perfil"
+          src={user?.imagen || "/default-avatar.png"}
+          alt="Avatar"
           width={40}
           height={40}
-          className="rounded-full object-cover border-2 border-white shadow-md"
+          className="rounded-full"
         />
-      ) : (
-        <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer hover:ring-2 hover:ring-orange-400 transition">
-          {initials}
-        </div>
-      )}
+      </div>
 
       {open && (
         <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-50">
