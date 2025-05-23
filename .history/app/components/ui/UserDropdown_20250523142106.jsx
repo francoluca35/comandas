@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { LogOut, UserCog, Lock, User } from "lucide-react";
+import { LogOut, UserCog, Lock } from "lucide-react";
+import User from "@/app/models/User";
 
 export default function UserDropdown() {
   const { logout, user } = useAuth();
@@ -111,29 +112,16 @@ export default function UserDropdown() {
             </li>
           )}
 
-          {pathname === "/cambiarpassword" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/cambiarpassword");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <Lock size={18} />
-              Cambiar contraseña
-            </li>
-          )}
+          <li
+            onClick={() => {
+              router.push("/cambiarpassword");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <Lock size={18} />
+            Cambiar contraseña
+          </li>
         </ul>
 
         {/* Anclado abajo */}

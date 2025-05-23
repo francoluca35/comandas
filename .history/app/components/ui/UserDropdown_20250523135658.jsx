@@ -1,0 +1,94 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { LogOut, User, KeyRound, Menu } from "lucide-react";
+
+export default function UserSidebar() {
+  const { logout, user } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  const getInitials = (name) => {
+    if (!name) return "CH";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const initials = getInitials(user?.nombreCompleto);
+
+  return (
+    <div className="relative">
+      {/* Botón de usuario */}
+      <div
+        onClick={() => setOpen(!open)}
+        className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer hover:ring-2 hover:ring-orange-400 transition fixed top-4 right-4 z-50"
+      >
+        {user?.imagen ? (
+          <Image
+            src={user.imagen}
+            alt="Foto de perfil"
+            width={40}
+            height={40}
+            className="rounded-full object-cover border-2 border-white shadow-md"
+          />
+        ) : (
+          initials
+        )}
+      </div>
+
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-lg z-40 transform transition-transform duration-300 ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full p-6 space-y-6">
+          <h2 className="text-xl font-bold mb-4">Menú</h2>
+
+          <div className="space-y-4">
+            <button
+              className="flex items-center gap-3 hover:text-orange-400 transition"
+              onClick={() => {
+                router.push("/perfil");
+                setOpen(false);
+              }}
+            >
+              <User className="w-5 h-5" />
+              Cambiar datos
+            </button>
+
+            <button
+              className="flex items-center gap-3 hover:text-orange-400 transition"
+              onClick={() => {
+                router.push("/cambiarpassword");
+                setOpen(false);
+              }}
+            >
+              <KeyRound className="w-5 h-5" />
+              Cambiar contraseña
+            </button>
+
+            <button
+              className="flex items-center gap-3 text-red-400 hover:text-red-500 transition"
+              onClick={() => {
+                logout();
+                setOpen(false);
+              }}
+            >
+              <LogOut className="w-5 h-5" />
+              Cerrar sesión
+            </button>
+          </div>
+
+          <div className="flex-grow" />
+          <p className="text-xs text-gray-400">© 2025 Tu Restaurante</p>
+        </div>
+      </div>
+    </>
+  );
+}

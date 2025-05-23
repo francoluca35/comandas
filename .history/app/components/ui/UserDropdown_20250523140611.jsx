@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { LogOut, UserCog, Lock, User } from "lucide-react";
+import { LogOut, UserCog, Lock } from "lucide-react";
 
 export default function UserDropdown() {
   const { logout, user } = useAuth();
@@ -14,7 +12,6 @@ export default function UserDropdown() {
   const [open, setOpen] = useState(false);
   const sidebarRef = useRef(null);
   const triggerRef = useRef(null);
-  const pathname = usePathname();
 
   const getInitials = (name) => {
     if (!name) return "CH";
@@ -41,7 +38,6 @@ export default function UserDropdown() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  if (!user) return null;
 
   return (
     <div className="relative z-50">
@@ -87,55 +83,27 @@ export default function UserDropdown() {
         </div>
 
         <ul className="space-y-4 text-sm flex-1">
-          {pathname === "/perfil" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/perfil");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <UserCog size={18} />
-              Cambiar datos
-            </li>
-          )}
-
-          {pathname === "/cambiarpassword" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/cambiarpassword");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <Lock size={18} />
-              Cambiar contraseña
-            </li>
-          )}
+          <li
+            onClick={() => {
+              router.push("/perfil");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <UserCog size={18} />
+            Cambiar datos
+          </li>
+          <li
+            onClick={() => {
+              router.push("/cambiarpassword");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <Lock size={18} />
+            Cambiar contraseña
+          </li>
         </ul>
-
         {/* Anclado abajo */}
         <div
           onClick={() => {

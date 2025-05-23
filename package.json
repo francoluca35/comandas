@@ -17,6 +17,7 @@
     "formidable": "^3.5.4",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
+    "lucide-react": "^0.511.0",
     "mongodb": "^6.16.0",
     "mongoose": "^8.15.0",
     "multer": "^2.0.0",
