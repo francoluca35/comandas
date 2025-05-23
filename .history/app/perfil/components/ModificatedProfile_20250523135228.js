@@ -76,55 +76,52 @@ export default function ModificatedProfile() {
   };
 
   return (
-    <div>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 px-4">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/5 backdrop-blur p-8 rounded-xl w-full max-w-md shadow-xl"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 px-4">
+      <UserDropdown />
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white/5 backdrop-blur p-8 rounded-xl w-full max-w-md shadow-xl"
+      >
+        <h2 className="text-white text-2xl font-bold mb-6 text-center">
+          Editar Perfil 📝
+        </h2>
+
+        <label className="text-white text-sm mb-1 block">Usuario actual</label>
+        <input
+          type="text"
+          value={currentUsername}
+          disabled
+          className="w-full px-4 py-2 rounded bg-gray-800 text-gray-400 mb-4 border border-gray-600"
+        />
+
+        <label className="text-white text-sm mb-1 block">Nuevo usuario</label>
+        <input
+          type="text"
+          name="newUsername"
+          placeholder="Nuevo usuario"
+          value={form.newUsername}
+          onChange={handleChange}
+          className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
+        />
+
+        <label className="text-white text-sm mb-1 block">Nuevo correo</label>
+        <input
+          type="email"
+          name="email"
+          placeholder="Nuevo correo electrónico"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-orange-500 text-white font-semibold py-2 rounded hover:bg-orange-600 transition"
         >
-          <h2 className="text-white text-2xl font-bold mb-6 text-center">
-            Editar Perfil 📝
-          </h2>
-
-          <label className="text-white text-sm mb-1 block">
-            Usuario actual
-          </label>
-          <input
-            type="text"
-            value={currentUsername}
-            disabled
-            className="w-full px-4 py-2 rounded bg-gray-800 text-gray-400 mb-4 border border-gray-600"
-          />
-
-          <label className="text-white text-sm mb-1 block">Nuevo usuario</label>
-          <input
-            type="text"
-            name="newUsername"
-            placeholder="Nuevo usuario"
-            value={form.newUsername}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
-          />
-
-          <label className="text-white text-sm mb-1 block">Nuevo correo</label>
-          <input
-            type="email"
-            name="email"
-            placeholder="Nuevo correo electrónico"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-gray-800 text-white mb-4 focus:ring-2 focus:ring-orange-400"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 text-white font-semibold py-2 rounded hover:bg-orange-600 transition"
-          >
-            {loading ? "Guardando..." : "Actualizar Perfil"}
-          </button>
-        </form>
-      </div>
+          {loading ? "Guardando..." : "Actualizar Perfil"}
+        </button>
+      </form>
     </div>
   );
 }

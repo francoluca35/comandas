@@ -111,29 +111,16 @@ export default function UserDropdown() {
             </li>
           )}
 
-          {pathname === "/cambiarpassword" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/cambiarpassword");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <Lock size={18} />
-              Cambiar contraseña
-            </li>
-          )}
+          <li
+            onClick={() => {
+              router.push("/cambiarpassword");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <Lock size={18} />
+            Cambiar contraseña
+          </li>
         </ul>
 
         {/* Anclado abajo */}

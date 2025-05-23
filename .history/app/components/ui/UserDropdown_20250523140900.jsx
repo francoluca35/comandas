@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { LogOut, UserCog, Lock, User } from "lucide-react";
+import { LogOut, UserCog, Lock } from "lucide-react";
 
 export default function UserDropdown() {
   const { logout, user } = useAuth();
@@ -14,7 +12,6 @@ export default function UserDropdown() {
   const [open, setOpen] = useState(false);
   const sidebarRef = useRef(null);
   const triggerRef = useRef(null);
-  const pathname = usePathname();
 
   const getInitials = (name) => {
     if (!name) return "CH";
@@ -41,7 +38,6 @@ export default function UserDropdown() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  if (!user) return null;
 
   return (
     <div className="relative z-50">
@@ -52,17 +48,16 @@ export default function UserDropdown() {
         onMouseEnter={() => setOpen(true)}
         onClick={() => setOpen(!open)}
       >
-        {user?.imagen ? (
-          <Image
-            src={user.imagen}
-            alt="Foto de perfil"
-            width={40}
-            height={40}
-            className="rounded-full object-cover border-2 border-white shadow-md"
-          />
-        ) : (
-          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-sm font-bold text-white hover:ring-2 hover:ring-orange-400 transition">
-            {initials}
+        {user && (
+          <div className="flex items-center gap-3 text-xl font-semibold mb-6 border-b border-white/20 pb-4">
+            <Image
+              src={user.imagen || "/default-avatar.png"}
+              alt="Foto de perfil"
+              width={40}
+              height={40}
+              className="rounded-full object-cover border-2 border-white shadow-md"
+            />
+            <p>{user.nombreCompleto || "Usuario"}</p>
           </div>
         )}
       </div>
@@ -81,61 +76,33 @@ export default function UserDropdown() {
             alt="Foto de perfil"
             width={40}
             height={40}
-            className="rounded-full object-cover border-2 border-white shadow-md"
+            className="rounded-full object-cover  shadow-md"
           />
           <p>Chekka</p>
         </div>
 
         <ul className="space-y-4 text-sm flex-1">
-          {pathname === "/perfil" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/perfil");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <UserCog size={18} />
-              Cambiar datos
-            </li>
-          )}
-
-          {pathname === "/cambiarpassword" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/cambiarpassword");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <Lock size={18} />
-              Cambiar contraseña
-            </li>
-          )}
+          <li
+            onClick={() => {
+              router.push("/perfil");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <UserCog size={18} />
+            Cambiar datos
+          </li>
+          <li
+            onClick={() => {
+              router.push("/cambiarpassword");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <Lock size={18} />
+            Cambiar contraseña
+          </li>
         </ul>
-
         {/* Anclado abajo */}
         <div
           onClick={() => {

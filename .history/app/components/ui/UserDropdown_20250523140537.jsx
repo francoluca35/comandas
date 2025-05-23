@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { LogOut, UserCog, Lock, User } from "lucide-react";
+import { LogOut, UserCog, Lock } from "lucide-react";
 
 export default function UserDropdown() {
   const { logout, user } = useAuth();
@@ -14,7 +12,6 @@ export default function UserDropdown() {
   const [open, setOpen] = useState(false);
   const sidebarRef = useRef(null);
   const triggerRef = useRef(null);
-  const pathname = usePathname();
 
   const getInitials = (name) => {
     if (!name) return "CH";
@@ -41,7 +38,6 @@ export default function UserDropdown() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  if (!user) return null;
 
   return (
     <div className="relative z-50">
@@ -75,65 +71,38 @@ export default function UserDropdown() {
           open ? "translate-x-0" : "translate-x-full"
         } bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white shadow-2xl transition-transform duration-300 ease-in-out p-6 z-50 rounded-l-xl flex flex-col`}
       >
-        <div className="flex items-center gap-3 text-xl font-semibold mb-6 border-b border-white/20 pb-4">
+        <div className="text-xl font-semibold mb-6 border-b border-white/20 pb-4">
           <Image
             src={user.imagen}
             alt="Foto de perfil"
             width={40}
             height={40}
             className="rounded-full object-cover border-2 border-white shadow-md"
-          />
+          />{" "}
           <p>Chekka</p>
         </div>
 
         <ul className="space-y-4 text-sm flex-1">
-          {pathname === "/perfil" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/perfil");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <UserCog size={18} />
-              Cambiar datos
-            </li>
-          )}
-
-          {pathname === "/cambiarpassword" ? (
-            <li
-              onClick={() => {
-                router.push("/screenhome");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <User size={18} />
-              Inicio
-            </li>
-          ) : (
-            <li
-              onClick={() => {
-                router.push("/cambiarpassword");
-                setOpen(false);
-              }}
-              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-            >
-              <Lock size={18} />
-              Cambiar contraseña
-            </li>
-          )}
+          <li
+            onClick={() => {
+              router.push("/perfil");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <UserCog size={18} />
+            Cambiar datos
+          </li>
+          <li
+            onClick={() => {
+              router.push("/cambiarpassword");
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+          >
+            <Lock size={18} />
+            Cambiar contraseña
+          </li>
         </ul>
 
         {/* Anclado abajo */}
