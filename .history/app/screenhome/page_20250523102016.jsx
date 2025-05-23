@@ -25,6 +25,10 @@ export default function ScreenHome() {
         {/* Contenido Principal */}
         <div className="flex flex-col lg:flex-row items-center justify-center gap-16 flex-grow">
           <Suspense
+            fallback={<p className="text-gray-400">Cargando métricas...</p>}
+          ></Suspense>
+
+          <Suspense
             fallback={<p className="text-gray-400">Cargando menú...</p>}
           >
             <BotonesMenu />

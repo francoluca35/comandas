@@ -22,8 +22,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   const [metodoPago, setMetodoPago] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
   const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
-  const [historial, setHistorial] = useState([]);
-  const [pedidoActual, setPedidoActual] = useState([]);
+  const [historial, setHistorial] = useState([]); // resumen acumulado
+  const [pedidoActual, setPedidoActual] = useState([]); // pedido nuevo
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
@@ -200,12 +200,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
   };
 
-  const todosLosProductos = [...historial, ...pedidoActual];
-  const subtotal = todosLosProductos.reduce(
-    (acc, p) => acc + p.precio * p.cantidad,
-    0
-  );
-  const descuento = todosLosProductos.reduce(
+  const subtotal = historial.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const descuento = historial.reduce(
     (acc, p) => acc + (p.descuento || 0) * p.cantidad,
     0
   );
