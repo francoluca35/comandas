@@ -22,8 +22,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   const [metodoPago, setMetodoPago] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
   const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
-  const [historial, setHistorial] = useState([]);
-  const [pedidoActual, setPedidoActual] = useState([]);
+  const [historial, setHistorial] = useState([]); // resumen acumulado
+  const [pedidoActual, setPedidoActual] = useState([]); // pedido nuevo
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
@@ -200,12 +200,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
   };
 
-  const todosLosProductos = [...historial, ...pedidoActual];
-  const subtotal = todosLosProductos.reduce(
-    (acc, p) => acc + p.precio * p.cantidad,
-    0
-  );
-  const descuento = todosLosProductos.reduce(
+  const subtotal = historial.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const descuento = historial.reduce(
     (acc, p) => acc + (p.descuento || 0) * p.cantidad,
     0
   );
@@ -289,11 +285,11 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           <select
             value={comidaSeleccionada}
             onChange={(e) => setComidaSeleccionada(e.target.value)}
-            className="w-full bg-white/10 text-white  border border-white/20 rounded-xl px-3 py-2"
+            className="w-full bg-white/10 text-black border border-white/20 rounded-xl px-3 py-2"
           >
             <option value="">Selecciona una comida</option>
             {comidas.map((p) => (
-              <option className="text-black" key={p._id} value={p.nombre}>
+              <option key={p._id} value={p.nombre}>
                 {p.nombre}
               </option>
             ))}
@@ -343,7 +339,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           >
             <option value="">Selecciona una bebida</option>
             {bebidas.map((p) => (
-              <option className="text-black" key={p._id} value={p.nombre}>
+              <option key={p._id} value={p.nombre}>
                 {p.nombre}
               </option>
             ))}
@@ -370,7 +366,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               </tr>
             </thead>
             <tbody>
-              {[...historial, ...pedidoActual].map((p, i) => (
+              {historial.map((p, i) => (
                 <tr key={i} className="border-t border-white/10">
                   <td className="p-2">
                     {p.nombre}
