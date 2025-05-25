@@ -135,31 +135,29 @@ export default function UserDropdown() {
             </li>
           )}
 
-          {/* SOLO PARA ADMINISTRADORES */}
-          {user.rol === "admin" &&
-            (pathname === "/usuarios" ? (
-              <li
-                onClick={() => {
-                  router.push("/screenhome");
-                  setOpen(false);
-                }}
-                className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-              >
-                <User size={18} />
-                Inicio
-              </li>
-            ) : (
-              <li
-                onClick={() => {
-                  router.push("/usuarios");
-                  setOpen(false);
-                }}
-                className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
-              >
-                <Lock size={18} />
-                Usuarios
-              </li>
-            ))}
+          {pathname === "/cambiarpassword" ? (
+            <li
+              onClick={() => {
+                router.push("/screenhome");
+                setOpen(false);
+              }}
+              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+            >
+              <User size={18} />
+              Inicio
+            </li>
+          ) : (
+            <li
+              onClick={() => {
+                router.push("/cambiarpassword");
+                setOpen(false);
+              }}
+              className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
+            >
+              <Lock size={18} />
+              Usuarios
+            </li>
+          )}
         </ul>
 
         {/* Anclado abajo */}
