@@ -19,9 +19,11 @@ export async function POST(req) {
 
     const mesasDoc = await db.collection("tables").findOne({});
 
+    // Buscar en mesaAdentro y mesaAfuera
     const esAdentro = mesasDoc.mesaAdentro.some((m) => m.codigo === codigo);
     const tipo = esAdentro ? "mesaAdentro" : "mesaAfuera";
 
+    // Actualizar la mesa dentro del array
     const mesasActualizadas = mesasDoc[tipo].map((mesa) =>
       mesa.codigo === codigo
         ? {
@@ -37,29 +39,15 @@ export async function POST(req) {
         : mesa
     );
 
-    await db
-      .collection("tables")
-      .updateOne(
-        { _id: mesasDoc._id },
-        { $set: { [tipo]: mesasActualizadas } }
-      );
-
-    // Aquí insertamos el resumen en datos_clientes
-    await db.collection("datos_clientes").insertOne({
-      fecha: new Date().toLocaleDateString("es-AR"),
-      cliente,
-      comida: productos
-        .filter((p) => p.tipo !== "bebida")
-        .map((p) => p.nombre)
-        .join(", "),
-      bebida: productos
-        .filter((p) => p.tipo === "bebida")
-        .map((p) => p.nombre)
-        .join(", "),
-      total,
-      metodoPago,
-      timestamp: new Date(),
-    });
+    // Guardar el documento actualizado
+    await db.collection("tables").updateOne(
+      { _id: mesasDoc._id },
+      {
+        $set: {
+          [tipo]: mesasActualizadas,
+        },
+      }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -85,3 +73,20 @@ export async function GET() {
     );
   }
 }
+// Después de actualizar la mesa y enviar a cocina
+
+await db.collection("datos_clientes").insertOne({
+  fecha: new Date().toLocaleDateString("es-AR"),
+  cliente,
+  comida: productos
+    .filter((p) => p.tipo !== "bebida")
+    .map((p) => p.nombre)
+    .join(", "),
+  bebida: productos
+    .filter((p) => p.tipo === "bebida")
+    .map((p) => p.nombre)
+    .join(", "),
+  total,
+  metodoPago,
+  timestamp: new Date(), // Para borrar después de 35 días
+});

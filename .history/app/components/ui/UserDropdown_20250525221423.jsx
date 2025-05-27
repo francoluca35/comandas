@@ -6,14 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import {
-  LogOut,
-  UserCog,
-  Lock,
-  User,
-  ChartColumn,
-  PersonStanding,
-} from "lucide-react";
+import { LogOut, UserCog, Lock, User } from "lucide-react";
 import { FcStatistics } from "react-icons/fc";
 
 export default function UserDropdown() {
@@ -164,7 +157,7 @@ export default function UserDropdown() {
                 }}
                 className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
               >
-                <PersonStanding size={18} />
+                <Lock size={18} />
                 Usuarios
               </li>
             ))}
@@ -189,7 +182,7 @@ export default function UserDropdown() {
                 }}
                 className="flex items-center gap-2 cursor-pointer hover:text-orange-400 transition"
               >
-                <ChartColumn size={18} />
+                <FcStatistics size={18} />
                 Planillas Clientes
               </li>
             ))}
