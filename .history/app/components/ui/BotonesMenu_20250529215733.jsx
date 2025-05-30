@@ -19,12 +19,6 @@ export default function BotonesMenu() {
     { texto: "A. Comidas", icono: <FaPlus size={24} />, ruta: "/addmenu" },
   ];
 
-  const botonInferior = {
-    texto: "Agregar Mesas",
-    icono: <FaChair size={24} />,
-    ruta: "/addtavolo",
-  };
-
   return (
     <div className="flex flex-col gap-6 items-center">
       {/* Botones en dos columnas */}

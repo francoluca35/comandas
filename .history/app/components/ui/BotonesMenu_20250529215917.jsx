@@ -22,7 +22,7 @@ export default function BotonesMenu() {
   const botonInferior = {
     texto: "Agregar Mesas",
     icono: <FaChair size={24} />,
-    ruta: "/addtavolo",
+    ruta: "/screenorders",
   };
 
   return (
