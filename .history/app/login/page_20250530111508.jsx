@@ -96,7 +96,7 @@ export default function Login() {
             />
 
             {error && (
-              <p className="text-red-400 text-sm text-center font-medium bg-red-900/20 px-3 py-2 rounded-lg animate-pulse">
+              <p className="text-red-400 text-sm text-center animate-pulse">
                 {error}
               </p>
             )}

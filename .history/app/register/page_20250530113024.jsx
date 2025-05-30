@@ -176,7 +176,7 @@ export default function RegisterPage() {
               />
             </label>
             {errores.foto && (
-              <p className="text-red-400 text-sm">{errores.foto}</p> // ✅
+              <p className="text-red-400 text-sm">{errores.username}</p>
             )}
 
             {preview && (

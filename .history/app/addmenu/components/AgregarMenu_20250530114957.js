@@ -35,15 +35,20 @@ export default function AgregarMenu() {
     paginaActual * itemsPorPagina
   );
   const totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
+  const handleFileChange = (e) => {
+    const archivo = e.target.files[0];
+    const error = validarImagenMenu(archivo);
+
+    if (error) {
+      Swal.fire("Archivo no válido", error, "error");
+      return;
+    }
+
+    setFile(archivo);
+  };
 
   const handleAgregar = async (e) => {
     e.preventDefault();
-
-    const error = validarImagenMenu(file);
-    if (error) {
-      Swal.fire("Imagen no válida", error, "error");
-      return;
-    }
 
     const formData = new FormData();
     formData.append("nombre", nombre);

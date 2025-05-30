@@ -35,15 +35,20 @@ export default function AgregarMenu() {
     paginaActual * itemsPorPagina
   );
   const totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
+  const handleFileChange = (e) => {
+    const archivo = e.target.files[0];
+    const error = validarImagenMenu(archivo);
+
+    if (error) {
+      Swal.fire("Archivo no válido", error, "error");
+      return;
+    }
+
+    setFile(archivo);
+  };
 
   const handleAgregar = async (e) => {
     e.preventDefault();
-
-    const error = validarImagenMenu(file);
-    if (error) {
-      Swal.fire("Imagen no válida", error, "error");
-      return;
-    }
 
     const formData = new FormData();
     formData.append("nombre", nombre);
@@ -283,18 +288,7 @@ export default function AgregarMenu() {
               type="file"
               accept="image/*"
               className="sm:col-span-2 w-full text-white text-sm file:bg-cyan-700 file:text-white file:rounded-xl file:px-4 file:py-2 bg-white/10 border border-gray-600 rounded-xl px-4 py-3"
-              onChange={(e) => {
-                const selectedFile = e.target.files[0];
-                const error = validarImagenMenu(selectedFile);
-
-                if (error) {
-                  Swal.fire("Archivo no válido", error, "error");
-                  e.target.value = ""; // limpia el input si es inválido
-                  return;
-                }
-
-                setFile(selectedFile);
-              }}
+              onChange={(e) => setFile(e.target.files[0])}
             />
             {file && (
               <div className="sm:col-span-2">
