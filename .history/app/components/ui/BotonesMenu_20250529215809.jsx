@@ -21,8 +21,8 @@ export default function BotonesMenu() {
 
   const botonInferior = {
     texto: "Agregar Mesas",
-    icono: <FaChair size={24} />,
-    ruta: "/addtavolo",
+    icono: <GiCookingPot size={24} />,
+    ruta: "/screenorders",
   };
 
   return (
