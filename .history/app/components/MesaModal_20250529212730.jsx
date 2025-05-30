@@ -29,6 +29,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
+      setNombreCliente(mesa.cliente || "");
       setHistorial(mesa.productos || []);
       setMetodoPago(mesa.metodoPago || "");
     }
@@ -463,6 +464,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           mesa={mesa}
           productos={[...historial, ...pedidoActual]}
           total={total}
+          nombreCliente={nombreCliente}
           refetch={refetch}
         />
       )}

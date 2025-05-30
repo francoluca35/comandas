@@ -18,7 +18,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   const comidas = productos.filter((p) => p.tipo !== "bebida");
   const bebidas = productos.filter((p) => p.tipo === "bebida");
   const [mostrarResumen, setMostrarResumen] = useState(false);
-
+  const [nombreCliente, setNombreCliente] = useState("");
   const [mostrarPago, setMostrarPago] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
@@ -29,6 +29,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
+      setNombreCliente(mesa.cliente || "");
       setHistorial(mesa.productos || []);
       setMetodoPago(mesa.metodoPago || "");
     }
@@ -154,7 +155,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   };
 
   const enviarPedido = async () => {
-    if (!pedidoActual.length === 0) {
+    if (!nombreCliente || pedidoActual.length === 0) {
       alert("Completa el nombre y agrega productos.");
       return;
     }
@@ -183,7 +184,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         body: JSON.stringify({
           codigo: mesa.codigo,
           numero: mesa.numero,
-
+          cliente: nombreCliente,
           productos: productosTotales,
           metodoPago,
           total,
@@ -211,7 +212,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           codigo: mesa.codigo,
-
+          cliente: "",
           productos: [],
           metodoPago: "",
           total: 0,
@@ -276,6 +277,17 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         </div>
 
         {/* CLIENTE */}
+        <div className="mb-3">
+          <label className="text-sm flex items-center gap-1 font-medium">
+            <FaUser /> Nombre del cliente
+          </label>
+          <input
+            value={nombreCliente}
+            onChange={(e) => setNombreCliente(e.target.value)}
+            className="w-full px-4 py-2 mt-1 bg-white/10 border border-white/20 rounded-xl placeholder-gray-300 text-white"
+            placeholder="Nombre del cliente"
+          />
+        </div>
 
         {/* BOTONES */}
         <div className="grid grid-cols-2 gap-3 mb-4 text-sm font-semibold">
@@ -463,6 +475,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           mesa={mesa}
           productos={[...historial, ...pedidoActual]}
           total={total}
+          nombreCliente={nombreCliente}
           refetch={refetch}
         />
       )}

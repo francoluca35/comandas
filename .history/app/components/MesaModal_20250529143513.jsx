@@ -9,7 +9,6 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import Resumen from "./Resumen";
-import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -18,17 +17,17 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   const comidas = productos.filter((p) => p.tipo !== "bebida");
   const bebidas = productos.filter((p) => p.tipo === "bebida");
   const [mostrarResumen, setMostrarResumen] = useState(false);
-
+  const [nombreCliente, setNombreCliente] = useState("");
   const [mostrarPago, setMostrarPago] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
   const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
   const [historial, setHistorial] = useState([]);
   const [pedidoActual, setPedidoActual] = useState([]);
-  const [mostrarCobro, setMostrarCobro] = useState(false);
 
   useEffect(() => {
     if (mesa.estado === "ocupado") {
+      setNombreCliente(mesa.cliente || "");
       setHistorial(mesa.productos || []);
       setMetodoPago(mesa.metodoPago || "");
     }
@@ -95,66 +94,13 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     setBebidaSeleccionada("");
   };
 
-  const imprimirTicket = (orden, hora, fecha) => {
-    const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
-
-    const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
-    const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
-    const urlSitio = "https://francomputer.com.ar";
-
-    const html = `
-      <html>
-        <head>
-          <style>
-            body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; }
-            h2 { margin: 10px 0 5px; }
-            img.logo { width: 80px; margin-bottom: 10px; }
-            hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-            ul { text-align: left; padding-left: 0; list-style: none; }
-          </style>
-        </head>
-        <body>
-          <img src="${window.location.origin}/logo-peru-mar.png" class="logo" />
-          <h2>🍽️ Perú Mar</h2>
-          <p><strong>Mesa:</strong> ${mesa.numero}</p>
-          <p><strong>Orden #:</strong> ${orden}</p>
-          <p><strong>Hora:</strong> ${hora}</p>
-          <p><strong>Fecha:</strong> ${fecha}</p>
-          <hr />
-          <p><strong>Comidas:</strong></p>
-          <ul>
-            ${comidas
-              .map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`)
-              .join("")}
-          </ul>
-          <p><strong>Bebidas:</strong></p>
-          <ul>
-            ${bebidas
-              .map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`)
-              .join("")}
-          </ul>
-          <hr />
-          <p><strong>Visítanos:</strong></p>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-            urlSitio
-          )}" />
-          <p style="font-size: 10px; margin-top: 5px;">${urlSitio}</p>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => window.close(), 500);
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    nuevaVentana.document.write(html);
-    nuevaVentana.document.close();
+  const eliminarProducto = (nombre) => {
+    setPedidoActual(pedidoActual.filter((p) => p.nombre !== nombre));
   };
 
+  // Reemplaza tu funcion enviarPedido original por esta
   const enviarPedido = async () => {
-    if (!pedidoActual.length === 0) {
+    if (!nombreCliente || pedidoActual.length === 0) {
       alert("Completa el nombre y agrega productos.");
       return;
     }
@@ -165,43 +111,131 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     });
 
     const fecha = new Date().toLocaleDateString("es-AR");
-    const orden = Date.now();
 
-    imprimirTicket(orden, hora, fecha);
+    const actualizados = [...historial, ...pedidoActual];
 
-    const productosTotales = [...historial, ...pedidoActual];
-    const total = productosTotales.reduce(
+    const total = actualizados.reduce(
       (acc, p) =>
         acc + (p.precio * p.cantidad - (p.descuento || 0) * p.cantidad),
       0
     );
+    const totalConIva = total * 1.18;
+
+    const orden = Date.now(); // Reemplazar por secuencial si tenes una API
+
+    imprimirTicket(orden, hora, fecha);
+
+    const payload = {
+      codigo: mesa.codigo,
+      numero: mesa.numero,
+      cliente: nombreCliente,
+      productos: actualizados,
+      metodoPago,
+      total: totalConIva,
+      estado: "ocupado",
+      hora,
+      fecha,
+      orden,
+    };
 
     try {
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          codigo: mesa.codigo,
-          numero: mesa.numero,
+        body: JSON.stringify(payload),
+      });
 
-          productos: productosTotales,
-          metodoPago,
-          total,
-          estado: "ocupado",
+      await fetch("/api/cocina", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mesa: mesa.numero,
+          cliente: nombreCliente,
+          productos: pedidoActual,
           hora,
           fecha,
+          orden,
         }),
       });
 
-      setHistorial(productosTotales);
+      await fetch("/api/clientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: nombreCliente,
+          mesa: mesa.numero,
+          metodoPago,
+          productos: pedidoActual,
+          total: totalConIva,
+          fecha,
+          orden,
+        }),
+      });
+
+      setHistorial(actualizados);
       setPedidoActual([]);
-      refetch?.();
-      alert("Pedido impreso y mesa marcada como ocupada.");
+      alert("Pedido enviado e impreso.");
     } catch (err) {
-      console.error("Error al actualizar mesa:", err);
-      alert("Error al marcar mesa como ocupada.");
+      console.error("Error:", err);
+      alert("Error al enviar pedido.");
     }
   };
+
+  // Funcion para imprimir ticket
+  const imprimirTicket = (orden, hora, fecha) => {
+    const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
+
+    const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
+    const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
+    const urlSitio = "https://perumar.com.ar";
+
+    const html = `
+    <html>
+      <head>
+        <style>
+          body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; }
+          h2 { margin: 10px 0 5px; }
+          img.logo { width: 80px; margin-bottom: 10px; }
+          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+          ul { text-align: left; padding-left: 0; list-style: none; }
+        </style>
+      </head>
+      <body>
+        <img src="${window.location.origin}/logo-peru-mar.png" class="logo" />
+        <h2>🍽️ Perú Mar</h2>
+        <p><strong>Mesa:</strong> ${mesa.numero}</p>
+        <p><strong>Orden #:</strong> ${orden}</p>
+        <p><strong>Hora:</strong> ${hora}</p>
+        <p><strong>Fecha:</strong> ${fecha}</p>
+        <hr />
+        <p><strong>Comidas:</strong></p>
+        <ul>
+          ${comidas.map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`).join("")}
+        </ul>
+        <p><strong>Bebidas:</strong></p>
+        <ul>
+          ${bebidas.map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`).join("")}
+        </ul>
+        <hr />
+        <p><strong>Visítanos:</strong></p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+          urlSitio
+        )}" />
+        <p style="font-size: 10px; margin-top: 5px;">${urlSitio}</p>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(() => window.close(), 500);
+          };
+        </script>
+      </body>
+    </html>
+  `;
+
+    nuevaVentana.document.write(html);
+    nuevaVentana.document.close();
+  };
+
   const eliminarComanda = async () => {
     if (!confirm("¿Eliminar toda la comanda y liberar mesa?")) return;
 
@@ -211,7 +245,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           codigo: mesa.codigo,
-
+          cliente: "",
           productos: [],
           metodoPago: "",
           total: 0,
@@ -241,8 +275,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       alert("Error al eliminar pedido de cocina.");
     }
   };
-
-  /* control de productos */
 
   const todosLosProductos = [...historial, ...pedidoActual];
   const subtotal = todosLosProductos.reduce(
@@ -276,34 +308,49 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         </div>
 
         {/* CLIENTE */}
+        <div className="mb-3">
+          <label className="text-sm flex items-center gap-1 font-medium">
+            <FaUser /> Nombre del cliente
+          </label>
+          <input
+            value={nombreCliente}
+            onChange={(e) => setNombreCliente(e.target.value)}
+            className="w-full px-4 py-2 mt-1 bg-white/10 border border-white/20 rounded-xl placeholder-gray-300 text-white"
+            placeholder="Nombre del cliente"
+          />
+        </div>
 
         {/* BOTONES */}
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm font-semibold">
+        <div className="grid grid-cols-3 gap-3 mb-4 text-sm font-semibold">
           <button
             onClick={enviarPedido}
-            className="bg-green-500 hover:bg-green-600 py-2 rounded-xl w-full"
+            className="bg-green-500 hover:bg-green-600 py-2 rounded-xl"
             disabled={pedidoActual.length === 0}
           >
             <FaPlus className="inline mr-1" /> Enviar
           </button>
-
           <button
-            onClick={() => setMostrarCobro(true)}
-            className="bg-gray-600 text-white hover:bg-gray-700 py-2 rounded-xl w-full"
+            onClick={() => setMostrarResumen(true)}
+            className="bg-gray-600 text-white py-2 rounded-xl"
           >
-            Cobrar Cuenta
+            Cuenta
           </button>
 
           <button
+            onClick={() => setMostrarPago(!mostrarPago)}
+            className="bg-blue-500 hover:bg-blue-600 py-2 rounded-xl"
+          >
+            Cobrar
+          </button>
+          <button
             onClick={eliminarComanda}
-            className="col-span-2 bg-red-600 hover:bg-red-700 py-2 rounded-xl"
+            className="col-span-3 bg-red-600 hover:bg-red-700 py-2 rounded-xl"
           >
             Eliminar Comanda
           </button>
-
           <button
             onClick={marcarComoEntregada}
-            className="col-span-2 bg-yellow-500 hover:bg-yellow-600 py-2 rounded-xl"
+            className="col-span-3 bg-yellow-500 hover:bg-yellow-600 py-2 rounded-xl"
           >
             ✅ Comida entregada
           </button>
@@ -455,16 +502,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       </div>
       {mostrarResumen && (
         <Resumen mesa={mesa} onClose={() => setMostrarResumen(false)} />
-      )}
-
-      {mostrarCobro && (
-        <CobrarCuentaModal
-          onClose={() => setMostrarCobro(false)}
-          mesa={mesa}
-          productos={[...historial, ...pedidoActual]}
-          total={total}
-          refetch={refetch}
-        />
       )}
     </div>
   );
