@@ -36,31 +36,22 @@ export default function AgregarMenu() {
 
   const handleAgregar = async (e) => {
     e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("nombre", nombre);
-    formData.append("tipo", tipo);
-    formData.append("precio", precio);
-    formData.append("precioConIVA", precioConIVA);
-    formData.append("descuento", descuento || "");
-    formData.append(
-      "adicionales",
-      JSON.stringify(tipo === "comida" ? adicionales : [])
-    );
-    if (file) formData.append("file", file);
-
-    await agregarMenu(formData);
-
+    const data = {
+      nombre,
+      tipo,
+      precio: parseInt(precio),
+      precioConIVA: parseInt(precioConIVA),
+      adicionales: tipo === "comida" ? adicionales : [],
+      ...(descuento && { descuento: parseInt(descuento) }),
+    };
+    await agregarMenu(data);
     Swal.fire("Agregado", "Menú agregado correctamente.", "success");
-
-    // Reset campos
     setNombre("");
     setPrecio("");
     setPrecioConIVA("");
     setDescuento("");
     setAdicional("");
     setAdicionales([]);
-    setFile(null);
   };
 
   const agregarAdicional = () => {
@@ -89,18 +80,8 @@ export default function AgregarMenu() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-
-      Swal.fire({
-        title: "Eliminado",
-        text: "El menú ha sido eliminado.",
-        icon: "success",
-        timer: 1300,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+      Swal.fire("Eliminado", "El menú ha sido eliminado.", "success");
+      location.reload();
     } catch (error) {
       Swal.fire("Error", "Hubo un error al eliminar el menú.", "error");
     }
@@ -270,22 +251,6 @@ export default function AgregarMenu() {
                   </div>
                 )}
               </>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              className="sm:col-span-2 w-full text-white text-sm file:bg-cyan-700 file:text-white file:rounded-xl file:px-4 file:py-2 bg-white/10 border border-gray-600 rounded-xl px-4 py-3"
-              onChange={(e) => setFile(e.target.files[0])}
-            />
-            {file && (
-              <div className="sm:col-span-2">
-                <p className="text-white text-sm mb-2">Vista previa:</p>
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt="Vista previa"
-                  className="h-32 object-cover rounded-xl border border-white/20"
-                />
-              </div>
             )}
 
             <div className="sm:col-span-2">

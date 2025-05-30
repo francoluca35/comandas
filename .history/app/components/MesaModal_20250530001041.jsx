@@ -135,36 +135,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
   };
 
-  const eliminarComanda = async () => {
-    const confirmar = confirm(
-      "¿Seguro que querés liberar la mesa sin comanda?"
-    );
-    if (!confirmar) return;
-
-    try {
-      await fetch("/api/mesas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          codigo: mesa.codigo,
-          numero: mesa.numero,
-          productos: [],
-          metodoPago: "",
-          total: 0,
-          estado: "libre",
-          hora: "",
-          fecha: "",
-        }),
-      });
-
-      refetch?.();
-      onClose();
-    } catch (err) {
-      console.error("Error al liberar mesa:", err);
-      alert("No se pudo liberar la mesa.");
-    }
-  };
-
   const todosLosProductos = [...historial, ...pedidoActual];
   const subtotal = todosLosProductos.reduce(
     (acc, p) => acc + p.precio * p.cantidad,
@@ -179,9 +149,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-[#1a1a1a] border border-white/10 w-full max-w-5xl rounded-2xl p-6 shadow-2xl text-white max-h-screen overflow-y-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-orange-400">
+      <div className="bg-white/5 border border-white/10 backdrop-blur-lg w-full max-w-4xl rounded-3xl p-6 shadow-2xl text-white max-h-screen overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-orange-400">
             🍽️ Mesa {mesa.numero}
           </h2>
           <button
@@ -195,39 +165,33 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm font-semibold">
+        <div className="grid grid-cols-2 gap-3 mb-4 text-sm font-semibold">
           <button
             onClick={enviarPedido}
             className="bg-green-500 hover:bg-green-600 py-2 rounded-xl w-full"
+            disabled={pedidoActual.length === 0}
           >
-            <FaPlus className="inline mr-1" /> Enviar Pedido
+            <FaPlus className="inline mr-1" /> Enviar
           </button>
 
           <button
             onClick={() => setMostrarCobro(true)}
-            className="bg-blue-500 hover:bg-blue-600 py-2 rounded-xl w-full"
+            className="bg-gray-600 text-white hover:bg-gray-700 py-2 rounded-xl w-full"
           >
-            💰 Cobrar Cuenta
-          </button>
-
-          <button
-            onClick={eliminarComanda}
-            className="bg-red-600 hover:bg-red-700 py-2 rounded-xl w-full"
-          >
-            <FaTrash className="inline mr-2" /> Liberar Mesa
+            Cobrar Cuenta
           </button>
         </div>
 
         <button
           onClick={() => setMostrarSelector(true)}
-          className="w-full bg-cyan-600 hover:bg-cyan-700 py-2 rounded-xl font-semibold"
+          className="w-full mb-4 bg-blue-600 hover:bg-blue-700 py-2 rounded-xl font-semibold"
         >
-          ➕ Añadir producto con imagen
+          Seleccionar con imagen 🍽️🥤
         </button>
 
-        <div className="overflow-x-auto mt-4">
+        <div className="overflow-x-auto mt-6">
           <table className="w-full text-xs">
-            <thead className="bg-white/10 text-white/80">
+            <thead className="bg-white/10">
               <tr>
                 <th className="p-2 text-left">Descripción</th>
                 <th className="p-2">Cant.</th>
@@ -248,49 +212,13 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
                     )}
                   </td>
                   <td className="text-center">{p.cantidad}</td>
-                  <td className="text-center">${p.precio}</td>
-                  <td className="text-center">${p.descuento || 0}</td>
-                  <td className="text-center font-semibold">
-                    $
+                  <td className="text-center">{p.precio}</td>
+                  <td className="text-center">{p.descuento || 0}</td>
+                  <td className="text-center">
                     {(
                       p.precio * p.cantidad -
                       (p.descuento || 0) * p.cantidad
                     ).toFixed(2)}
-                  </td>
-                  <td className="text-center">
-                    <button
-                      className="text-red-500 hover:text-red-700 text-sm"
-                      onClick={() => {
-                        const nuevos = todosLosProductos.filter(
-                          (_, index) => index !== i
-                        );
-                        const nuevosHistorial =
-                          i < historial.length
-                            ? nuevos.slice(0, historial.length - 1)
-                            : historial;
-                        const nuevosActual =
-                          i >= historial.length
-                            ? nuevos.slice(historial.length)
-                            : pedidoActual;
-                        setHistorial(nuevosHistorial);
-                        setPedidoActual(nuevosActual);
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="inline w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
                   </td>
                 </tr>
               ))}
@@ -298,18 +226,12 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </table>
         </div>
 
-        <div className="text-right text-sm space-y-1">
-          <p>
-            Subtotal:{" "}
-            <span className="text-white/80">${subtotal.toFixed(2)}</span>
-          </p>
-          <p>
-            Descuento:{" "}
-            <span className="text-white/80">-${descuento.toFixed(2)}</span>
-          </p>
-
-          <p className="text-cyan-400 font-bold text-lg mt-2">
-            Total: ${subtotal.toFixed(2)}
+        <div className="text-right text-sm mt-6">
+          <p>Subtotal: ${subtotal.toFixed(2)}</p>
+          <p>Descuento: -${descuento.toFixed(2)}</p>
+          <p>IVA: +${iva.toFixed(2)}</p>
+          <p className="text-cyan-400 font-bold text-lg mt-1">
+            Total: ${total.toFixed(2)}
           </p>
         </div>
 
@@ -330,48 +252,48 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             </select>
           </div>
         )}
-
-        {mostrarResumen && (
-          <Resumen mesa={mesa} onClose={() => setMostrarResumen(false)} />
-        )}
-        {mostrarCobro && (
-          <CobrarCuentaModal
-            onClose={() => setMostrarCobro(false)}
-            mesa={mesa}
-            productos={todosLosProductos}
-            total={total}
-            refetch={refetch}
-          />
-        )}
-        {mostrarSelector && (
-          <SelectorProductos
-            productos={productos}
-            onSelect={(producto) => {
-              const nuevo = {
-                ...producto,
-                descuento: producto.descuento || 0,
-                adicionales: [],
-              };
-
-              const existente = pedidoActual.find(
-                (p) => p.nombre === nuevo.nombre
-              );
-              if (existente) {
-                setPedidoActual(
-                  pedidoActual.map((p) =>
-                    p.nombre === nuevo.nombre
-                      ? { ...p, cantidad: p.cantidad + producto.cantidad }
-                      : p
-                  )
-                );
-              } else {
-                setPedidoActual([...pedidoActual, nuevo]);
-              }
-            }}
-            onClose={() => setMostrarSelector(false)}
-          />
-        )}
       </div>
+
+      {mostrarResumen && (
+        <Resumen mesa={mesa} onClose={() => setMostrarResumen(false)} />
+      )}
+      {mostrarCobro && (
+        <CobrarCuentaModal
+          onClose={() => setMostrarCobro(false)}
+          mesa={mesa}
+          productos={todosLosProductos}
+          total={total}
+          refetch={refetch}
+        />
+      )}
+      {mostrarSelector && (
+        <SelectorProductos
+          productos={productos}
+          onSelect={(producto) => {
+            const nuevo = {
+              ...producto,
+              descuento: producto.descuento || 0,
+              adicionales: [],
+            };
+
+            const existente = pedidoActual.find(
+              (p) => p.nombre === nuevo.nombre
+            );
+            if (existente) {
+              setPedidoActual(
+                pedidoActual.map((p) =>
+                  p.nombre === nuevo.nombre
+                    ? { ...p, cantidad: p.cantidad + producto.cantidad }
+                    : p
+                )
+              );
+            } else {
+              setPedidoActual([...pedidoActual, nuevo]);
+            }
+          }}
+          onClose={() => setMostrarSelector(false)}
+        />
+      )}
     </div>
   );
 }

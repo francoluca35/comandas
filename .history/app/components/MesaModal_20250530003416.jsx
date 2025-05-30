@@ -257,41 +257,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
                       (p.descuento || 0) * p.cantidad
                     ).toFixed(2)}
                   </td>
-                  <td className="text-center">
-                    <button
-                      className="text-red-500 hover:text-red-700 text-sm"
-                      onClick={() => {
-                        const nuevos = todosLosProductos.filter(
-                          (_, index) => index !== i
-                        );
-                        const nuevosHistorial =
-                          i < historial.length
-                            ? nuevos.slice(0, historial.length - 1)
-                            : historial;
-                        const nuevosActual =
-                          i >= historial.length
-                            ? nuevos.slice(historial.length)
-                            : pedidoActual;
-                        setHistorial(nuevosHistorial);
-                        setPedidoActual(nuevosActual);
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="inline w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -307,9 +272,11 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             Descuento:{" "}
             <span className="text-white/80">-${descuento.toFixed(2)}</span>
           </p>
-
+          <p>
+            IVA (18%): <span className="text-white/80">+${iva.toFixed(2)}</span>
+          </p>
           <p className="text-cyan-400 font-bold text-lg mt-2">
-            Total: ${subtotal.toFixed(2)}
+            Total: ${total.toFixed(2)}
           </p>
         </div>
 

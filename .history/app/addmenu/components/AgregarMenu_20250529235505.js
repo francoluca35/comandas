@@ -89,18 +89,8 @@ export default function AgregarMenu() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-
-      Swal.fire({
-        title: "Eliminado",
-        text: "El menú ha sido eliminado.",
-        icon: "success",
-        timer: 1300,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+      Swal.fire("Eliminado", "El menú ha sido eliminado.", "success");
+      location.reload();
     } catch (error) {
       Swal.fire("Error", "Hubo un error al eliminar el menú.", "error");
     }
@@ -277,16 +267,6 @@ export default function AgregarMenu() {
               className="sm:col-span-2 w-full text-white text-sm file:bg-cyan-700 file:text-white file:rounded-xl file:px-4 file:py-2 bg-white/10 border border-gray-600 rounded-xl px-4 py-3"
               onChange={(e) => setFile(e.target.files[0])}
             />
-            {file && (
-              <div className="sm:col-span-2">
-                <p className="text-white text-sm mb-2">Vista previa:</p>
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt="Vista previa"
-                  className="h-32 object-cover rounded-xl border border-white/20"
-                />
-              </div>
-            )}
 
             <div className="sm:col-span-2">
               <button
