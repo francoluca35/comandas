@@ -34,6 +34,8 @@ export default function BotonesMenu() {
           </div>
         ))}
       </div>
+
+      {/* Botón ancho debajo */}
     </div>
   );
 }

@@ -34,6 +34,12 @@ export default function BotonesMenu() {
           </div>
         ))}
       </div>
+
+      {/* Botón ancho debajo */}
+      <div
+        className="bg-white text-black rounded-lg p-6 w-[312px] h-28 flex flex-col items-center justify-center shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+        onClick={() => router.push(botonInferior.ruta)}
+      ></div>
     </div>
   );
 }
