@@ -21,21 +21,21 @@ export default function Table() {
           <BackArrow />
           <div className="flex items-center gap-3">
             <Image
-              src="/Assets/Mesas/logo-peru-mar.png"
+              src="/Assets/Mesas/logo.jpg"
               alt="Logo"
               width={40}
               height={40}
               className="rounded-full border border-white shadow-sm"
             />
             <h1 className="text-white text-2xl font-bold tracking-tight">
-              PeruMar<span className="text-blue-400">.</span>
+              Chekka<span className="text-orange-400">.</span>
             </h1>
           </div>
         </div>
 
         <button
           onClick={reload}
-          className="p-2 border border-blue-400 text-blue-400 rounded-full hover:bg-blue-500 hover:text-white transition duration-300"
+          className="p-2 border border-blue-400 text-orange-400 rounded-full hover:bg-blue-500 hover:text-white transition duration-300"
           title="Recargar"
         >
           <FaSyncAlt size={16} />

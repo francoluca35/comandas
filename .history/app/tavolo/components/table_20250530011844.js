@@ -21,14 +21,14 @@ export default function Table() {
           <BackArrow />
           <div className="flex items-center gap-3">
             <Image
-              src="/Assets/Mesas/logo-peru-mar.png"
+              src="/Assets/Mesas/logo.jpg"
               alt="Logo"
               width={40}
               height={40}
               className="rounded-full border border-white shadow-sm"
             />
             <h1 className="text-white text-2xl font-bold tracking-tight">
-              PeruMar<span className="text-blue-400">.</span>
+              Chekka<span className="text-orange-400">.</span>
             </h1>
           </div>
         </div>

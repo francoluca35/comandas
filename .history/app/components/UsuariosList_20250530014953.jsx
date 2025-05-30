@@ -73,12 +73,6 @@ export default function UsuariosList() {
       headers: { "Content-Type": "application/json" },
     });
 
-    if (user?.username === username) {
-      logout();
-      router.push("/login");
-      return;
-    }
-
     setUsuarios((prev) =>
       prev.map((u) =>
         u.username === username ? { ...u, online: false, fin: new Date() } : u

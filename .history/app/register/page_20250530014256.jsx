@@ -78,16 +78,6 @@ export default function RegisterPage() {
             Crear cuenta
           </h2>
 
-          {/* HONEYPOT oculto para evitar autocompletado */}
-          <div style={{ display: "none" }}>
-            <input type="text" name="fake-user" autoComplete="username" />
-            <input
-              type="password"
-              name="fake-pass"
-              autoComplete="current-password"
-            />
-          </div>
-
           <form
             onSubmit={handleSubmit}
             className="space-y-4"
@@ -98,7 +88,6 @@ export default function RegisterPage() {
               name="nombreCompleto"
               placeholder="Nombre Completo"
               onChange={handleChange}
-              autoComplete="off"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
             />
 
@@ -107,9 +96,9 @@ export default function RegisterPage() {
               name="username"
               placeholder="Nombre de usuario"
               onChange={handleChange}
-              autoComplete="new-username"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
+              autoComplete="new-username"
             />
 
             <input
@@ -117,7 +106,6 @@ export default function RegisterPage() {
               name="email"
               placeholder="Correo electrónico"
               onChange={handleChange}
-              autoComplete="new-email"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
@@ -127,7 +115,7 @@ export default function RegisterPage() {
               name="password"
               placeholder="Contraseña"
               onChange={handleChange}
-              autoComplete="new-password"
+              autoComplete="off"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
@@ -137,7 +125,6 @@ export default function RegisterPage() {
                 {error}
               </p>
             )}
-
             <select
               name="rol"
               value={form.rol}
@@ -148,7 +135,6 @@ export default function RegisterPage() {
               <option value="admin">Administrador</option>
               <option value="delivery">Repartidor</option>
             </select>
-
             <label className="block w-full text-center cursor-pointer bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-lg transition-all">
               Subir foto
               <input

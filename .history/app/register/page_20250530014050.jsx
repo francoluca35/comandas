@@ -7,9 +7,9 @@ import Image from "next/image";
 export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: "",
+    userNuevo: "",
+    correoNuevo: "",
+    claveNueva: "",
     nombreCompleto: "",
     rol: "delivery",
   });
@@ -78,12 +78,12 @@ export default function RegisterPage() {
             Crear cuenta
           </h2>
 
-          {/* HONEYPOT oculto para evitar autocompletado */}
+          {/* Honeypot fake inputs */}
           <div style={{ display: "none" }}>
-            <input type="text" name="fake-user" autoComplete="username" />
+            <input type="text" name="usuario" autoComplete="username" />
             <input
               type="password"
-              name="fake-pass"
+              name="password"
               autoComplete="current-password"
             />
           </div>
@@ -104,7 +104,7 @@ export default function RegisterPage() {
 
             <input
               type="text"
-              name="username"
+              name="userNuevo"
               placeholder="Nombre de usuario"
               onChange={handleChange}
               autoComplete="new-username"
@@ -114,7 +114,7 @@ export default function RegisterPage() {
 
             <input
               type="email"
-              name="email"
+              name="correoNuevo"
               placeholder="Correo electrónico"
               onChange={handleChange}
               autoComplete="new-email"
@@ -124,7 +124,7 @@ export default function RegisterPage() {
 
             <input
               type="password"
-              name="password"
+              name="claveNueva"
               placeholder="Contraseña"
               onChange={handleChange}
               autoComplete="new-password"

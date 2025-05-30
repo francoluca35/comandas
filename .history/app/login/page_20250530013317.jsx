@@ -57,7 +57,6 @@ export default function Login() {
               alt="Logo"
               width={64}
               height={64}
-              className="rounded-full object-cover"
             />
           </div>
 

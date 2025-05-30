@@ -49,19 +49,11 @@ export default function UsuariosList() {
 
   const handleDelete = async (username) => {
     if (!confirm(`¿Seguro que querés eliminar a ${username}?`)) return;
-
     await fetch("/api/admin/delete-user", {
       method: "POST",
       body: JSON.stringify({ username }),
       headers: { "Content-Type": "application/json" },
     });
-
-    // Si eliminás tu propia cuenta, cerrar sesión y redirigir
-    if (user?.username === username) {
-      logout();
-      router.push("/login");
-      return;
-    }
 
     setUsuarios((prev) => prev.filter((u) => u.username !== username));
   };
@@ -72,12 +64,6 @@ export default function UsuariosList() {
       body: JSON.stringify({ username }),
       headers: { "Content-Type": "application/json" },
     });
-
-    if (user?.username === username) {
-      logout();
-      router.push("/login");
-      return;
-    }
 
     setUsuarios((prev) =>
       prev.map((u) =>

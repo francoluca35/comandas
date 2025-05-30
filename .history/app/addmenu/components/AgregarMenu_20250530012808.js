@@ -187,7 +187,7 @@ export default function AgregarMenu() {
                   onClick={() => setTipo("comida")}
                   className={`px-4 py-2 rounded-xl transition ${
                     tipo === "comida"
-                      ? "bg-red-500 text-white font-bold"
+                      ? "bg-orange-500 text-white font-bold"
                       : "text-white/70 hover:text-white"
                   }`}
                 >

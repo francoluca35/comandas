@@ -13,7 +13,7 @@ export default function ScreenHome() {
 
   return (
     <PrivateRoute>
-      <main className="min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 p-6 text-white flex flex-col">
+      <main className="min-h-screen bg-gradient-to-br from-red-600 via-blue-950 to-gray-900 p-6 text-white flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-lg font-semibold">
