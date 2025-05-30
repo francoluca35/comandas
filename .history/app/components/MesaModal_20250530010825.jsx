@@ -40,10 +40,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       <html>
         <head>
           <style>
-           @page {
-    margin: 0;
-  }
-            body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; margin: 0.5cm; }
+            body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; }
             h2 { margin: 10px 0 5px; }
             img.logo { width: 80px; margin-bottom: 10px; }
             hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
