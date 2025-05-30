@@ -50,7 +50,7 @@ export default function UsuariosList() {
   const handleDelete = async (username) => {
     if (!confirm(`¿Seguro que querés eliminar a ${username}?`)) return;
 
-    await fetch("/api/admin/delete-user", {
+    await fetch("/api/auth/delete-user", {
       method: "POST",
       body: JSON.stringify({ username }),
       headers: { "Content-Type": "application/json" },

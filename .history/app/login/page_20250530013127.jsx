@@ -53,11 +53,10 @@ export default function Login() {
           {/* LOGO */}
           <div className="flex justify-center mb-6">
             <Image
-              src="/Assets/LoginRegister/logo.png"
+              src="/Assets/LoginRegister/logo.jpg"
               alt="Logo"
               width={64}
               height={64}
-              className="rounded-full object-cover"
             />
           </div>
 

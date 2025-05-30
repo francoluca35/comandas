@@ -21,7 +21,7 @@ export default function Table() {
           <BackArrow />
           <div className="flex items-center gap-3">
             <Image
-              src="/Assets/Mesas/logo-peru-mar.png"
+              src="/Assets/Mesas/logo.jpg"
               alt="Logo"
               width={40}
               height={40}

@@ -29,7 +29,7 @@ export default function Mesas() {
           onClick={() => setTipoSeleccionado("adentro")}
           className={`px-4 py-2 rounded-full font-semibold transition ${
             tipoSeleccionado === "adentro"
-              ? "bg-blue-800 text-white"
+              ? "bg-blue-500 text-white"
               : "bg-white text-black"
           }`}
         >
@@ -39,7 +39,7 @@ export default function Mesas() {
           onClick={() => setTipoSeleccionado("afuera")}
           className={`px-4 py-2 rounded-full font-semibold transition ${
             tipoSeleccionado === "afuera"
-              ? "bg-blue-800 text-white"
+              ? "bg-orange-500 text-white"
               : "bg-white text-black"
           }`}
         >

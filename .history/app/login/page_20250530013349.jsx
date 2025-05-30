@@ -51,13 +51,12 @@ export default function Login() {
       <div className="w-full max-w-sm bg-white/5 backdrop-blur-md p-8 rounded-xl shadow-2xl">
         <div className="transition-all duration-500 hover:scale-[1.01]">
           {/* LOGO */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-6 border border-r-4">
             <Image
               src="/Assets/LoginRegister/logo.png"
               alt="Logo"
               width={64}
               height={64}
-              className="rounded-full object-cover"
             />
           </div>
 

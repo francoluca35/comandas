@@ -15,25 +15,13 @@ export default function RegisterPage() {
   });
   const [foto, setFoto] = useState(null);
   const [error, setError] = useState("");
-  const [preview, setPreview] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setFoto(file);
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
+    setFoto(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -66,11 +54,10 @@ export default function RegisterPage() {
           {/* LOGO */}
           <div className="flex justify-center mb-6">
             <Image
-              src="/Assets/LoginRegister/logo.png"
+              src="/Assets/LoginRegister/logo.pnng"
               alt="Logo"
               width={64}
               height={64}
-              className="rounded-full object-cover"
             />
           </div>
 
@@ -78,27 +65,12 @@ export default function RegisterPage() {
             Crear cuenta
           </h2>
 
-          {/* HONEYPOT oculto para evitar autocompletado */}
-          <div style={{ display: "none" }}>
-            <input type="text" name="fake-user" autoComplete="username" />
-            <input
-              type="password"
-              name="fake-pass"
-              autoComplete="current-password"
-            />
-          </div>
-
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-            autoComplete="off"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
               name="nombreCompleto"
               placeholder="Nombre Completo"
               onChange={handleChange}
-              autoComplete="off"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
             />
 
@@ -107,7 +79,6 @@ export default function RegisterPage() {
               name="username"
               placeholder="Nombre de usuario"
               onChange={handleChange}
-              autoComplete="new-username"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
@@ -117,7 +88,6 @@ export default function RegisterPage() {
               name="email"
               placeholder="Correo electrónico"
               onChange={handleChange}
-              autoComplete="new-email"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
@@ -127,7 +97,6 @@ export default function RegisterPage() {
               name="password"
               placeholder="Contraseña"
               onChange={handleChange}
-              autoComplete="new-password"
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
@@ -137,7 +106,6 @@ export default function RegisterPage() {
                 {error}
               </p>
             )}
-
             <select
               name="rol"
               value={form.rol}
@@ -148,28 +116,13 @@ export default function RegisterPage() {
               <option value="admin">Administrador</option>
               <option value="delivery">Repartidor</option>
             </select>
-
-            <label className="block w-full text-center cursor-pointer bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-lg transition-all">
-              Subir foto
-              <input
-                type="file"
-                name="foto"
-                accept="image/*"
-                onChange={handleFileChange}
-                required
-                className="hidden"
-              />
-            </label>
-
-            {preview && (
-              <div className="mt-4 flex justify-center">
-                <img
-                  src={preview}
-                  alt="Vista previa"
-                  className="w-24 h-24 rounded-full object-cover border-2 border-white shadow"
-                />
-              </div>
-            )}
+            <input
+              type="file"
+              name="foto"
+              accept="image/*"
+              onChange={handleFileChange}
+              required
+            />
 
             <button
               type="submit"
