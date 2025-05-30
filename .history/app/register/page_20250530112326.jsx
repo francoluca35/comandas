@@ -16,7 +16,6 @@ export default function RegisterPage() {
   });
   const [foto, setFoto] = useState(null);
   const [error, setError] = useState("");
-  const [errores, setErrores] = useState({});
   const [preview, setPreview] = useState(null);
 
   const handleChange = (e) => {
@@ -126,9 +125,6 @@ export default function RegisterPage() {
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
-            {errores.username && (
-              <p className="text-red-400 text-sm">{errores.username}</p>
-            )}
 
             <input
               type="email"
@@ -149,8 +145,11 @@ export default function RegisterPage() {
               className="w-full px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
               required
             />
-            {errores.password && (
-              <p className="text-red-400 text-sm">{errores.password}</p> // ✅
+
+            {error && (
+              <p className="text-red-400 text-sm text-center animate-pulse">
+                {error}
+              </p>
             )}
 
             <select
@@ -175,9 +174,6 @@ export default function RegisterPage() {
                 className="hidden"
               />
             </label>
-            {errores.foto && (
-              <p className="text-red-400 text-sm">{errores.foto}</p> // ✅
-            )}
 
             {preview && (
               <div className="mt-4 flex justify-center">
