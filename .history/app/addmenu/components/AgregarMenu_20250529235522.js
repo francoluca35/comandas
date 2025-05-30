@@ -89,18 +89,8 @@ export default function AgregarMenu() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-
-      Swal.fire({
-        title: "Eliminado",
-        text: "El menú ha sido eliminado.",
-        icon: "success",
-        timer: 1300,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+      Swal.fire("Eliminado", "El menú ha sido eliminado.", "success");
+      location.reload();
     } catch (error) {
       Swal.fire("Error", "Hubo un error al eliminar el menú.", "error");
     }

@@ -44,21 +44,15 @@ export default function CobrarCuentaModal({
         <p><strong>Hora:</strong> ${hora}</p>
         <p><strong>Fecha:</strong> ${fecha}</p>
         <hr />
-      <ul>
-  ${productos
-    .map(
-      (p) =>
-        `<li>${p.cantidad}x ${p.nombre} - $${(p.precio * p.cantidad).toFixed(
-          2
-        )}</li>`
-    )
-    .join("")}
-</ul>
-
+        <ul>
+          ${productos
+            .map((p) => `<li>${p.cantidad} - $${p.precio.toFixed(2)}</li>`)
+            .join("")}
+        </ul>
         <hr />
         <p>Subtotal: $${subtotal.toFixed(2)}</p>
         <p>Descuento: -$${descuento.toFixed(2)}</p>
-        <p><strong>Total: $${subtotal.toFixed(2)}</strong></p>
+        <p><strong>Total: $${totalFinal.toFixed(2)}</strong></p>
         <p><strong>Pago:</strong> ${metodoPago}</p>
         <hr />
         <script>

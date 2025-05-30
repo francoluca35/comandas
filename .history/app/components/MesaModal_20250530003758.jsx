@@ -307,9 +307,11 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             Descuento:{" "}
             <span className="text-white/80">-${descuento.toFixed(2)}</span>
           </p>
-
+          <p>
+            IVA (18%): <span className="text-white/80">+${iva.toFixed(2)}</span>
+          </p>
           <p className="text-cyan-400 font-bold text-lg mt-2">
-            Total: ${subtotal.toFixed(2)}
+            Total: ${total.toFixed(2)}
           </p>
         </div>
 

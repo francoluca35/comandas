@@ -309,7 +309,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           </p>
 
           <p className="text-cyan-400 font-bold text-lg mt-2">
-            Total: ${subtotal.toFixed(2)}
+            Total: ${total.toFixed(2)}
           </p>
         </div>
 
