@@ -72,6 +72,7 @@ export default function Mesas() {
                 <div className="flex items-center gap-2 text-sm mt-1">
                   <FaClock /> {mesa.hora}
                 </div>
+                <div className="flex items-center gap-2 text-sm mt-1"></div>
               </>
             ) : (
               <p className="font-semibold mt-2">Disponible</p>

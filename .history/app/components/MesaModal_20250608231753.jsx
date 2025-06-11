@@ -31,39 +31,46 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   }, [mesa]);
 
   const imprimirTicket = (orden, hora, fecha) => {
-    const nuevaVentana = window.open("", "Ticket", "width=400,height=600");
+    const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
     const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
     const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
+    const urlSitio = "https://francomputer.com.ar";
 
     const html = `
       <html>
         <head>
           <style>
             @page {
-              size: 80mm auto;
+              size: 58mm auto;
               margin: 0;
             }
             body {
-              width: 320px; /* unos 72mm aprox en pantalla */
+              width: 220px;
               margin: 0;
               padding: 5px;
               font-family: monospace;
-              font-size: 11px;
+              font-size: 10px;
               text-align: center;
             }
             h2 {
               margin: 5px 0;
-              font-size: 14px;
+              font-size: 12px;
             }
             img.logo {
-              width: 80px;
+              width: 60px;
               margin-bottom: 5px;
               filter: grayscale(100%);
             }
             hr {
               border: none;
               border-top: 1px dashed #000;
-              margin: 6px 0;
+              margin: 4px 0;
+            }
+            .left {
+              text-align: left;
+            }
+            .right {
+              text-align: right;
             }
             .item {
               display: flex;
@@ -83,7 +90,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         <body>
           <img src="${
             window.location.origin
-          }/Assets/logo-oficial.png" class="logo" />
+          }/Assets/logo-peru-mar.png" class="logo" />
           <h2>🍽️ Perú Mar</h2>
           <p><strong>Mesa:</strong> ${mesa.numero}</p>
           <p><strong>Orden #:</strong> ${orden}</p>
@@ -96,9 +103,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               (p) => `
               <div class="item">
                 <span>${p.cantidad}x ${p.nombre}</span>
-         
+                <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
               </div>
-          `
+            `
             )
             .join("")}
           <p><strong>Bebidas:</strong></p>
@@ -107,17 +114,32 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               (p) => `
               <div class="item">
                 <span>${p.cantidad}x ${p.nombre}</span>
-                
+                <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
               </div>
-          `
+            `
             )
             .join("")}
           <hr />
           <div class="item">
-           
+            <strong>Total</strong>
+            <strong>
+              $${pedidoActual
+                .reduce(
+                  (acc, p) =>
+                    acc +
+                    p.cantidad * p.precio -
+                    (p.descuento || 0) * p.cantidad,
+                  0
+                )
+                .toFixed(2)}
+            </strong>
           </div>
           <hr />
-        
+          <p><strong>Visítanos:</strong></p>
+          <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
+            urlSitio
+          )}" />
+          <p class="small">${urlSitio}</p>
   
           <script>
             window.onload = function() {

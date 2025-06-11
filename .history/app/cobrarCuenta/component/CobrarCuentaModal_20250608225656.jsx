@@ -28,93 +28,49 @@ export default function CobrarCuentaModal({
     <html>
       <head>
         <style>
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-          body {
-            width: 320px;
-            margin: 0;
-            padding: 5px;
-            font-family: monospace;
-            font-size: 11px;
-            text-align: center;
-          }
-          h2 {
-            margin: 5px 0;
-            font-size: 14px;
-          }
-          img.logo {
-            width: 80px;
-            margin-bottom: 5px;
-            filter: grayscale(100%);
-          }
-          hr {
-            border: none;
-            border-top: 1px dashed #000;
-            margin: 6px 0;
-          }
-          .item {
-            display: flex;
-            justify-content: space-between;
-            margin: 2px 0;
-          }
-          .small {
-            font-size: 9px;
-            margin-top: 5px;
-          }
+          body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; }
+          h2 { margin: 10px 0 5px; }
+          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+          ul { text-align: left; padding-left: 0; list-style: none; }
         </style>
       </head>
       <body>
         <img src="${
           window.location.origin
-        }/Assets/logo-oficial.png" class="logo" />
+        }/Assets/logo-peru-mar.png" style="width: 80px;" />
         <h2>🍽️ Perú Mar</h2>
         <p><strong>Mesa:</strong> ${mesa.numero}</p>
         <p><strong>Orden #:</strong> ${orden}</p>
         <p><strong>Hora:</strong> ${hora}</p>
         <p><strong>Fecha:</strong> ${fecha}</p>
         <hr />
-  
-        ${productos
-          .map(
-            (p) => `
-          <div class="item">
-            <span>${p.cantidad}x ${p.nombre}</span>
-            <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
-          </div>
-        `
-          )
-          .join("")}
-  
+      <ul>
+  ${productos
+    .map(
+      (p) =>
+        `<li>${p.cantidad}x ${p.nombre} - $${(p.precio * p.cantidad).toFixed(
+          2
+        )}</li>`
+    )
+    .join("")}
+</ul>
+
         <hr />
-        <div class="item"><span>Subtotal:</span><span>$${subtotal.toFixed(
-          2
-        )}</span></div>
-        <div class="item"><span>Descuento:</span><span>-$${descuento.toFixed(
-          2
-        )}</span></div>
-        <div class="item total"><strong>Total:</strong><strong>$${subtotal.toFixed(
-          2
-        )}</strong></div>
-        <div class="item"><span>Pago:</span><span>${metodoPago}</span></div>
+        <p>Subtotal: $${subtotal.toFixed(2)}</p>
+        <p>Descuento: -$${descuento.toFixed(2)}</p>
+        <p><strong>Total: $${subtotal.toFixed(2)}</strong></p>
+        <p><strong>Pago:</strong> ${metodoPago}</p>
         <hr />
-  
-        <p class="small"><strong>Tel:</strong> 1140660136</p>
-        <p class="small"><strong>Dirección:</strong> Rivera 2525 V. Celina</p>
-  
-        <p class="small">Gracias por su visita!</p>
-  
         <script>
           window.onload = function() {
             window.print();
-            setTimeout(() => window.close(), 300);
+            setTimeout(() => window.close(), 500);
           };
         </script>
       </body>
     </html>`;
 
-    const nuevaVentana = window.open("", "Ticket", "width=400,height=600");
+    const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
     nuevaVentana.document.write(html);
     nuevaVentana.document.close();
   };
