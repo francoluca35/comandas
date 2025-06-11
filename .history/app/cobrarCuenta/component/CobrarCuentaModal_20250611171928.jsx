@@ -138,7 +138,7 @@ export default function CobrarCuentaModal({
           <input
             type="number"
             placeholder="¿Con cuánto paga?"
-            className="w-full p-2 border rounded bg-white"
+            className="w-full p-2 border rounded"
             value={montoPagado}
             onChange={(e) => setMontoPagado(e.target.value)}
           />
