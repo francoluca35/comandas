@@ -99,10 +99,6 @@ export default function CobrarCuentaModal({
         )}</strong></div>
         <div class="item"><span>Pago:</span><span>${metodoPago}</span></div>
         <hr />
-  
-        <p class="small"><strong>Tel:</strong> 1140660136</p>
-        <p class="small"><strong>Dirección:</strong> Rivera 2525 V. Celina</p>
-  
         <p class="small">Gracias por su visita!</p>
   
         <script>

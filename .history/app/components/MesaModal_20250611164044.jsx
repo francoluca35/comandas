@@ -83,7 +83,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         <body>
           <img src="${
             window.location.origin
-          }/Assets/logo-oficial.png" class="logo" />
+          }/Assets/logo-peru-mar.png" class="logo" />
           <h2>🍽️ Perú Mar</h2>
           <p><strong>Mesa:</strong> ${mesa.numero}</p>
           <p><strong>Orden #:</strong> ${orden}</p>
@@ -96,7 +96,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               (p) => `
               <div class="item">
                 <span>${p.cantidad}x ${p.nombre}</span>
-         
+                <span>$${p.cantidad.toFixed(2)}</span>
               </div>
           `
             )

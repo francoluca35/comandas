@@ -31,59 +31,30 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   }, [mesa]);
 
   const imprimirTicket = (orden, hora, fecha) => {
-    const nuevaVentana = window.open("", "Ticket", "width=400,height=600");
+    const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
     const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
     const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
+    const urlSitio = "https://francomputer.com.ar";
 
     const html = `
       <html>
         <head>
           <style>
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-            body {
-              width: 320px; /* unos 72mm aprox en pantalla */
-              margin: 0;
-              padding: 5px;
-              font-family: monospace;
-              font-size: 11px;
-              text-align: center;
-            }
-            h2 {
-              margin: 5px 0;
-              font-size: 14px;
-            }
-            img.logo {
-              width: 80px;
-              margin-bottom: 5px;
-              filter: grayscale(100%);
-            }
-            hr {
-              border: none;
-              border-top: 1px dashed #000;
-              margin: 6px 0;
-            }
-            .item {
-              display: flex;
-              justify-content: space-between;
-              margin: 2px 0;
-            }
-            .qr {
-              width: 80px;
-              margin-top: 6px;
-            }
-            .small {
-              font-size: 8px;
-              margin-top: 4px;
-            }
+           @page {
+    margin: 0;
+  }
+            body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; margin: 0.5cm; }
+            h2 { margin: 10px 0 5px; }
+            img.logo { width: 80px; margin-bottom: 10px; }
+            hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+            ul { text-align: left; padding-left: 0; list-style: none; }
           </style>
         </head>
         <body>
-          <img src="${
-            window.location.origin
-          }/Assets/logo-oficial.png" class="logo" />
+         <img src="${
+           window.location.origin
+         }/logo-peru-mar.png" class="logo" style="filter: grayscale(100%);" />
+
           <h2>🍽️ Perú Mar</h2>
           <p><strong>Mesa:</strong> ${mesa.numero}</p>
           <p><strong>Orden #:</strong> ${orden}</p>
@@ -91,38 +62,27 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           <p><strong>Fecha:</strong> ${fecha}</p>
           <hr />
           <p><strong>Comidas:</strong></p>
-          ${comidas
-            .map(
-              (p) => `
-              <div class="item">
-                <span>${p.cantidad}x ${p.nombre}</span>
-         
-              </div>
-          `
-            )
-            .join("")}
+          <ul>
+            ${comidas
+              .map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`)
+              .join("")}
+          </ul>
           <p><strong>Bebidas:</strong></p>
-          ${bebidas
-            .map(
-              (p) => `
-              <div class="item">
-                <span>${p.cantidad}x ${p.nombre}</span>
-                
-              </div>
-          `
-            )
-            .join("")}
+          <ul>
+            ${bebidas
+              .map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`)
+              .join("")}
+          </ul>
           <hr />
-          <div class="item">
-           
-          </div>
-          <hr />
-        
-  
+          <p><strong>Visítanos:</strong></p>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+            urlSitio
+          )}" />
+          <p style="font-size: 10px; margin-top: 5px;">${urlSitio}</p>
           <script>
             window.onload = function() {
               window.print();
-              setTimeout(() => window.close(), 300);
+              setTimeout(() => window.close(), 500);
             };
           </script>
         </body>
@@ -266,7 +226,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
         <button
           onClick={() => setMostrarSelector(true)}
-          className="w-full bg-orange-600 hover:bg-orange-700 py-2 rounded-xl font-semibold"
+          className="w-full bg-orange-600 hover:bg-cyan-700 py-2 rounded-xl font-semibold"
         >
           ➕ Añadir producto
         </button>
