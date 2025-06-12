@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-
+import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function PUT(req) {
+export async function PUT(req) {
   try {
     const { id } = await req.json();
 
