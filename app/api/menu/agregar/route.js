@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+
 import cloudinary from "@/lib/cloudinary";
 
 export const config = {
@@ -8,7 +8,9 @@ export const config = {
   },
 };
 
-export async function POST(req) {
+export const { default: clientPromise } = await import('@/lib/mongodb');
+
+async function POST(req) {
   try {
     const formData = await req.formData();
 

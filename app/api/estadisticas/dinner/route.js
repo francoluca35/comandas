@@ -1,7 +1,9 @@
 // /api/estadisticas/dinner/route.js
-import clientPromise from "@/lib/mongodb";
 
-export async function GET() {
+
+export const { default: clientPromise } = await import('@/lib/mongodb');
+
+async function GET() {
   try {
     const client = await clientPromise;
     const db = client.db("comandas");

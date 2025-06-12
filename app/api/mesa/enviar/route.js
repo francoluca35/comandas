@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+
 
 const generarCodigoOrden = () => {
   return Math.floor(1000 + Math.random() * 9000); // ej: 4573
 };
 
-export async function POST(req) {
+export const { default: clientPromise } = await import('@/lib/mongodb');
+
+async function POST(req) {
   try {
     const data = await req.json();
     const client = await clientPromise;
