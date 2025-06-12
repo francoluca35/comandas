@@ -9,11 +9,11 @@ export function validarRegistro({ username, password, foto }) {
 
   // 2. Contraseña: 8-20 caracteres y requisitos de seguridad
   const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._\-])[A-Za-z\d@$!%*?&._\-]{8,50}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._\-])[A-Za-z\d@$!%*?&._\-]{8,9}$/;
 
   if (!passwordRegex.test(password || "")) {
     errores.password =
-      "La contraseña debe tener entre 8 y 50 caracteres, incluyendo al menos una mayúscula, una minúscula, un número y un símbolo.";
+      "La contraseña debe tener entre 8 y 20 caracteres, incluyendo al menos una mayúscula, una minúscula, un número y un símbolo.";
   }
 
   // 3. Imagen: tamaño máximo 2MB
