@@ -5,9 +5,8 @@ const generarCodigoOrden = () => {
   return Math.floor(1000 + Math.random() * 9000); // ej: 4573
 };
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function POST(req) {
+export async function POST(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const data = await req.json();
     const client = await clientPromise;

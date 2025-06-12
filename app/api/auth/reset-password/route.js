@@ -6,6 +6,7 @@ import { ObjectId } from "mongodb";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function PUT(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const { token, newPassword } = await req.json();
 

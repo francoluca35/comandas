@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 
 import { ObjectId } from "mongodb";
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function GET(req, { params }) {
+export async function GET(req, { params }) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const client = await clientPromise;
     const db = client.db("comandas");

@@ -8,9 +8,8 @@ export const config = {
   },
 };
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function POST(req) {
+export async function POST(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const formData = await req.formData();
 

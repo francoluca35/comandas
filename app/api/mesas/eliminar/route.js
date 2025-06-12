@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function DELETE(req) {
+export async function DELETE(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const { codigos } = await req.json();
 

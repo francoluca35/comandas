@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function PUT(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const { currentUsername, newUsername, email } = await req.json();
 

@@ -7,6 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
 
 export async function POST(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const { email, captcha } = await req.json();
 

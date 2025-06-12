@@ -1,9 +1,8 @@
 
 import ExcelJS from "exceljs";
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function GET(req) {
+export async function GET(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const client = await clientPromise;
     const db = client.db("comandas");

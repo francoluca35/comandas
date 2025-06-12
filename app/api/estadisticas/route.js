@@ -1,8 +1,7 @@
 
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function GET() {
+export async function GET() {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const client = await clientPromise;
     const db = client.db("comandas");

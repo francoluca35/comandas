@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const body = await req.text(); // <-- CAMBIO CRÍTICO
     const { username, password } = JSON.parse(body); // <-- DECODEO MANUAL

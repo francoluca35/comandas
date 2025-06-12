@@ -5,6 +5,7 @@ import { writeFile } from "fs/promises";
 import path from "path";
 
 export async function POST(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   const formData = await req.formData();
   const file = formData.get("file");
 

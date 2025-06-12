@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { comparePassword, hashPassword } from "@/utils/encrypt";
 
 export async function PUT(req) {
+    const { default: clientPromise } = await import('@/lib/mongodb');
   try {
     const { username, oldPassword, newPassword } = await req.json();
 
