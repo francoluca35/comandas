@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 
-import { obtenerTipoMesa } from "@/utils/mesas";
-
 export async function POST(req) {
   try {
     const {
@@ -20,9 +18,16 @@ export async function POST(req) {
     const db = client.db("comandas");
 
     const mesasDoc = await db.collection("tables").findOne({});
-    const tipo = obtenerTipoMesa(mesasDoc, codigo);
 
-    if (!tipo) {
+    let tipo = null;
+
+    if (mesasDoc.mesaAdentro?.some((m) => m.codigo === codigo)) {
+      tipo = "mesaAdentro";
+    } else if (mesasDoc.mesaAdentro2?.some((m) => m.codigo === codigo)) {
+      tipo = "mesaAdentro2";
+    } else if (mesasDoc.mesaAfuera?.some((m) => m.codigo === codigo)) {
+      tipo = "mesaAfuera";
+    } else {
       return NextResponse.json(
         { error: "Mesa no encontrada" },
         { status: 404 }
@@ -72,21 +77,6 @@ export async function POST(req) {
     console.error("Error actualizando mesa:", error);
     return NextResponse.json(
       { error: "Error en el servidor" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET() {
-  try {
-    const client = await clientPromise;
-    const db = client.db("comandas");
-    const mesas = await db.collection("tables").find({}).toArray();
-
-    return NextResponse.json(mesas);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Error al obtener las mesas" },
       { status: 500 }
     );
   }

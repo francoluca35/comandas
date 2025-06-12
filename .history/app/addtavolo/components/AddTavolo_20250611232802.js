@@ -10,10 +10,8 @@ export default function AddTavolo() {
   const [mensaje, setMensaje] = useState("");
   const [totalAdentro, setTotalAdentro] = useState(0);
   const [totalAfuera, setTotalAfuera] = useState(0);
-  const [totalAdentro2, setTotalAdentro2] = useState(0);
   const [mesasAdentro, setMesasAdentro] = useState([]);
   const [mesasAfuera, setMesasAfuera] = useState([]);
-  const [mesasAdentro2, setMesasAdentro2] = useState([]);
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState([]);
 
@@ -24,10 +22,8 @@ export default function AddTavolo() {
         const data = await res.json();
         if (Array.isArray(data) && data[0]) {
           setMesasAdentro(data[0].mesaAdentro);
-          setMesasAdentro2(data[0].mesaAdentro2);
           setMesasAfuera(data[0].mesaAfuera);
           setTotalAdentro(data[0].mesaAdentro.length);
-          setTotalAdentro2(data[0].mesaAdentro2.length);
           setTotalAfuera(data[0].mesaAfuera.length);
         }
       } catch (error) {
@@ -38,21 +34,11 @@ export default function AddTavolo() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!tipo || tipo.trim() === "") {
-      setMensaje("Debes seleccionar el tipo de mesa");
-      return;
-    }
-
-    console.log("Enviando tipo:", tipo.trim(), "Cantidad:", cantidad);
-
     try {
       const res = await fetch("/api/mesas/agregar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tipo: tipo.trim(),
-          cantidad: parseInt(cantidad),
-        }),
+        body: JSON.stringify({ tipo, cantidad: parseInt(cantidad) }),
       });
 
       const data = await res.json();
@@ -69,7 +55,6 @@ export default function AddTavolo() {
             setTipo("");
             setCantidad(1);
             setMensaje("");
-            location.reload();
           }
         });
       } else {
@@ -102,29 +87,24 @@ export default function AddTavolo() {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch("/api/mesas/eliminar", {
+      await fetch("/api/mesas/eliminar", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ codigos: seleccionadas }),
       });
-
-      if (res.ok) {
-        Swal.fire("Eliminado", "Las mesas fueron eliminadas", "success");
-        setSeleccionadas([]);
-        setMostrarEliminar(false);
-        location.reload(); // refresca para recargar los datos
-      } else {
-        Swal.fire("Error", "No se pudieron eliminar mesas", "error");
-      }
+      Swal.fire("Eliminado", "Las mesas fueron eliminadas", "success");
+      setSeleccionadas([]);
+      setMostrarEliminar(false);
+      location.reload();
     } catch (err) {
-      Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+      Swal.fire("Error", "No se pudieron eliminar mesas", "error");
     }
   };
 
   return (
     <section className="w-full min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 py-16 px-4">
       <div className="max-w-2xl mx-auto backdrop-blur-lg bg-white/5 rounded-3xl p-6 md:p-10 border border-gray-700 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 ">
           <BackArrow label="Volver al panel" />
         </div>
 
@@ -134,10 +114,7 @@ export default function AddTavolo() {
 
         <div className="bg-white/10 p-4 rounded-xl text-white mb-6 text-sm">
           <p>
-            Mesas adentro A: <strong>{totalAdentro}</strong>
-          </p>
-          <p>
-            Mesas adentro B: <strong>{totalAdentro2}</strong>
+            Mesas adentro: <strong>{totalAdentro}</strong>
           </p>
           <p>
             Mesas afuera: <strong>{totalAfuera}</strong>
@@ -153,10 +130,18 @@ export default function AddTavolo() {
             onChange={(e) => setTipo(e.target.value)}
             className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white"
           >
-            <option value="">-- Seleccionar --</option>
-            <option value="mesaAdentro">🍽 Mesa Adentro A</option>
-            <option value="mesaAdentro2">🍽 Mesa Adentro B</option>
-            <option value="mesaAfuera">🌤 Mesa Afuera</option>
+            <option value="" className="text-black">
+              -- Seleccionar --
+            </option>
+            <option value="mesaAdentro" className="text-black">
+              🍽 Mesa Adentro A
+            </option>
+            <option value="mesaAdentro2" className="text-black">
+              🍽 Mesa Adentro B
+            </option>
+            <option value="mesaAfuera" className="text-black">
+              🌤 Mesa Afuera
+            </option>
           </select>
 
           {tipo && (
@@ -182,41 +167,31 @@ export default function AddTavolo() {
             Agregar Mesas
           </button>
 
-          {mensaje && (
-            <p className="text-sm text-white text-center">{mensaje}</p>
-          )}
           <button
             onClick={() => setMostrarEliminar(!mostrarEliminar)}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl"
           >
             🗑 Eliminar Mesas
           </button>
+
           {mostrarEliminar && (
-            <div className="mt-6 space-y-4">
-              <h3 className="text-white text-center font-semibold mb-4">
-                Seleccioná las mesas que querés eliminar
-              </h3>
-
-              <div className="grid grid-cols-4 gap-3">
-                {[...mesasAdentro, ...mesasAdentro2, ...mesasAfuera].map(
-                  (mesa) => (
-                    <button
-                      key={mesa.codigo}
-                      onClick={() => toggleSeleccion(mesa.codigo)}
-                      className={`px-3 py-2 rounded-xl font-bold border text-sm transition-all duration-200 ${
-                        seleccionadas.includes(mesa.codigo)
-                          ? "bg-red-500 text-white border-red-600"
-                          : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                      }`}
-                    >
-                      {mesa.numero}
-                    </button>
-                  )
-                )}
-              </div>
-
+            <div className="grid grid-cols-4 gap-3 mt-6">
+              {[...mesasAdentro, ...mesasAfuera].map((mesa) => (
+                <button
+                  key={mesa.codigo}
+                  onClick={() => toggleSeleccion(mesa.codigo)}
+                  className={`px-3 py-2 rounded-xl font-bold border text-sm transition-all duration-200
+                    ${
+                      seleccionadas.includes(mesa.codigo)
+                        ? "bg-red-500 text-white border-red-600"
+                        : "bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    }`}
+                >
+                  {mesa.numero}
+                </button>
+              ))}
               {seleccionadas.length > 0 && (
-                <div className="mt-4">
+                <div className="col-span-4 mt-4">
                   <button
                     onClick={eliminarMesas}
                     className="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded-xl"
@@ -226,6 +201,10 @@ export default function AddTavolo() {
                 </div>
               )}
             </div>
+          )}
+
+          {mensaje && (
+            <p className="text-sm text-white text-center">{mensaje}</p>
           )}
         </div>
       </div>

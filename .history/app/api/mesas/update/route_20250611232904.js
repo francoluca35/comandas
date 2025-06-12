@@ -4,11 +4,9 @@ import clientPromise from "@/lib/mongodb";
 export async function POST(req) {
   try {
     const { tipo, cantidad } = await req.json();
-    const tipoSanitizado = tipo.trim();
 
-    const tiposValidos = ["mesaAdentro", "mesaAdentro2", "mesaAfuera"];
-
-    if (!tiposValidos.includes(tipoSanitizado)) {
+    // Validamos que el tipo sea correcto
+    if (!["mesaAdentro", "mesaAdentro2", "mesaAfuera"].includes(tipo)) {
       return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
 
@@ -16,16 +14,17 @@ export async function POST(req) {
     const db = client.db("comandas");
     const mesasDoc = await db.collection("tables").findOne({});
 
-    const mesasActuales = mesasDoc[tipoSanitizado] || [];
+    const mesasActuales = mesasDoc[tipo] || [];
 
+    // Calculamos el próximo número de mesa según el bloque
     const baseNumero =
       mesasActuales.length > 0
         ? Math.max(...mesasActuales.map((m) => m.numero))
-        : tipoSanitizado === "mesaAdentro"
+        : tipo === "mesaAdentro"
         ? 0
-        : tipoSanitizado === "mesaAdentro2"
+        : tipo === "mesaAdentro2"
         ? 15
-        : 30; // <-- ahora afuera empieza desde el 31
+        : 30; // bloques de numeración (podés ajustar si querés otros rangos)
 
     const nuevasMesas = [];
 
@@ -33,7 +32,7 @@ export async function POST(req) {
       const nuevoNumero = baseNumero + i;
 
       nuevasMesas.push({
-        codigo: generarCodigoMesa(tipoSanitizado, nuevoNumero),
+        codigo: generarCodigoMesa(tipo, nuevoNumero),
         numero: nuevoNumero,
         estado: "libre",
         cliente: null,
@@ -45,11 +44,12 @@ export async function POST(req) {
       });
     }
 
+    // Actualizamos el documento principal de mesas
     await db
       .collection("tables")
       .updateOne(
         { _id: mesasDoc._id },
-        { $set: { [tipoSanitizado]: [...mesasActuales, ...nuevasMesas] } }
+        { $set: { [tipo]: [...mesasActuales, ...nuevasMesas] } }
       );
 
     return NextResponse.json({ success: true });
@@ -62,10 +62,11 @@ export async function POST(req) {
   }
 }
 
+// Función generadora de códigos por tipo
 function generarCodigoMesa(tipo, numero) {
   if (tipo === "mesaAdentro")
     return `MESA_${numero.toString().padStart(3, "0")}`;
-  if (tipo === "mesaAdentro2") return `MESA_B${numero}`; // Las de lado B las diferenciamos con prefijo B
-  if (tipo === "mesaAfuera") return `MESA_AF${numero}`; // (Si querés que afuera tenga código diferente, aquí lo puedes cambiar)
+  if (tipo === "mesaAdentro2") return `MESA_B${numero}`;
+  if (tipo === "mesaAfuera") return `MESA_${numero}`;
   return `MESA_${numero}`;
 }

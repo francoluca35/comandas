@@ -25,7 +25,7 @@ export async function POST(req) {
         ? 0
         : tipoSanitizado === "mesaAdentro2"
         ? 15
-        : 30; // <-- ahora afuera empieza desde el 31
+        : 30;
 
     const nuevasMesas = [];
 
@@ -65,7 +65,7 @@ export async function POST(req) {
 function generarCodigoMesa(tipo, numero) {
   if (tipo === "mesaAdentro")
     return `MESA_${numero.toString().padStart(3, "0")}`;
-  if (tipo === "mesaAdentro2") return `MESA_B${numero}`; // Las de lado B las diferenciamos con prefijo B
-  if (tipo === "mesaAfuera") return `MESA_AF${numero}`; // (Si querés que afuera tenga código diferente, aquí lo puedes cambiar)
+  if (tipo === "mesaAdentro2") return `MESA_B${numero}`;
+  if (tipo === "mesaAfuera") return `MESA_${numero}`;
   return `MESA_${numero}`;
 }
