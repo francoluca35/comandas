@@ -1,7 +1,9 @@
-import clientPromise from "@/lib/mongodb";
+
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export const { default: clientPromise } = await import('@/lib/mongodb');
+
+async function POST(req) {
   const { username } = await req.json();
 
   const client = await clientPromise;

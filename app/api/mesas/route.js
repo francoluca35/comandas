@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+
 
 import { obtenerTipoMesa } from "@/utils/mesas";
 
-export async function POST(req) {
+export const { default: clientPromise } = await import('@/lib/mongodb');
+
+async function POST(req) {
   try {
     const {
       codigo,
