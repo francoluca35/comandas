@@ -81,46 +81,6 @@ export default function AddTavolo() {
     }
   };
 
-  const toggleSeleccion = (codigo) => {
-    setSeleccionadas((prev) =>
-      prev.includes(codigo)
-        ? prev.filter((c) => c !== codigo)
-        : [...prev, codigo]
-    );
-  };
-
-  const eliminarMesas = async () => {
-    if (seleccionadas.length === 0) return;
-    const confirm = await Swal.fire({
-      title: "¿Eliminar mesas seleccionadas?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      const res = await fetch("/api/mesas/eliminar", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigos: seleccionadas }),
-      });
-
-      if (res.ok) {
-        Swal.fire("Eliminado", "Las mesas fueron eliminadas", "success");
-        setSeleccionadas([]);
-        setMostrarEliminar(false);
-        location.reload(); // refresca para recargar los datos
-      } else {
-        Swal.fire("Error", "No se pudieron eliminar mesas", "error");
-      }
-    } catch (err) {
-      Swal.fire("Error", "No se pudo conectar con el servidor", "error");
-    }
-  };
-
   return (
     <section className="w-full min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 py-16 px-4">
       <div className="max-w-2xl mx-auto backdrop-blur-lg bg-white/5 rounded-3xl p-6 md:p-10 border border-gray-700 shadow-2xl relative overflow-hidden">

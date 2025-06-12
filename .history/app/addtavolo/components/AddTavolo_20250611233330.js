@@ -38,21 +38,19 @@ export default function AddTavolo() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!tipo || tipo.trim() === "") {
+    if (!tipo) {
       setMensaje("Debes seleccionar el tipo de mesa");
+      console.log("Tipo seleccionado:", tipo);
+      console.log("Cantidad seleccionada:", cantidad);
+
       return;
     }
-
-    console.log("Enviando tipo:", tipo.trim(), "Cantidad:", cantidad);
 
     try {
       const res = await fetch("/api/mesas/agregar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tipo: tipo.trim(),
-          cantidad: parseInt(cantidad),
-        }),
+        body: JSON.stringify({ tipo, cantidad: parseInt(cantidad) }),
       });
 
       const data = await res.json();
@@ -78,46 +76,6 @@ export default function AddTavolo() {
     } catch (error) {
       console.error("Error:", error);
       setMensaje("Error en la solicitud");
-    }
-  };
-
-  const toggleSeleccion = (codigo) => {
-    setSeleccionadas((prev) =>
-      prev.includes(codigo)
-        ? prev.filter((c) => c !== codigo)
-        : [...prev, codigo]
-    );
-  };
-
-  const eliminarMesas = async () => {
-    if (seleccionadas.length === 0) return;
-    const confirm = await Swal.fire({
-      title: "¿Eliminar mesas seleccionadas?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      const res = await fetch("/api/mesas/eliminar", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigos: seleccionadas }),
-      });
-
-      if (res.ok) {
-        Swal.fire("Eliminado", "Las mesas fueron eliminadas", "success");
-        setSeleccionadas([]);
-        setMostrarEliminar(false);
-        location.reload(); // refresca para recargar los datos
-      } else {
-        Swal.fire("Error", "No se pudieron eliminar mesas", "error");
-      }
-    } catch (err) {
-      Swal.fire("Error", "No se pudo conectar con el servidor", "error");
     }
   };
 
@@ -184,48 +142,6 @@ export default function AddTavolo() {
 
           {mensaje && (
             <p className="text-sm text-white text-center">{mensaje}</p>
-          )}
-          <button
-            onClick={() => setMostrarEliminar(!mostrarEliminar)}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl"
-          >
-            🗑 Eliminar Mesas
-          </button>
-          {mostrarEliminar && (
-            <div className="mt-6 space-y-4">
-              <h3 className="text-white text-center font-semibold mb-4">
-                Seleccioná las mesas que querés eliminar
-              </h3>
-
-              <div className="grid grid-cols-4 gap-3">
-                {[...mesasAdentro, ...mesasAdentro2, ...mesasAfuera].map(
-                  (mesa) => (
-                    <button
-                      key={mesa.codigo}
-                      onClick={() => toggleSeleccion(mesa.codigo)}
-                      className={`px-3 py-2 rounded-xl font-bold border text-sm transition-all duration-200 ${
-                        seleccionadas.includes(mesa.codigo)
-                          ? "bg-red-500 text-white border-red-600"
-                          : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                      }`}
-                    >
-                      {mesa.numero}
-                    </button>
-                  )
-                )}
-              </div>
-
-              {seleccionadas.length > 0 && (
-                <div className="mt-4">
-                  <button
-                    onClick={eliminarMesas}
-                    className="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded-xl"
-                  >
-                    Confirmar eliminación
-                  </button>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>
