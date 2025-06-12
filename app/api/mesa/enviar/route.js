@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-
+import clientPromise from "@/lib/mongodb";
 
 const generarCodigoOrden = () => {
   return Math.floor(1000 + Math.random() * 9000); // ej: 4573
 };
 
-export const { default: clientPromise } = await import('@/lib/mongodb');
-
-async function POST(req) {
+export async function POST(req) {
   try {
     const data = await req.json();
     const client = await clientPromise;
@@ -15,7 +13,7 @@ async function POST(req) {
 
     const { numeroMesa, cliente, productos, metodoPago, total } = data;
 
-    // actualizar
+    // actualizar mesa
     await db.collection("tables").updateOne(
       { "mesaAdentro.numero": numeroMesa },
       {
