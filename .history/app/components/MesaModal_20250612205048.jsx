@@ -9,23 +9,9 @@ import {
   FaPlus,
   FaTimes,
 } from "react-icons/fa";
-import jsPDF from "jspdf";
-
-import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
-
-async function loadImageAsBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -149,11 +135,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   const enviarPedido = async () => {
     if (!pedidoActual.length) {
-      Swal.fire({
-        icon: "warning",
-        title: "Sin productos",
-        text: "Agrega productos antes de enviar el pedido.",
-      });
+      alert("Agrega productos antes de enviar.");
       return;
     }
 
@@ -161,9 +143,12 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+
     const fecha = new Date().toLocaleDateString("es-AR");
     const orden = Date.now();
+
     const productosTotales = [...historial, ...pedidoActual];
+
     const total = productosTotales.reduce(
       (acc, p) =>
         acc + (p.precio * p.cantidad - (p.descuento || 0) * p.cantidad),
@@ -171,7 +156,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     );
 
     try {
-      const res = await fetch("http://localhost:5000/print", {
+      // 🔥 1️⃣ Enviar primero el pedido al servidor de impresión local
+      await fetch("http://localhost:5000/print", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -180,67 +166,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         }),
       });
 
-      const data = await res.json();
-
-      if (data.success) {
-        await Swal.fire({
-          icon: "success",
-          title: "Impresión OK",
-          text: `Se imprimió en: ${data.impresos.join(", ")}`,
-          timer: 3000,
-        });
-
-        // ✅ Cargar el logo
-        const logoBase64 = await loadImageAsBase64("/Assets/logo-oficial.png");
-
-        const doc = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: [80, 150],
-        });
-
-        // ✅ Agregar imagen al PDF
-        doc.addImage(logoBase64, "PNG", 25, 5, 30, 20); // Ajustá el tamaño si querés
-
-        doc.setFont("courier", "normal");
-        doc.setFontSize(12);
-        doc.setFontSize(10);
-        doc.text(`Mesa: ${mesa.numero}`, 40, 36, { align: "center" });
-        doc.text(`Orden #: ${orden}`, 40, 42, { align: "center" });
-        doc.text(`Hora: ${hora}`, 40, 48, { align: "center" });
-        doc.text(`Fecha: ${fecha}`, 40, 54, { align: "center" });
-        doc.text("--------------------------------------------------", 40, 60, {
-          align: "center",
-        });
-
-        doc.text("Comidas:", 10, 66);
-        let y = 71;
-        productosTotales
-          .filter((p) => p.tipo !== "bebida")
-          .forEach((p) => {
-            doc.text(`${p.cantidad}x ${p.nombre}`, 10, y);
-            y += 5;
-          });
-
-        doc.text("Bebidas:", 10, y + 5);
-        y += 10;
-        productosTotales
-          .filter((p) => p.tipo === "bebida")
-          .forEach((p) => {
-            doc.text(`${p.cantidad}x ${p.nombre}`, 10, y);
-            y += 5;
-          });
-
-        doc.text(
-          "--------------------------------------------------",
-          40,
-          y + 5,
-          { align: "center" }
-        );
-
-        doc.save(`Ticket-Mesa-${mesa.numero}-${orden}.pdf`);
-      }
-
+      // 🔥 2️⃣ Luego guardamos normalmente la mesa como antes
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -259,13 +185,10 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       setHistorial(productosTotales);
       setPedidoActual([]);
       refetch?.();
+      alert("Pedido enviado e impreso correctamente.");
     } catch (err) {
-      console.error("Error al imprimir o guardar:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo enviar el pedido.",
-      });
+      console.error("Error al actualizar mesa o imprimir:", err);
+      alert("No se pudo enviar el pedido.");
     }
   };
 

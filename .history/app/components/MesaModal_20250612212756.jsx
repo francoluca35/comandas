@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
+const logoBase64 = await loadImageAsBase64("/Assets/logo-oficial.png");
 
 async function loadImageAsBase64(url) {
   const response = await fetch(url);
@@ -204,6 +205,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
         doc.setFont("courier", "normal");
         doc.setFontSize(12);
+        doc.text("🍽️ Perú Mar", 40, 30, { align: "center" });
         doc.setFontSize(10);
         doc.text(`Mesa: ${mesa.numero}`, 40, 36, { align: "center" });
         doc.text(`Orden #: ${orden}`, 40, 42, { align: "center" });

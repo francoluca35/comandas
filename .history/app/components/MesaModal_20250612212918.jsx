@@ -204,6 +204,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
         doc.setFont("courier", "normal");
         doc.setFontSize(12);
+        doc.text("🍽️ Perú Mar", 40, 30, { align: "center" });
         doc.setFontSize(10);
         doc.text(`Mesa: ${mesa.numero}`, 40, 36, { align: "center" });
         doc.text(`Orden #: ${orden}`, 40, 42, { align: "center" });

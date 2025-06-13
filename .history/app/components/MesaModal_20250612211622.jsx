@@ -10,22 +10,10 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import jsPDF from "jspdf";
-
 import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
-
-async function loadImageAsBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -171,6 +159,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     );
 
     try {
+      // 1️⃣ Enviar al servidor de impresión
       const res = await fetch("http://localhost:5000/print", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -190,31 +179,26 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           timer: 3000,
         });
 
-        // ✅ Cargar el logo
-        const logoBase64 = await loadImageAsBase64("/Assets/logo-oficial.png");
-
+        // 2️⃣ Generar PDF con el formato térmico exacto
         const doc = new jsPDF({
           orientation: "portrait",
           unit: "mm",
           format: [80, 150],
         });
-
-        // ✅ Agregar imagen al PDF
-        doc.addImage(logoBase64, "PNG", 25, 5, 30, 20); // Ajustá el tamaño si querés
-
         doc.setFont("courier", "normal");
         doc.setFontSize(12);
+        doc.text("🍽️ Perú Mar", 40, 20, { align: "center" });
         doc.setFontSize(10);
-        doc.text(`Mesa: ${mesa.numero}`, 40, 36, { align: "center" });
-        doc.text(`Orden #: ${orden}`, 40, 42, { align: "center" });
-        doc.text(`Hora: ${hora}`, 40, 48, { align: "center" });
-        doc.text(`Fecha: ${fecha}`, 40, 54, { align: "center" });
-        doc.text("--------------------------------------------------", 40, 60, {
+        doc.text(`Mesa: ${mesa.numero}`, 40, 30, { align: "center" });
+        doc.text(`Orden #: ${orden}`, 40, 36, { align: "center" });
+        doc.text(`Hora: ${hora}`, 40, 42, { align: "center" });
+        doc.text(`Fecha: ${fecha}`, 40, 48, { align: "center" });
+        doc.text("--------------------------------------------------", 40, 54, {
           align: "center",
         });
 
-        doc.text("Comidas:", 10, 66);
-        let y = 71;
+        doc.text("Comidas:", 10, 60);
+        let y = 65;
         productosTotales
           .filter((p) => p.tipo !== "bebida")
           .forEach((p) => {
@@ -241,6 +225,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         doc.save(`Ticket-Mesa-${mesa.numero}-${orden}.pdf`);
       }
 
+      // 3️⃣ Guardamos la mesa normalmente
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

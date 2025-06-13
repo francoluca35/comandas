@@ -16,17 +16,6 @@ import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
 
-async function loadImageAsBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
   const [mostrarResumen, setMostrarResumen] = useState(false);
@@ -204,6 +193,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
         doc.setFont("courier", "normal");
         doc.setFontSize(12);
+        doc.text("🍽️ Perú Mar", 40, 30, { align: "center" });
         doc.setFontSize(10);
         doc.text(`Mesa: ${mesa.numero}`, 40, 36, { align: "center" });
         doc.text(`Orden #: ${orden}`, 40, 42, { align: "center" });
