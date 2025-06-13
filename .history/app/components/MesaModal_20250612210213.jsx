@@ -9,23 +9,9 @@ import {
   FaPlus,
   FaTimes,
 } from "react-icons/fa";
-import jsPDF from "jspdf";
-
-import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
-
-async function loadImageAsBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -161,9 +147,12 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+
     const fecha = new Date().toLocaleDateString("es-AR");
     const orden = Date.now();
+
     const productosTotales = [...historial, ...pedidoActual];
+
     const total = productosTotales.reduce(
       (acc, p) =>
         acc + (p.precio * p.cantidad - (p.descuento || 0) * p.cantidad),
@@ -171,6 +160,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     );
 
     try {
+      // 1️⃣ Primero imprimimos localmente
       const res = await fetch("http://localhost:5000/print", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -185,62 +175,34 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       if (data.success) {
         await Swal.fire({
           icon: "success",
-          title: "Impresión OK",
-          text: `Se imprimió en: ${data.impresos.join(", ")}`,
+          title: "Impresión exitosa",
+          text: `Se imprimieron: ${data.impresos.join(", ")}`,
           timer: 3000,
         });
 
-        // ✅ Cargar el logo
-        const logoBase64 = await loadImageAsBase64("/Assets/logo-oficial.png");
-
-        const doc = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: [80, 150],
-        });
-
-        // ✅ Agregar imagen al PDF
-        doc.addImage(logoBase64, "PNG", 25, 5, 30, 20); // Ajustá el tamaño si querés
-
-        doc.setFont("courier", "normal");
+        // 2️⃣ Generamos el PDF
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text(`PERU MAR - Mesa ${mesa.numero}`, 20, 20);
         doc.setFontSize(12);
-        doc.setFontSize(10);
-        doc.text(`Mesa: ${mesa.numero}`, 40, 36, { align: "center" });
-        doc.text(`Orden #: ${orden}`, 40, 42, { align: "center" });
-        doc.text(`Hora: ${hora}`, 40, 48, { align: "center" });
-        doc.text(`Fecha: ${fecha}`, 40, 54, { align: "center" });
-        doc.text("--------------------------------------------------", 40, 60, {
-          align: "center",
+        doc.text(`Fecha: ${fecha} - Hora: ${hora}`, 20, 30);
+        doc.text("Productos:", 20, 40);
+
+        productosTotales.forEach((p, i) => {
+          doc.text(`${p.cantidad}x ${p.nombre}`, 20, 50 + i * 10);
         });
-
-        doc.text("Comidas:", 10, 66);
-        let y = 71;
-        productosTotales
-          .filter((p) => p.tipo !== "bebida")
-          .forEach((p) => {
-            doc.text(`${p.cantidad}x ${p.nombre}`, 10, y);
-            y += 5;
-          });
-
-        doc.text("Bebidas:", 10, y + 5);
-        y += 10;
-        productosTotales
-          .filter((p) => p.tipo === "bebida")
-          .forEach((p) => {
-            doc.text(`${p.cantidad}x ${p.nombre}`, 10, y);
-            y += 5;
-          });
 
         doc.text(
-          "--------------------------------------------------",
-          40,
-          y + 5,
-          { align: "center" }
+          `Total: $${total.toFixed(2)}`,
+          20,
+          60 + productosTotales.length * 10
         );
 
+        // Descargamos el PDF
         doc.save(`Ticket-Mesa-${mesa.numero}-${orden}.pdf`);
       }
 
+      // 3️⃣ Después actualizamos el estado de la mesa
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -256,6 +218,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         }),
       });
 
+      // 4️⃣ Limpiamos estado
       setHistorial(productosTotales);
       setPedidoActual([]);
       refetch?.();
