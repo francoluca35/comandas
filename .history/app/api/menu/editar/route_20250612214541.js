@@ -4,19 +4,9 @@ import { ObjectId } from "mongodb";
 
 export async function PUT(req) {
   try {
-    const body = await req.json();
+    const { id, nombre, precio, precioConIVA, descuento, adicionales, tipo } =
+      await req.json();
 
-    const {
-      id,
-      nombre,
-      precio,
-      precioConIVA,
-      descuento = undefined,
-      adicionales = [],
-      tipo,
-    } = body;
-
-    // Validación solo de los campos requeridos estrictos
     if (!id || !nombre || !precio || !precioConIVA || !tipo) {
       return NextResponse.json({ message: "Faltan datos" }, { status: 400 });
     }
@@ -29,13 +19,9 @@ export async function PUT(req) {
       tipo,
       precio,
       precioConIVA,
-      adicionales,
+      adicionales: adicionales || [],
+      descuento: descuento || 0,
     };
-
-    // Solo agregamos el descuento si efectivamente fue enviado
-    if (descuento !== undefined) {
-      update.descuento = descuento;
-    }
 
     await db
       .collection("menus")

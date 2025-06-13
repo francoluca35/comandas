@@ -8,12 +8,10 @@ import { validarImagenMenu } from "@/utils/validationApp";
 import BackArrow from "@/app/components/ui/BackArrow";
 import { FiPlusCircle, FiX } from "react-icons/fi";
 import Swal from "sweetalert2";
-import ModalEditarProducto from "@/app/components/ModalEditarProducto";
 
 export default function AgregarMenu() {
   const { agregarMenu, loading, error, success } = useAgregarMenu();
   const { productos } = useProductos();
-  const [productoEditar, setProductoEditar] = useState(null);
 
   const [modo, setModo] = useState("agregar");
   const [nombre, setNombre] = useState("");
@@ -23,7 +21,7 @@ export default function AgregarMenu() {
   const [descuento, setDescuento] = useState("");
   const [adicional, setAdicional] = useState("");
   const [adicionales, setAdicionales] = useState([]);
-
+  const [productoEditar, setProductoEditar] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [file, setFile] = useState(null);
@@ -370,13 +368,6 @@ export default function AgregarMenu() {
                     >
                       Editar
                     </button>
-                    {productoEditar && (
-                      <ModalEditarProducto
-                        producto={productoEditar}
-                        onClose={() => setProductoEditar(null)}
-                        refetch={() => location.reload()} // o mejor: refetch real de tus datos
-                      />
-                    )}
 
                     <button
                       onClick={() => handleEliminar(p._id)}
