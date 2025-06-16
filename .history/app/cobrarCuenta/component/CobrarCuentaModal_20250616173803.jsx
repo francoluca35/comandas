@@ -210,39 +210,19 @@ export default function CobrarCuentaModal({
 
   if (paso === "qr") {
     return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-        <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
-          <h2 className="text-2xl font-bold text-center text-gray-700">
-            Pagar con Mercado Pago
-          </h2>
-
-          {urlPago ? (
-            <>
-              <div className="flex justify-center mb-4">
-                <QRCode value={urlPago} size={200} />
-              </div>
-
-              <a
-                href={urlPago}
-                target="_blank"
-                className="block w-full text-center py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold shadow-md transition"
-              >
-                Ir al pago
-              </a>
-            </>
-          ) : (
-            <p className="text-center text-gray-500 text-lg animate-pulse">
-              Generando QR...
-            </p>
-          )}
-
-          <button
-            onClick={onClose}
-            className="py-3 w-full rounded-xl bg-gray-400 hover:bg-gray-500 text-black text-lg font-semibold transition"
-          >
-            Cancelar
-          </button>
-        </div>
+      <div className="modal">
+        <h2>Pagar con Mercado Pago</h2>
+        {urlPago ? (
+          <>
+            <QRCode value={urlPago} size={200} />
+            <a href={urlPago} target="_blank">
+              Pagar ahora
+            </a>
+          </>
+        ) : (
+          <p>Generando QR...</p>
+        )}
+        <button onClick={onClose}>Cancelar</button>
       </div>
     );
   }
