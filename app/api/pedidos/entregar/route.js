@@ -12,20 +12,31 @@ export async function PUT(req) {
 
     const client = await clientPromise;
     const db = client.db("comandas");
+    const pedidosCollection = db.collection("pedidos");
+    const cajaCollection = db.collection("cajaRegistradora");
 
     const fechaActual = new Date();
 
-    const result = await db.collection("pedidos").updateOne(
+    const pedido = await pedidosCollection.findOne({ _id: new ObjectId(id) });
+
+    await pedidosCollection.updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
           estado: "entregado",
-          horaEntrega: fechaActual.toISOString(), // 👈 se guarda como string ISO
+          horaEntrega: fechaActual.toISOString(),
         },
       }
     );
 
-    return NextResponse.json({ success: true, updated: result.modifiedCount });
+    if (pedido.formaDePago === "efectivo") {
+      await cajaCollection.updateOne(
+        {},
+        { $inc: { montoActual: pedido.total } }
+      );
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error al marcar como entregado:", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });

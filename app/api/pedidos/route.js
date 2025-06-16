@@ -4,9 +4,8 @@ import clientPromise from "@/lib/mongodb";
 export async function POST(req) {
   try {
     const pedido = await req.json();
-
     const client = await clientPromise;
-    const db = client.db("comandas"); // podés cambiar si usás otro nombre
+    const db = client.db("comandas");
     const collection = db.collection("pedidos");
 
     const nuevoPedido = {
@@ -16,6 +15,20 @@ export async function POST(req) {
     };
 
     const resultado = await collection.insertOne(nuevoPedido);
+
+    // ⬇️ Agregamos ingreso a ingresosDiarios solo si es en efectivo
+    if (pedido.formaDePago === "efectivo") {
+      const fechaActual = new Date();
+      const fechaLocal = fechaActual.toLocaleDateString("es-AR"); // ej: "14/6/2025"
+
+      const ingresosCollection = db.collection("ingresosDiarios");
+
+      await ingresosCollection.updateOne(
+        { fecha: fechaLocal },
+        { $inc: { efectivo: pedido.total } },
+        { upsert: true }
+      );
+    }
 
     return NextResponse.json({
       success: true,
