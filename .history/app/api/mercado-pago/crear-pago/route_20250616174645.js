@@ -1,6 +1,5 @@
-// /app/api/mercado-pago/crear-pago/route.js
-
 export const runtime = "nodejs";
+
 import mercadopago from "mercadopago";
 
 mercadopago.configure({
@@ -15,14 +14,12 @@ export async function POST(req) {
     const preference = {
       items: [
         {
-          id: `mesa-${mesa}`,
           title: `Cobro Mesa ${mesa}`,
           quantity: 1,
           currency_id: "ARS",
           unit_price: parseFloat(total),
         },
       ],
-      external_reference: `mesa-${mesa}`, // ✅ TRACKEO LIMPIO
       payer: { name: nombreCliente },
       back_urls: {
         success: "https://comandas-rose.vercel.app/tavolo",
@@ -35,11 +32,7 @@ export async function POST(req) {
     const response = await mercadopago.preferences.create(preference);
 
     return new Response(
-      JSON.stringify({
-        init_point: response.body.init_point,
-        preference_id: response.body.id,
-        external_reference: `mesa-${mesa}`,
-      }),
+      JSON.stringify({ init_point: response.body.init_point }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },

@@ -62,7 +62,7 @@ export default function CobrarCuentaModal({
           setMetodo("Mercado Pago");
           setPaso("finalizado");
         }
-      }, 6000);
+      }, 4000);
     }
     return () => clearInterval(interval);
   }, [paso, externalReference]);
@@ -74,7 +74,7 @@ export default function CobrarCuentaModal({
     }
   }, [paso]);
 
-  const imprimirTicket = () => {
+  const imprimirTicket = (metodoPago) => {
     const fecha = new Date().toLocaleDateString("es-AR");
     const hora = new Date().toLocaleTimeString("es-AR", {
       hour: "2-digit",
@@ -89,7 +89,7 @@ export default function CobrarCuentaModal({
             @page { size: 80mm auto; margin: 0; }
             body { font-family: monospace; font-size: 12px; width: 58mm; text-align: center; margin: 0; }
             h2 { margin: 5px 0; font-size: 16px; }
-            .logo { width: 80px; margin-bottom: 5px; }
+            .logo { width: 80px; margin-bottom: 5px; filter: grayscale(100%); }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
             .item { display: flex; justify-content: space-between; margin: 2px 0; }
             .total { font-weight: bold; font-size: 14px; }
@@ -125,9 +125,9 @@ export default function CobrarCuentaModal({
           <div class="item total"><span>Total:</span><span>$${totalFinal.toFixed(
             2
           )}</span></div>
-          <div class="item"><span>Pago:</span><span>${metodo}</span></div>
+          <div class="item"><span>Pago:</span><span>${metodoPago}</span></div>
           ${
-            metodo === "Mercado Pago"
+            metodoPago === "Efectivo"
               ? `
             <div class="item"><span>Pagó:</span><span>$${parseFloat(
               montoPagado
@@ -153,9 +153,7 @@ export default function CobrarCuentaModal({
   };
 
   const confirmarPago = async () => {
-    if (metodo === "Efectivo") imprimirTicket();
-
-    {
+    if (metodo === "Efectivo") {
       await fetch("/api/cobro-efectivo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -127,7 +127,7 @@ export default function CobrarCuentaModal({
           )}</span></div>
           <div class="item"><span>Pago:</span><span>${metodo}</span></div>
           ${
-            metodo === "Mercado Pago"
+            metodo === "Efectivo"
               ? `
             <div class="item"><span>Pagó:</span><span>$${parseFloat(
               montoPagado
@@ -153,9 +153,7 @@ export default function CobrarCuentaModal({
   };
 
   const confirmarPago = async () => {
-    if (metodo === "Efectivo") imprimirTicket();
-
-    {
+    if (metodo === "Efectivo") {
       await fetch("/api/cobro-efectivo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -181,6 +179,79 @@ export default function CobrarCuentaModal({
 
     refetch?.();
     onClose();
+  };
+
+  const imprimirTicketEfectivo = () => {
+    const fecha = new Date().toLocaleDateString("es-AR");
+    const hora = new Date().toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const orden = Date.now();
+
+    const html = `
+      <html>
+        <head>
+          <style>
+            @page { size: 80mm auto; margin: 0; }
+            body { font-family: monospace; font-size: 12px; width: 58mm; text-align: center; margin: 0; }
+            h2 { margin: 5px 0; font-size: 16px; }
+            .logo { width: 80px; margin-bottom: 5px; }
+            hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+            .item { display: flex; justify-content: space-between; margin: 2px 0; }
+            .total { font-weight: bold; font-size: 14px; }
+            .footer { font-size: 10px; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <img src="${
+            window.location.origin
+          }/Assets/logo-oficial.png" class="logo" />
+          <h2>🍽️ Perú Mar</h2>
+          <p>Mesa: ${mesa.numero}</p>
+          <p>Orden #: ${orden}</p>
+          <p>Hora: ${hora}</p>
+          <p>Fecha: ${fecha}</p>
+          <hr />
+          ${productos
+            .map(
+              (p) => `
+            <div class="item">
+              <span>${p.cantidad}x ${p.nombre}</span>
+              <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
+            </div>`
+            )
+            .join("")}
+          <hr />
+          <div class="item"><span>Subtotal:</span><span>$${subtotal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Descuento:</span><span>-$${descuento.toFixed(
+            2
+          )}</span></div>
+          <div class="item total"><span>Total:</span><span>$${totalFinal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Pago:</span><span>Efectivo</span></div>
+          <div class="item"><span>Pagó:</span><span>$${parseFloat(
+            montoPagado
+          ).toFixed(2)}</span></div>
+          <div class="item"><span>Vuelto:</span><span>$${vuelto}</span></div>
+          <hr />
+          <div class="footer">
+            <p>Tel: 1140660136</p>
+            <p>Dirección: Rivera 2525 V. Celina</p>
+            <p>Gracias por su visita!</p>
+          </div>
+          <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 500); }</script>
+        </body>
+      </html>
+    `;
+
+    const ventana = window.open("", "", "width=400,height=600");
+    if (ventana) {
+      ventana.document.write(html);
+    }
   };
 
   if (paso === "seleccion") {
