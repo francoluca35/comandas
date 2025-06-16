@@ -15,7 +15,6 @@ export default function CobrarCuentaModal({
   const [montoPagado, setMontoPagado] = useState("");
   const [vuelto, setVuelto] = useState(0);
   const [urlPago, setUrlPago] = useState("");
-  const [preferenceId, setPreferenceId] = useState("");
 
   const subtotal = productos.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
   const descuento = productos.reduce(
@@ -47,36 +46,16 @@ export default function CobrarCuentaModal({
       });
       const data = await res.json();
       setUrlPago(data.init_point);
-      setPreferenceId(data.preference_id); // <-- GUARDAMOS EL ID
     } catch (error) {
       console.error("Error al generar preferencia MP:", error);
     }
   };
 
   useEffect(() => {
-    let interval;
-
-    if (paso === "qr" && preferenceId) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(
-            `/api/mercado-pago/estado-pago?id=${preferenceId}`
-          );
-          const data = await res.json();
-
-          if (data.status === "approved") {
-            clearInterval(interval);
-            setMetodo("Mercado Pago");
-            confirmarPago();
-          }
-        } catch (error) {
-          console.error("Error al consultar estado:", error);
-        }
-      }, 4000);
+    if (paso === "qr") {
+      generarPagoMP();
     }
-
-    return () => clearInterval(interval);
-  }, [paso, preferenceId]);
+  }, [paso]);
 
   const imprimirTicket = (orden, metodoPago, hora, fecha) => {
     const html = `

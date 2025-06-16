@@ -54,29 +54,10 @@ export default function CobrarCuentaModal({
   };
 
   useEffect(() => {
-    let interval;
-
-    if (paso === "qr" && preferenceId) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(
-            `/api/mercado-pago/estado-pago?id=${preferenceId}`
-          );
-          const data = await res.json();
-
-          if (data.status === "approved") {
-            clearInterval(interval);
-            setMetodo("Mercado Pago");
-            confirmarPago();
-          }
-        } catch (error) {
-          console.error("Error al consultar estado:", error);
-        }
-      }, 4000);
+    if (paso === "qr") {
+      generarPagoMP();
     }
-
-    return () => clearInterval(interval);
-  }, [paso, preferenceId]);
+  }, [paso]);
 
   const imprimirTicket = (orden, metodoPago, hora, fecha) => {
     const html = `
