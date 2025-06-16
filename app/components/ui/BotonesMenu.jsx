@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FaChair, FaConciergeBell, FaChartBar, FaPlus } from "react-icons/fa";
+import {
+  FaChair,
+  FaConciergeBell,
+  FaChartBar,
+  FaPlus,
+  FaCashRegister,
+} from "react-icons/fa";
 import { GiCookingPot } from "react-icons/gi";
 
 export default function BotonesMenu() {
@@ -15,17 +21,26 @@ export default function BotonesMenu() {
       ruta: "/pedido",
     },
 
-    { texto: "Delivery's", icono: <FaChartBar size={24} />, ruta: "/delivery" },
-    { texto: "A. Comidas", icono: <FaPlus size={24} />, ruta: "/addmenu" },
     {
-      texto: "Agregar Mesas",
-      icono: <FaChair size={24} />,
-      ruta: "/addtavolo",
+      texto: "Pedidos",
+      icono: <FaChartBar size={24} />,
+      ruta: "/delivery",
+    },
+
+    {
+      texto: "A. Comidas",
+      icono: <FaPlus size={24} />,
+      ruta: "/addmenu",
     },
     {
       texto: "Retirar Efectivo",
-      icono: <FaChair size={24} />,
+      icono: <FaCashRegister size={24} />,
       ruta: "/updatecaja",
+    },
+    {
+      texto: "A. Mesas",
+      icono: <FaChair size={24} />,
+      ruta: "/addtavolo",
     },
   ];
 

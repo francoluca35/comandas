@@ -19,8 +19,11 @@ export default function RutaDelivery() {
     const res = await fetch("/api/pedidos");
     const data = await res.json();
 
+    // Filtramos solo los pedidos de tipo delivery
+    const pedidosDelivery = data.filter((p) => p.modoPedido === "delivery");
+
     const ahora = new Date();
-    const filtrados = data.filter((p) => {
+    const filtrados = pedidosDelivery.filter((p) => {
       if (p.estado === "entregado" && p.horaEntrega) {
         const entrega = new Date(p.horaEntrega);
         const diffHoras = (ahora - entrega) / (1000 * 60 * 60);
