@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
 
@@ -15,7 +16,7 @@ export default function CobrarCuentaModal({
   const [montoPagado, setMontoPagado] = useState("");
   const [vuelto, setVuelto] = useState(0);
   const [urlPago, setUrlPago] = useState("");
-  const [externalReference, setExternalReference] = useState("");
+  const [preferenceId, setPreferenceId] = useState("");
 
   const subtotal = productos.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
   const descuento = productos.reduce(
@@ -31,18 +32,22 @@ export default function CobrarCuentaModal({
   }, [montoPagado, totalFinal]);
 
   const generarPagoMP = async () => {
-    const res = await fetch("/api/mercado-pago/crear-pago", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        total: totalFinal,
-        mesa: mesa.numero,
-        nombreCliente: nombreCliente || "Cliente",
-      }),
-    });
-    const data = await res.json();
-    setUrlPago(data.init_point);
-    setExternalReference(data.external_reference);
+    try {
+      const res = await fetch("/api/mercado-pago/crear-pago", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          total: totalFinal,
+          mesa: mesa.numero,
+          nombreCliente: nombreCliente || "Cliente",
+        }),
+      });
+      const data = await res.json();
+      setUrlPago(data.init_point);
+      setPreferenceId(data.preference_id);
+    } catch (err) {
+      console.error("Error crear pago:", err);
+    }
   };
 
   useEffect(() => {
@@ -51,28 +56,21 @@ export default function CobrarCuentaModal({
 
   useEffect(() => {
     let interval;
-    if (paso === "qr" && externalReference) {
+    if (paso === "qr" && preferenceId) {
       interval = setInterval(async () => {
-        const res = await fetch(
-          `/api/mercado-pago/estado/${externalReference}`
-        );
-        const data = await res.json();
-        if (data.status === "approved") {
-          clearInterval(interval);
-          setMetodo("Mercado Pago");
-          setPaso("finalizado");
-        }
-      }, 6000);
+        try {
+          const res = await fetch(`/api/mercado-pago/estado/${preferenceId}`);
+          const data = await res.json();
+          if (data.status === "approved") {
+            clearInterval(interval);
+            setMetodo("Mercado Pago");
+            confirmarPago();
+          }
+        } catch {}
+      }, 4000);
     }
     return () => clearInterval(interval);
-  }, [paso, externalReference]);
-
-  useEffect(() => {
-    if (paso === "finalizado") {
-      imprimirTicket();
-      confirmarPago();
-    }
-  }, [paso]);
+  }, [paso, preferenceId]);
 
   const imprimirTicket = () => {
     const fecha = new Date().toLocaleDateString("es-AR");
@@ -89,7 +87,7 @@ export default function CobrarCuentaModal({
             @page { size: 80mm auto; margin: 0; }
             body { font-family: monospace; font-size: 12px; width: 58mm; text-align: center; margin: 0; }
             h2 { margin: 5px 0; font-size: 16px; }
-            .logo { width: 80px; margin-bottom: 5px; }
+            .logo { width: 80px; margin-bottom: 5px; filter: grayscale(100%); }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
             .item { display: flex; justify-content: space-between; margin: 2px 0; }
             .total { font-weight: bold; font-size: 14px; }
@@ -127,7 +125,7 @@ export default function CobrarCuentaModal({
           )}</span></div>
           <div class="item"><span>Pago:</span><span>${metodo}</span></div>
           ${
-            metodo === "Mercado Pago"
+            metodo === "Efectivo"
               ? `
             <div class="item"><span>Pagó:</span><span>$${parseFloat(
               montoPagado
@@ -147,15 +145,13 @@ export default function CobrarCuentaModal({
     `;
 
     const ventana = window.open("", "", "width=400,height=600");
-    if (ventana) {
-      ventana.document.write(html);
-    }
+    if (ventana) ventana.document.write(html);
   };
 
   const confirmarPago = async () => {
-    if (metodo === "Efectivo") imprimirTicket();
+    imprimirTicket();
 
-    {
+    if (metodo === "Efectivo") {
       await fetch("/api/cobro-efectivo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -165,13 +161,14 @@ export default function CobrarCuentaModal({
         }),
       });
     }
+
     await fetch("/api/mesas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         codigo: mesa.codigo,
         productos: [],
-        metodoPago: metodo,
+        metodoPago,
         total: 0,
         estado: "libre",
         hora: "",
@@ -183,91 +180,85 @@ export default function CobrarCuentaModal({
     onClose();
   };
 
+  // Render selección
   if (paso === "seleccion") {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-        <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
-          <h2 className="text-2xl font-bold text-center text-gray-700">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
+          <h2 className="text-2xl font-bold text-center">
             Seleccionar método de pago
           </h2>
-          <div className="flex flex-col gap-4">
-            <button
-              onClick={() => {
-                setMetodo("Efectivo");
-                setPaso("efectivo");
-              }}
-              className="py-3 w-full rounded-xl bg-green-500 hover:bg-green-600 text-white text-lg font-semibold shadow-md transition"
-            >
-              💵 Efectivo
-            </button>
-            <button
-              onClick={() => {
-                setMetodo("Mercado Pago");
-                setPaso("qr");
-              }}
-              className="py-3 w-full rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold shadow-md transition"
-            >
-              💳 Mercado Pago
-            </button>
-            <button
-              onClick={onClose}
-              className="py-3 w-full rounded-xl bg-gray-400 hover:bg-gray-500 text-black text-lg font-semibold transition"
-            >
-              Cancelar
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setMetodo("Efectivo");
+              setPaso("efectivo");
+            }}
+            className="py-3 w-full rounded-xl bg-green-500 text-white font-semibold"
+          >
+            💵 Efectivo
+          </button>
+          <button
+            onClick={() => {
+              setMetodo("Mercado Pago");
+              setPaso("qr");
+            }}
+            className="py-3 w-full rounded-xl bg-blue-500 text-white font-semibold"
+          >
+            💳 Mercado Pago
+          </button>
+          <button
+            onClick={onClose}
+            className="py-3 w-full rounded-xl bg-gray-400 text-black font-semibold"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     );
   }
 
+  // Render efectivo
   if (paso === "efectivo") {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-        <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
-          <h2 className="text-2xl font-bold text-center text-gray-700">
-            Cobro en efectivo
-          </h2>
-          <p className="text-center text-lg text-gray-600">
-            Total:{" "}
-            <span className="font-bold text-black">
-              ${totalFinal.toFixed(2)}
-            </span>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
+          <h2 className="text-2xl font-bold text-center">Cobro en efectivo</h2>
+          <p className="text-center text-lg">
+            Total: <span className="font-bold">${totalFinal.toFixed(2)}</span>
           </p>
           <input
             type="number"
             placeholder="¿Con cuánto paga?"
-            className="w-full p-4 border border-gray-300 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full p-4 border rounded-xl text-lg"
             value={montoPagado}
             onChange={(e) => setMontoPagado(e.target.value)}
           />
-          <p className="text-center text-lg text-gray-600">
+          <p className="text-center text-lg">
             Vuelto: <span className="font-bold text-green-600">${vuelto}</span>
           </p>
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={confirmarPago}
-              className="py-3 w-full rounded-xl bg-green-500 hover:bg-green-600 text-white text-lg font-semibold shadow-md transition"
-            >
-              Confirmar e imprimir
-            </button>
-            <button
-              onClick={onClose}
-              className="py-3 w-full rounded-xl bg-gray-400 hover:bg-gray-500 text-black text-lg font-semibold transition"
-            >
-              Cancelar
-            </button>
-          </div>
+          <button
+            onClick={confirmarPago}
+            className="py-3 w-full rounded-xl bg-green-500 text-white font-semibold"
+          >
+            Confirmar e imprimir
+          </button>
+          <button
+            onClick={onClose}
+            className="py-3 w-full rounded-xl bg-gray-400 text-black font-semibold"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     );
   }
 
+  // Render Mercado Pago QR
   if (paso === "qr") {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-        <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
-          <h2 className="text-2xl font-bold text-center text-gray-700">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6">
+          <h2 className="text-2xl font-bold text-center">
             Pagar con Mercado Pago
           </h2>
           {urlPago ? (
@@ -278,19 +269,17 @@ export default function CobrarCuentaModal({
               <a
                 href={urlPago}
                 target="_blank"
-                className="block w-full text-center py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold shadow-md transition"
+                className="block w-full text-center py-3 rounded-xl bg-blue-500 text-white font-semibold"
               >
                 Ir al pago
               </a>
             </>
           ) : (
-            <p className="text-center text-gray-500 text-lg animate-pulse">
-              Generando QR...
-            </p>
+            <p className="text-center text-lg animate-pulse">Generando QR...</p>
           )}
           <button
             onClick={onClose}
-            className="py-3 w-full rounded-xl bg-gray-400 hover:bg-gray-500 text-black text-lg font-semibold transition"
+            className="py-3 w-full rounded-xl bg-gray-400 text-black font-semibold"
           >
             Cancelar
           </button>

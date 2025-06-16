@@ -62,7 +62,7 @@ export default function CobrarCuentaModal({
           setMetodo("Mercado Pago");
           setPaso("finalizado");
         }
-      }, 6000);
+      }, 4000);
     }
     return () => clearInterval(interval);
   }, [paso, externalReference]);
@@ -127,7 +127,7 @@ export default function CobrarCuentaModal({
           )}</span></div>
           <div class="item"><span>Pago:</span><span>${metodo}</span></div>
           ${
-            metodo === "Mercado Pago"
+            metodo === "Efectivo"
               ? `
             <div class="item"><span>Pagó:</span><span>$${parseFloat(
               montoPagado
@@ -153,9 +153,7 @@ export default function CobrarCuentaModal({
   };
 
   const confirmarPago = async () => {
-    if (metodo === "Efectivo") imprimirTicket();
-
-    {
+    if (metodo === "Efectivo") {
       await fetch("/api/cobro-efectivo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

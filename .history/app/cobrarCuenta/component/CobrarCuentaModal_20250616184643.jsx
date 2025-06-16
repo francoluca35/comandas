@@ -154,7 +154,7 @@ export default function CobrarCuentaModal({
 
   const confirmarPago = async () => {
     if (metodo === "Efectivo") imprimirTicket();
-
+    imprimirTicket();
     {
       await fetch("/api/cobro-efectivo", {
         method: "POST",
