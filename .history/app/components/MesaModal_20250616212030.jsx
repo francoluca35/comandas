@@ -46,6 +46,23 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   const imprimirProfesional = async () => {
     try {
+      await fetch("/api/print", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mesa: mesa.numero,
+          productos: todosLosProductos,
+          total: total,
+          metodoPago: metodoPago,
+        }),
+      });
+    } catch (err) {
+      console.error("Error al imprimir profesional:", err);
+    }
+  };
+
+  const imprimirProfesional = async () => {
+    try {
       const response = await fetch("/api/print", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,109 +80,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     } catch (err) {
       console.error("Error al imprimir profesional:", err);
     }
-  };
-
-  const imprimirTicket = (orden, hora, fecha) => {
-    const nuevaVentana = window.open("", "Ticket", "width=400,height=600");
-    const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
-    const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
-
-    const html = `
-      <html>
-        <head>
-          <style>
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-            body {
-              width: 320px; /* unos 72mm aprox en pantalla */
-              margin: 0;
-              padding: 5px;
-              font-family: monospace;
-              font-size: 11px;
-              text-align: center;
-            }
-            h2 {
-              margin: 5px 0;
-              font-size: 14px;
-            }
-            img.logo {
-              width: 80px;
-              margin-bottom: 5px;
-              filter: grayscale(100%);
-            }
-            hr {
-              border: none;
-              border-top: 1px dashed #000;
-              margin: 6px 0;
-            }
-            .item {
-              display: flex;
-              justify-content: space-between;
-              margin: 2px 0;
-            }
-            .qr {
-              width: 80px;
-              margin-top: 6px;
-            }
-            .small {
-              font-size: 8px;
-              margin-top: 4px;
-            }
-          </style>
-        </head>
-        <body>
-          <img src="${
-            window.location.origin
-          }/Assets/logo-oficial.png" class="logo" />
-          <h2>🍽️ Perú Mar</h2>
-          <p><strong>Mesa:</strong> ${mesa.numero}</p>
-          <p><strong>Orden #:</strong> ${orden}</p>
-          <p><strong>Hora:</strong> ${hora}</p>
-          <p><strong>Fecha:</strong> ${fecha}</p>
-          <hr />
-          <p><strong>Comidas:</strong></p>
-          ${comidas
-            .map(
-              (p) => `
-              <div class="item">
-                <span>${p.cantidad}x ${p.nombre}</span>
-         
-              </div>
-          `
-            )
-            .join("")}
-          <p><strong>Bebidas:</strong></p>
-          ${bebidas
-            .map(
-              (p) => `
-              <div class="item">
-                <span>${p.cantidad}x ${p.nombre}</span>
-                
-              </div>
-          `
-            )
-            .join("")}
-          <hr />
-          <div class="item">
-           
-          </div>
-          <hr />
-        
-  
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => window.close(), 300);
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    nuevaVentana.document.write(html);
-    nuevaVentana.document.close();
   };
 
   const enviarPedido = async () => {
