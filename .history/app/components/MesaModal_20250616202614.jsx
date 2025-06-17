@@ -46,7 +46,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
   const imprimirProfesional = async () => {
     try {
-      const response = await fetch("/api/print", {
+      await fetch("http://192.168.1.8:4000/print", {
+        // IP de tu PC
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,10 +57,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           metodoPago: metodoPago,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Error al enviar a impresión");
-      }
     } catch (err) {
       console.error("Error al imprimir profesional:", err);
     }

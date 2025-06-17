@@ -45,24 +45,16 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   }, [mesa]);
 
   const imprimirProfesional = async () => {
-    try {
-      const response = await fetch("/api/print", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mesa: mesa.numero,
-          productos: todosLosProductos,
-          total: total,
-          metodoPago: metodoPago,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al enviar a impresión");
-      }
-    } catch (err) {
-      console.error("Error al imprimir profesional:", err);
-    }
+    await fetch("/api/imprimir-ticket", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mesa: mesa.numero,
+        productos: todosLosProductos,
+        total: total,
+        metodoPago: metodoPago,
+      }),
+    });
   };
 
   const imprimirTicket = (orden, hora, fecha) => {
@@ -192,6 +184,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     );
 
     try {
+      // Guardar directamente la mesa en la base de datos
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -213,9 +206,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         text: "La mesa quedó ocupada correctamente.",
         timer: 2000,
       });
-
-      // 🔥 Agregamos impresión después del guardado
-      await imprimirProfesional();
 
       setHistorial(productosTotales);
       setPedidoActual([]);
