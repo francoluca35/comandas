@@ -65,7 +65,26 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   //   }
   // };
 
-  const imprimirTicket = (productos, mesa, orden, hora, fecha, metodo) => {
+  const imprimirTicket = (
+    productos,
+    mesa,
+    orden,
+    hora,
+    fecha,
+    metodo,
+    montoPagado = 0,
+    vuelto = 0
+  ) => {
+    const subtotal = productos.reduce(
+      (acc, p) => acc + p.precio * p.cantidad,
+      0
+    );
+    const descuento = productos.reduce(
+      (acc, p) => acc + (p.descuento || 0) * p.cantidad,
+      0
+    );
+    const totalFinal = subtotal - descuento;
+
     const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
 
     const html = `
@@ -103,15 +122,19 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               margin: 4px 0;
             }
             .item {
-              text-align: left;
+              display: flex;
+              justify-content: space-between;
               padding: 0 10px;
               margin: 2px 0;
-              white-space: nowrap;
             }
             .footer {
               font-size: 10px;
               margin-top: 10px;
               padding: 0 10px;
+            }
+            .bold {
+              font-weight: bold;
+              font-size: 13px;
             }
           </style>
         </head>
@@ -128,10 +151,36 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           ${productos
             .map(
               (p) => `
-            <div class="item">${p.cantidad}x ${p.nombre}</div>
+            <div class="item">
+              <span>${p.cantidad}x ${p.nombre}</span>
+              <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
+            </div>
           `
             )
             .join("")}
+          <hr />
+          <div class="item"><span>Subtotal</span><span>$${subtotal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Descuento</span><span>-$${descuento.toFixed(
+            2
+          )}</span></div>
+          <div class="item bold"><span>Total</span><span>$${totalFinal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Pago</span><span>${metodo}</span></div>
+          ${
+            metodo === "Mercado Pago"
+              ? `
+              <div class="item"><span>Pagó</span><span>$${parseFloat(
+                montoPagado
+              ).toFixed(2)}</span></div>
+              <div class="item"><span>Vuelto</span><span>$${vuelto.toFixed(
+                2
+              )}</span></div>
+            `
+              : ""
+          }
           <hr />
           <div class="footer">
             Tel: 1140660136<br />
@@ -198,14 +247,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         timer: 2000,
       });
 
-      await imprimirTicket(
-        productosTotales, // ✅ este es el array que contiene todos los productos
-        mesa.numero,
-        orden,
-        hora,
-        fecha,
-        metodoPago
-      );
+      // 🔥 Agregamos impresión después del guardado
+      await imprimirTicket();
 
       setHistorial(productosTotales);
       setPedidoActual([]);
