@@ -85,60 +85,23 @@ export default function CobrarCuentaModal({
     const html = `
       <html>
         <head>
-         <style>
-  @page {
-    size: 58mm auto;
-    margin: 0;
-  }
+          <style>
+            @page { size: 95mm auto; margin: 0; }
+            body {
+  font-family: monospace;
+  font-size: 12px;
+  width: 58mm;
+  margin: 0;
+  text-align: center;
+}
 
-  @media print {
-    body {
-      margin: 0;
-      width: 58mm;
-    }
-  }
-
-  body {
-    font-family: monospace;
-    font-size: 12px;
-    width: 58mm;
-    margin: 0;
-    text-align: center;
-  }
-
-  h2 {
-    margin: 5px 0;
-    font-size: 16px;
-  }
-
-  .logo {
-    width: 80px;
-    margin-bottom: 5px;
-  }
-
-  hr {
-    border: none;
-    border-top: 1px dashed #000;
-    margin: 5px 0;
-  }
-
-  .item {
-    display: flex;
-    justify-content: space-between;
-    margin: 2px 0;
-  }
-
-  .total {
-    font-weight: bold;
-    font-size: 14px;
-  }
-
-  .footer {
-    font-size: 10px;
-    margin-top: 8px;
-  }
-</style>
-
+            h2 { margin: 5px 0; font-size: 16px; }
+            .logo { width: 80px; margin-bottom: 5px; }
+            hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+            .item { display: flex; justify-content: space-between; margin: 2px 0; }
+            .total { font-weight: bold; font-size: 14px; }
+            .footer { font-size: 10px; margin-top: 8px; }
+          </style>
         </head>
         <body>
           <img src="${
