@@ -91,52 +91,54 @@ export default function CobrarCuentaModal({
       <html>
         <head>
 <style>
+  /* 1. Tamaño de página exacto y sin márgenes */
   @page {
     size: 58mm auto;
     margin: 0;
   }
 
+  /* 2. Ajustes generales de impresión */
   @media print {
     html, body {
-      width: 56mm;
-      margin: 0 auto;
+      width: 54mm;           /* deja 1 mm de margen a cada lado */
+      margin: 0;
       padding: 0;
-      transform: scale(0.95);
-      transform-origin: top left;
       box-sizing: border-box;
+      transform: scale(0.90);        /* opcional: encoge un 5% */
+      transform-origin: top left;
     }
   }
 
+  /* 3. Estilos de cuerpo */
   body {
     font-family: monospace;
     font-size: 12px;
-    width: 56mm;
-    margin: 0 auto;
+    width: 52mm;
+    margin: 0;
     padding: 0;
-    text-align: center;
     box-sizing: border-box;
+    text-align: center;
   }
 
-  h1, h2, h3, p {
-    margin: 4px 0;
+  h2 {
+    margin: 5px 0;
+    font-size: 14px;
   }
 
   .logo {
-    width: 60px;
-    margin: 0 auto 6px auto;
-    display: block;
+    width: 80px;
+    margin-bottom: 5px;
   }
 
   hr {
     border: none;
     border-top: 1px dashed #000;
-    margin: 4px 0;
+    margin: 5px 0;
   }
 
   .item {
     display: flex;
     justify-content: space-between;
-    padding: 0 6px;
     margin: 2px 0;
   }
 
@@ -147,8 +149,7 @@ export default function CobrarCuentaModal({
 
   .footer {
     font-size: 10px;
-    margin-top: 6px;
-    text-align: center;
+    margin-top: 8px;
   }
 </style>
 
