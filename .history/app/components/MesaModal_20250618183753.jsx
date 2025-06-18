@@ -75,20 +75,20 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         <head>
           <style>
             @page {
-              size: 60mm auto;
+              size: 58mm auto;
               margin: 0;
             }
             body {
               font-family: monospace;
               font-size: 11px;
-              width: 60mm;
+              width: 58mm;
               margin: 0;
               padding: 0;
               text-align: center;
               text-transform: uppercase;
             }
             .logo {
-              width: 50px;
+              width: 60px;
               margin: 5px auto;
               filter: grayscale(100%);
             }
@@ -127,9 +127,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           ${productos
             .map(
               (p) => `
-            <div class="item font-black">${
-              p.cantidad
-            }X ${p.nombre.toUpperCase()}</div>
+            <div class="item">${p.cantidad}X ${p.nombre.toUpperCase()}</div>
           `
             )
             .join("")}
