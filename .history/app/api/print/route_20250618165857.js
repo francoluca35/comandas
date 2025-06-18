@@ -4,7 +4,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const response = await fetch("http://192.168.0.21:4000/print", {
+    const response = await fetch("http://192.168.123.100:4000/print", {
       // ⚠ tu PC server
       method: "POST",
       headers: { "Content-Type": "application/json" },
