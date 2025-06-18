@@ -198,14 +198,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         timer: 2000,
       });
 
-      await imprimirTicket(
-        productosTotales, // ✅ este es el array que contiene todos los productos
-        mesa.numero,
-        orden,
-        hora,
-        fecha,
-        metodoPago
-      );
+      // 🔥 Agregamos impresión después del guardado
+      await imprimirTicket();
 
       setHistorial(productosTotales);
       setPedidoActual([]);
