@@ -137,9 +137,9 @@ export default function CobrarCuentaModal({
           }
           <hr />
           <div class="footer">
-            <h1>Tel: 1140660136</h1>
-            <h1>Dirección: Rivera 2495 V. Celina</h1>
-            <h1>Gracias por su visita!</h1>
+            <p>Tel: 1140660136</p>
+            <p>Dirección: Rivera 2495 V. Celina</p>
+            <p>Gracias por su visita!</p>
           </div>
           <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 500); }</script>
         </body>

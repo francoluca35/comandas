@@ -87,7 +87,7 @@ export default function CobrarCuentaModal({
         <head>
           <style>
             @page { size: 85mm auto; margin: 0; }
-            body { font-family: monospace; font-size: 12px; width: 60mm; text-align: center; margin: 0; }
+            body { font-family: monospace; font-size: 12px; width: 58mm; text-align: center; margin: 0; }
             h2 { margin: 5px 0; font-size: 16px; }
             .logo { width: 80px; margin-bottom: 5px; }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
@@ -101,10 +101,10 @@ export default function CobrarCuentaModal({
             window.location.origin
           }/Assets/logo-oficial.png" class="logo" />
           <h2>🍽️ Perú Mar</h2>
-          <h1>Mesa: ${mesa.numero}</h1>
-          <h1>Orden #: ${orden}</h1>
-          <h1>Hora: ${hora}</h1>
-          <h1>Fecha: ${fecha}</h1>
+          <p>Mesa: ${mesa.numero}</p>
+          <p>Orden #: ${orden}</p>
+          <p>Hora: ${hora}</p>
+          <p>Fecha: ${fecha}</p>
           <hr />
           ${productos
             .map(
@@ -137,9 +137,9 @@ export default function CobrarCuentaModal({
           }
           <hr />
           <div class="footer">
-            <h1>Tel: 1140660136</h1>
-            <h1>Dirección: Rivera 2495 V. Celina</h1>
-            <h1>Gracias por su visita!</h1>
+            <p>Tel: 1140660136</p>
+            <p>Dirección: Rivera 2495 V. Celina</p>
+            <p>Gracias por su visita!</p>
           </div>
           <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 500); }</script>
         </body>
