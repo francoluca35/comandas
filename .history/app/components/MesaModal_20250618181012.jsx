@@ -171,7 +171,29 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
           `
             )
             .join("")}
-       <br></br>
+          <hr />
+          <div class="item"><span>Subtotal:</span><span>$${subtotal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Descuento:</span><span>-$${descuento.toFixed(
+            2
+          )}</span></div>
+          <div class="item total"><span>Total:</span><span>$${totalFinal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Pago:</span><span>${metodo}</span></div>
+          ${
+            metodo === "Mercado Pago"
+              ? `
+            <div class="item"><span>Pagó:</span><span>$${parseFloat(
+              montoPagado
+            ).toFixed(2)}</span></div>
+            <div class="item"><span>Vuelto:</span><span>$${vuelto.toFixed(
+              2
+            )}</span></div>`
+              : ""
+          }
+          <hr />
           <div class="footer">
             Tel: 1140660136<br />
             Dirección: Rivera 2495, V. Celina<br />
