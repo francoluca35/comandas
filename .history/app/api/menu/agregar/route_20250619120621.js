@@ -46,6 +46,9 @@ export async function POST(req) {
 
     const nuevoMenu = {
       nombre,
+      alcohol:
+        alcohol === "true" ? true : alcohol === "false" ? false : undefined,
+
       tipo,
       precio,
       precioConIVA,
@@ -54,10 +57,6 @@ export async function POST(req) {
       imagen: uploadResult.secure_url,
       creado: new Date(),
     };
-
-    if (tipo === "bebida") {
-      nuevoMenu.alcohol = alcohol === "true";
-    }
 
     const result = await db.collection("menus").insertOne(nuevoMenu);
 

@@ -135,21 +135,21 @@ export default function AgregarMenu() {
           <div className="bg-white/10 rounded-xl p-1 flex justify-center gap-2 w-full md:w-auto border border-white/20">
             <button
               onClick={() => setModo("agregar")}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={px-4 py-2 rounded-xl transition ${
                 modo === "agregar"
                   ? "bg-cyan-600 text-white font-bold"
                   : "text-white/70 hover:text-white"
-              }`}
+              }}
             >
               Agregar Menú
             </button>
             <button
               onClick={() => setModo("editar")}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={px-4 py-2 rounded-xl transition ${
                 modo === "editar"
                   ? "bg-cyan-600 text-white font-bold"
                   : "text-white/70 hover:text-white"
-              }`}
+              }}
             >
               Editar / Eliminar
             </button>
@@ -166,22 +166,22 @@ export default function AgregarMenu() {
                 <button
                   type="button"
                   onClick={() => setTipo("comida")}
-                  className={`px-4 py-2 rounded-xl transition ${
+                  className={px-4 py-2 rounded-xl transition ${
                     tipo === "comida"
                       ? "bg-red-600 text-white font-bold"
                       : "text-white/70 hover:text-white"
-                  }`}
+                  }}
                 >
                   🍽 Comida
                 </button>
                 <button
                   type="button"
                   onClick={() => setTipo("bebida")}
-                  className={`px-4 py-2 rounded-xl transition ${
+                  className={px-4 py-2 rounded-xl transition ${
                     tipo === "bebida"
                       ? "bg-blue-600 text-white font-bold"
                       : "text-white/70 hover:text-white"
-                  }`}
+                  }}
                 >
                   🥤 Bebida
                 </button>
@@ -333,83 +333,86 @@ export default function AgregarMenu() {
 
         {/* EDITAR */}
         {modo === "editar" && (
-          <>
-            <div className="mb-4 flex justify-center">
-              <input
-                type="text"
-                placeholder="Buscar producto..."
-                value={busqueda}
-                onChange={(e) => {
-                  setBusqueda(e.target.value);
-                  setPaginaActual(1);
-                }}
-                className="w-full max-w-sm px-4 py-2 rounded-xl bg-white/20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
+      <>
+      <div className="mb-4 flex justify-center">
+        <input
+          type="text"
+          placeholder="Buscar producto..."
+          value={busqueda}
+          onChange={(e) => {
+            setBusqueda(e.target.value);
+            setPaginaActual(1);
+          }}
+          className="w-full max-w-sm px-4 py-2 rounded-xl bg-white/20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+    
+      <div className="space-y-4">
+        {productosPaginados?.map((p) => (
+          <div
+            key={p._id}
+            className="flex justify-between items-center bg-white/10 p-4 rounded-xl border border-white/10 text-white"
+          >
+            <div>
+              <p className="font-bold">{p.nombre}</p>
+              <p className="text-sm text-cyan-300">
+                Precio: ${p.precio} / IVA: ${p.precioConIVA}
+              </p>
+              {p.tipo === "bebida" && (
+                <p className="text-sm text-yellow-400">
+                  {p.alcohol ? "Con alcohol" : "Sin alcohol"}
+                </p>
+              )}
             </div>
-
-            <div className="space-y-4">
-              {productosPaginados?.map((p) => (
-                <div
-                  key={p._id}
-                  className="flex justify-between items-center bg-white/10 p-4 rounded-xl border border-white/10 text-white"
-                >
-                  <div>
-                    <p className="font-bold">{p.nombre}</p>
-                    <p className="text-sm text-cyan-300">
-                      Precio: ${p.precio} / IVA: ${p.precioConIVA}
-                    </p>
-                    {p.tipo === "bebida" && (
-                      <p className="text-sm text-yellow-400">
-                        {p.alcohol ? "Con alcohol" : "Sin alcohol"}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setProductoEditar(p)}
-                      className="bg-orange-500 hover:bg-orange-600 text-sm px-3 py-1 rounded-xl"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleEliminar(p._id)}
-                      className="bg-red-600 hover:bg-red-700 text-sm px-3 py-1 rounded-xl"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex justify-center items-center mt-6 gap-4">
-                <button
-                  onClick={() => setPaginaActual(paginaActual - 1)}
-                  disabled={paginaActual === 1}
-                  className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl disabled:opacity-30"
-                >
-                  ← Anterior
-                </button>
-                <span className="text-white">
-                  {paginaActual} / {totalPaginas}
-                </span>
-                <button
-                  onClick={() => setPaginaActual(paginaActual + 1)}
-                  disabled={paginaActual === totalPaginas}
-                  className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl disabled:opacity-30"
-                >
-                  Siguiente →
-                </button>
-              </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setProductoEditar(p)}
+                className="bg-orange-500 hover:bg-orange-600 text-sm px-3 py-1 rounded-xl"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => handleEliminar(p._id)}
+                className="bg-red-600 hover:bg-red-700 text-sm px-3 py-1 rounded-xl"
+              >
+                Eliminar
+              </button>
             </div>
-
-            {productoEditar && (
-              <ModalEditarProducto
-                producto={productoEditar}
-                onClose={() => setProductoEditar(null)}
-                refetch={refetch}
-              />
-            )}
-          </>
+          </div>
+        ))}
+    
+        <div className="flex justify-center items-center mt-6 gap-4">
+          <button
+            onClick={() => setPaginaActual(paginaActual - 1)}
+            disabled={paginaActual === 1}
+            className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl disabled:opacity-30"
+          >
+            ← Anterior
+          </button>
+    
+          <span className="text-white">
+            {paginaActual} / {totalPaginas}
+          </span>
+    
+          <button
+            onClick={() => setPaginaActual(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+            className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl disabled:opacity-30"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    
+      {productoEditar && (
+        <ModalEditarProducto
+          producto={productoEditar}
+          onClose={() => setProductoEditar(null)}
+          refetch={refetch}
+        />
+      )}
+    </>
+    
         )}
       </div>
     </section>

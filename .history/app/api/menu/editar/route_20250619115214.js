@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { IncomingForm } from "formidable";
-import cloudinary from "@/lib/cloudinary";
-import { Readable } from "stream";
+import { writeFile } from "fs/promises";
+import path from "path";
+import fs from "fs";
+import stream from "stream";
 
 export const config = {
   api: {
@@ -11,10 +13,10 @@ export const config = {
   },
 };
 
-// Convertir el stream de Next.js a uno compatible con Node
+// Convertir Request de Next.js a stream tipo Node
 async function streamToNodeReadable(readableStream) {
   const reader = readableStream.getReader();
-  return new Readable({
+  return new stream.Readable({
     async read() {
       const { done, value } = await reader.read();
       if (done) this.push(null);
@@ -23,33 +25,14 @@ async function streamToNodeReadable(readableStream) {
   });
 }
 
-// Subir imagen a Cloudinary
-async function uploadToCloudinary(filePath) {
-  return await cloudinary.uploader.upload(filePath, {
-    folder: "comandas",
-    use_filename: true,
-    unique_filename: false,
-    overwrite: true,
-  });
-}
-
-// Eliminar imagen anterior
-async function deleteFromCloudinary(imageUrl) {
-  const parts = imageUrl.split("/");
-  const publicIdWithExtension = parts[parts.length - 1];
-  const publicId = `comandas/${publicIdWithExtension.split(".")[0]}`;
-  await cloudinary.uploader.destroy(publicId);
-}
-
 export async function POST(req) {
   try {
     const nodeReq = await streamToNodeReadable(req.body);
     nodeReq.headers = Object.fromEntries(req.headers.entries());
     nodeReq.method = req.method;
 
-    const form = new IncomingForm({ keepExtensions: true });
-
     const data = await new Promise((resolve, reject) => {
+      const form = new IncomingForm({ keepExtensions: true });
       form.parse(nodeReq, (err, fields, files) => {
         if (err) reject(err);
         else resolve({ fields, files });
@@ -57,6 +40,7 @@ export async function POST(req) {
     });
 
     const { fields, files } = data;
+
     const id = fields.id?.[0];
     const nombre = fields.nombre?.[0];
     const tipo = fields.tipo?.[0];
@@ -69,8 +53,9 @@ export async function POST(req) {
       ? JSON.parse(fields.adicionales[0])
       : [];
 
-    const client = await clientPromise;
-    const db = client.db("comandas");
+    if (!id || !nombre || isNaN(precio) || isNaN(precioConIVA)) {
+      return NextResponse.json({ message: "Datos inválidos" }, { status: 400 });
+    }
 
     const update = {
       nombre,
@@ -83,26 +68,21 @@ export async function POST(req) {
 
     if (files.imagen?.[0]) {
       const file = files.imagen[0];
-
-      // Buscar imagen anterior en MongoDB
-      const existing = await db
-        .collection("menus")
-        .findOne({ _id: new ObjectId(id) });
-
-      if (existing?.imagen) {
-        await deleteFromCloudinary(existing.imagen);
-      }
-
-      // Subir nueva imagen
-      const result = await uploadToCloudinary(file.filepath);
-      update.imagen = result.secure_url;
+      const extension = path.extname(file.originalFilename);
+      const newName = `${Date.now()}${extension}`;
+      const uploadPath = path.join(process.cwd(), "public/uploads", newName);
+      await writeFile(uploadPath, fs.readFileSync(file.filepath));
+      update.imagen = `/uploads/${newName}`;
     }
+
+    const client = await clientPromise;
+    const db = client.db("comandas");
 
     await db
       .collection("menus")
       .updateOne({ _id: new ObjectId(id) }, { $set: update });
 
-    return NextResponse.json({ message: "Producto actualizado correctamente" });
+    return NextResponse.json({ message: "Menú actualizado correctamente" });
   } catch (error) {
     console.error("Error al editar menú:", error);
     return NextResponse.json(

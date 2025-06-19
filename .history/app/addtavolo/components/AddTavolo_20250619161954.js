@@ -69,7 +69,7 @@ export default function AddTavolo() {
 
     if (!confirm.isConfirmed) return;
 
-    const res = await fetch("/api/mesas/eliminar", {
+    const res = await fetch("/api/mesas/eliminar-cantidad", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ codigos: seleccionadas }),

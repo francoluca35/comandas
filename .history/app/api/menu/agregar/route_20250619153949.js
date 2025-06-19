@@ -19,7 +19,6 @@ export async function POST(req) {
     const precioConIVA = parseFloat(formData.get("precioConIVA"));
     const descuento = formData.get("descuento");
     const adicionalesStr = formData.get("adicionales");
-    const alcohol = formData.get("alcohol");
 
     if (!file || !nombre || !tipo || isNaN(precio) || isNaN(precioConIVA)) {
       return NextResponse.json(
@@ -54,10 +53,6 @@ export async function POST(req) {
       imagen: uploadResult.secure_url,
       creado: new Date(),
     };
-
-    if (tipo === "bebida") {
-      nuevoMenu.alcohol = alcohol === "true";
-    }
 
     const result = await db.collection("menus").insertOne(nuevoMenu);
 

@@ -21,7 +21,8 @@ export default function ModalEditarProducto({ producto, onClose, refetch }) {
   };
 
   const eliminarAdicional = (index) => {
-    setAdicionales(adicionales.filter((_, i) => i !== index));
+    const nuevos = adicionales.filter((_, i) => i !== index);
+    setAdicionales(nuevos);
   };
 
   const guardarCambios = async () => {
@@ -57,14 +58,9 @@ export default function ModalEditarProducto({ producto, onClose, refetch }) {
 
       const data = await res.json();
       if (res.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "Producto actualizado",
-          text: "Los cambios fueron guardados correctamente.",
-        }).then(() => {
-          refetch();
-          onClose();
-        });
+        Swal.fire("Actualizado", "Producto editado correctamente", "success");
+        onClose();
+        refetch();
       } else {
         Swal.fire("Error", data.message || "Error al actualizar", "error");
       }
@@ -103,28 +99,28 @@ export default function ModalEditarProducto({ producto, onClose, refetch }) {
             type="text"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            className="w-full px-4 py-2 border rounded-lg bg-gray-100 focus:outline-none"
             placeholder="Nombre"
           />
           <input
             type="number"
             value={precio}
             onChange={(e) => setPrecio(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            className="w-full px-4 py-2 border rounded-lg bg-gray-100 focus:outline-none"
             placeholder="Precio"
           />
           <input
             type="number"
             value={precioConIVA}
             onChange={(e) => setPrecioConIVA(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            className="w-full px-4 py-2 border rounded-lg bg-gray-100 focus:outline-none"
             placeholder="Precio con IVA"
           />
           <input
             type="number"
             value={descuento}
             onChange={(e) => setDescuento(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            className="w-full px-4 py-2 border rounded-lg bg-gray-100 focus:outline-none"
             placeholder="Descuento (opcional)"
           />
         </div>
@@ -136,7 +132,7 @@ export default function ModalEditarProducto({ producto, onClose, refetch }) {
                 type="text"
                 value={adicional}
                 onChange={(e) => setAdicional(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+                className="w-full px-4 py-2 border rounded-lg bg-gray-100 focus:outline-none"
                 placeholder="Agregar adicional"
               />
               <button
