@@ -2,11 +2,30 @@
 
 import { useEffect, useState } from "react";
 import useProductos from "../hooks/useProductos";
+import {
+  FaTrash,
+  FaUser,
+  FaMoneyBillWave,
+  FaPlus,
+  FaTimes,
+} from "react-icons/fa";
+import jsPDF from "jspdf";
+
 import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
-import { FaTrash, FaPlus, FaTimes, FaMoneyBillWave } from "react-icons/fa";
+
+async function loadImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -25,39 +44,54 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
   }, [mesa]);
 
-  const imprimirTicket = async (productos, mesa, orden, hora, fecha) => {
-    const parrilla = productos.filter((p) =>
-      p.nombre.toLowerCase().includes("pollo a la brasa")
-    );
-    const cocina = productos.filter(
-      (p) => !p.nombre.toLowerCase().includes("pollo a la brasa")
-    );
+  // const imprimirProfesional = async () => {
+  //   try {
+  //     const response = await fetch("/api/print", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         mesa: mesa.numero,
+  //         productos: todosLosProductos,
+  //         total: total,
+  //         metodoPago: metodoPago,
+  //       }),
+  //     });
 
-    const enviarAImpresora = async (items, ip) => {
-      if (items.length === 0) return;
-      try {
-        const res = await fetch("/api/print", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mesa,
-            productos: items,
-            orden,
-            hora,
-            fecha,
-            metodoPago,
-            ip,
-          }),
-        });
-        if (!res.ok) throw new Error();
-      } catch (err) {
-        console.error("Error al imprimir:", err);
-        Swal.fire("Error", "No se pudo imprimir el ticket", "error");
+  //     if (!response.ok) {
+  //       throw new Error("Error al enviar a impresión");
+  //     }
+  //   } catch (err) {
+  //     console.error("Error al imprimir profesional:", err);
+  //   }
+  // };
+
+  const imprimirTicket = async (
+    productos,
+    mesa,
+    orden,
+    hora,
+    fecha,
+    metodo
+  ) => {
+    try {
+      const response = await fetch("/api/print", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mesa,
+          productos,
+          total,
+          metodoPago: metodo,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("No se pudo enviar el ticket a la impresora");
       }
-    };
-
-    await enviarAImpresora(parrilla, "10.10.100.254"); // Impresora de parrilla
-    await enviarAImpresora(cocina, "192.168.1.100"); // Impresora de cocina
+    } catch (error) {
+      console.error("Error al imprimir:", error);
+      Swal.fire("Error", "No se pudo imprimir el ticket", "error");
+    }
   };
 
   const enviarPedido = async () => {
@@ -106,7 +140,14 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         timer: 2000,
       });
 
-      await imprimirTicket(productosTotales, mesa.numero, orden, hora, fecha);
+      await imprimirTicket(
+        productosTotales, // ✅ este es el array que contiene todos los productos
+        mesa.numero,
+        orden,
+        hora,
+        fecha
+      );
+
       setHistorial(productosTotales);
       setPedidoActual([]);
       refetch?.();
@@ -119,6 +160,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       });
     }
   };
+
   const eliminarComanda = async () => {
     const confirmar = confirm(
       "¿Seguro que querés liberar la mesa sin comanda?"
