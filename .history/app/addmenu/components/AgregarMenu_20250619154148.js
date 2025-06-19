@@ -19,7 +19,6 @@ export default function AgregarMenu() {
   const [precio, setPrecio] = useState("");
   const [precioConIVA, setPrecioConIVA] = useState("");
   const [descuento, setDescuento] = useState("");
-  const [alcohol, setAlcohol] = useState(false);
   const [adicional, setAdicional] = useState("");
   const [adicionales, setAdicionales] = useState([]);
   const [file, setFile] = useState(null);
@@ -27,6 +26,7 @@ export default function AgregarMenu() {
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
 
+  // Busqueda y paginación
   const [busqueda, setBusqueda] = useState("");
   const itemsPorPagina = 5;
   const [paginaActual, setPaginaActual] = useState(1);
@@ -63,12 +63,12 @@ export default function AgregarMenu() {
       "adicionales",
       JSON.stringify(tipo === "comida" ? adicionales : [])
     );
-    if (tipo === "bebida") formData.append("alcohol", alcohol);
     if (file) formData.append("file", file);
 
     await agregarMenu(formData);
     Swal.fire("Agregado", "Menú agregado correctamente.", "success");
 
+    // Limpiar
     setNombre("");
     setPrecio("");
     setPrecioConIVA("");
@@ -77,8 +77,6 @@ export default function AgregarMenu() {
     setAdicionales([]);
     setFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    setPreview(null);
-    setAlcohol(false);
     refetch?.();
   };
 
@@ -90,7 +88,8 @@ export default function AgregarMenu() {
   };
 
   const eliminarAdicional = (index) => {
-    setAdicionales(adicionales.filter((_, i) => i !== index));
+    const nuevos = adicionales.filter((_, i) => i !== index);
+    setAdicionales(nuevos);
   };
 
   const handleEliminar = async (id) => {
@@ -156,6 +155,7 @@ export default function AgregarMenu() {
           </div>
         </div>
 
+        {/* AGREGAR */}
         {modo === "agregar" && (
           <form
             onSubmit={handleAgregar}
@@ -187,35 +187,6 @@ export default function AgregarMenu() {
                 </button>
               </div>
             </div>
-
-            {tipo === "bebida" && (
-              <div className="sm:col-span-2 flex justify-center">
-                <div className="flex items-center gap-6 text-white">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="alcohol"
-                      value="false"
-                      checked={!alcohol}
-                      onChange={() => setAlcohol(false)}
-                      className="accent-cyan-600"
-                    />
-                    Sin alcohol
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="alcohol"
-                      value="true"
-                      checked={alcohol}
-                      onChange={() => setAlcohol(true)}
-                      className="accent-cyan-600"
-                    />
-                    Con alcohol
-                  </label>
-                </div>
-              </div>
-            )}
 
             <input
               type="text"
@@ -358,11 +329,6 @@ export default function AgregarMenu() {
                     <p className="text-sm text-cyan-300">
                       Precio: ${p.precio} / IVA: ${p.precioConIVA}
                     </p>
-                    {p.tipo === "bebida" && (
-                      <p className="text-sm text-yellow-400">
-                        {p.alcohol ? "Con alcohol" : "Sin alcohol"}
-                      </p>
-                    )}
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -389,9 +355,11 @@ export default function AgregarMenu() {
                 >
                   ← Anterior
                 </button>
+
                 <span className="text-white">
                   {paginaActual} / {totalPaginas}
                 </span>
+
                 <button
                   onClick={() => setPaginaActual(paginaActual + 1)}
                   disabled={paginaActual === totalPaginas}
@@ -401,15 +369,15 @@ export default function AgregarMenu() {
                 </button>
               </div>
             </div>
-
-            {productoEditar && (
-              <ModalEditarProducto
-                producto={productoEditar}
-                onClose={() => setProductoEditar(null)}
-                refetch={refetch}
-              />
-            )}
           </>
+        )}
+
+        {productoEditar && (
+          <ModalEditarProducto
+            producto={productoEditar}
+            onClose={() => setProductoEditar(null)}
+            refetch={refetch}
+          />
         )}
       </div>
     </section>

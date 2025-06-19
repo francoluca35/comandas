@@ -90,3 +90,11 @@ function generarCodigoMesa(tipo, numero) {
   if (tipo === "mesaAfuera") return `MESA_AF${numero}`;
   return `MESA_${numero}`;
 }
+
+function generarCodigoMesa(tipo, numero) {
+  if (tipo === "mesaAdentro")
+    return `MESA_${numero.toString().padStart(3, "0")}`;
+  if (tipo === "mesaAdentro2") return `MESA_B${numero}`;
+  if (tipo === "mesaAfuera") return `MESA_AF${numero}`;
+  return `MESA_${numero}`;
+}
