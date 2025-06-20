@@ -18,6 +18,7 @@ export default function AgregarMenu() {
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState("comida");
   const [precio, setPrecio] = useState("");
+
   const [descuento, setDescuento] = useState("");
   const [alcohol, setAlcohol] = useState(false);
   const [adicional, setAdicional] = useState("");
@@ -57,16 +58,13 @@ export default function AgregarMenu() {
     formData.append("nombre", nombre);
     formData.append("tipo", tipo);
     formData.append("precio", precio);
+
     formData.append("descuento", descuento || "");
     formData.append(
       "adicionales",
       JSON.stringify(tipo === "comida" ? adicionales : [])
     );
-    if (tipo === "bebida") {
-      formData.append("alcohol", alcohol);
-    } else if (tipo === "comida") {
-      formData.append("categoria", categoria);
-    }
+    if (tipo === "bebida") formData.append("alcohol", alcohol);
     if (file) formData.append("file", file);
 
     await agregarMenu(formData);
@@ -74,6 +72,7 @@ export default function AgregarMenu() {
 
     setNombre("");
     setPrecio("");
+
     setDescuento("");
     setAdicional("");
     setAdicionales([]);
@@ -353,6 +352,7 @@ export default function AgregarMenu() {
           </form>
         )}
 
+        {/* EDITAR */}
         {modo === "editar" && (
           <>
             <div className="mb-4 flex justify-center">
