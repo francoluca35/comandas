@@ -4,6 +4,8 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import ReCAPTCHA from "react-google-recaptcha";
 
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [captcha, setCaptcha] = useState(null);
@@ -46,6 +48,10 @@ export default function ForgotPassword() {
     setCaptcha(null);
   };
 
+  if (!RECAPTCHA_KEY) {
+    console.warn("⚠️ Falta la variable NEXT_PUBLIC_RECAPTCHA_SITE_KEY en .env");
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-4">
       <form
@@ -65,10 +71,7 @@ export default function ForgotPassword() {
           required
         />
 
-        <ReCAPTCHA
-          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-          onChange={handleCaptchaChange}
-        />
+        <ReCAPTCHA sitekey={RECAPTCHA_KEY} onChange={handleCaptchaChange} />
 
         <button
           type="submit"

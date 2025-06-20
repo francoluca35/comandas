@@ -2,19 +2,34 @@
 
 import { useState } from "react";
 import Swal from "sweetalert2";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [captcha, setCaptcha] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const handleCaptchaChange = (value) => {
+    setCaptcha(value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!captcha) {
+      return Swal.fire(
+        "Atención",
+        "Por favor verifica el reCAPTCHA",
+        "warning"
+      );
+    }
 
+    setLoading(true);
     const res = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, captcha }),
     });
 
     const data = await res.json();
@@ -24,9 +39,18 @@ export default function ForgotPassword() {
       return Swal.fire("Error", data.error || "Algo salió mal", "error");
     }
 
-    Swal.fire("Revisa tu correo", data.message, "success");
+    Swal.fire(
+      "Revisa tu correo",
+      "Te hemos enviado el enlace de recuperación",
+      "success"
+    );
     setEmail("");
+    setCaptcha(null);
   };
+
+  if (!RECAPTCHA_KEY) {
+    console.warn("⚠️ Falta la variable NEXT_PUBLIC_RECAPTCHA_SITE_KEY en .env");
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-4">
@@ -47,10 +71,12 @@ export default function ForgotPassword() {
           required
         />
 
+        <ReCAPTCHA sitekey={RECAPTCHA_KEY} onChange={handleCaptchaChange} />
+
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-orange-500 text-white font-semibold py-2 rounded hover:bg-orange-600 transition"
+          className="w-full mt-4 bg-orange-500 text-white font-semibold py-2 rounded hover:bg-orange-600 transition"
         >
           {loading ? "Enviando..." : "Enviar enlace de recuperación"}
         </button>
