@@ -17,15 +17,13 @@ export default function CobrarCuentaModal({
   const [urlPago, setUrlPago] = useState("");
   const [externalReference, setExternalReference] = useState("");
 
-  const subtotal = productos.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const subtotal = productos.reduce((acc, p) => acc + p.precio);
   const descuento = productos.reduce(
     (acc, p) => acc + (p.descuento || 0) * p.cantidad,
     0
   );
-  // ❌ Remover esta línea
-  // const iva = (subtotal - descuento) * 0.18;
-
-  const totalFinal = subtotal - descuento; // ✅ Total real
+  const iva = (subtotal - descuento) * 0.18;
+  const totalFinal = subtotal - descuento + iva;
 
   useEffect(() => {
     const pago = parseFloat(montoPagado);
@@ -294,9 +292,7 @@ export default function CobrarCuentaModal({
           </h2>
           <p className="text-center text-lg text-gray-600">
             Total:{" "}
-            <span className="font-bold text-black">
-              ${totalFinal.toFixed(2)}
-            </span>
+            <span className="font-bold text-black">${total.toFixed(2)}</span>
           </p>
           <input
             type="number"

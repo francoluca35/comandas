@@ -294,9 +294,7 @@ export default function CobrarCuentaModal({
           </h2>
           <p className="text-center text-lg text-gray-600">
             Total:{" "}
-            <span className="font-bold text-black">
-              ${totalFinal.toFixed(2)}
-            </span>
+            <span className="font-bold text-black">${total.toFixed(2)}</span>
           </p>
           <input
             type="number"
