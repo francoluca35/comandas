@@ -4,45 +4,27 @@ import { useState, useEffect } from "react";
 import useProductos from "@/app/hooks/useProductos";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 
-export default function DeliveryForm() {
+export default function RestauranteForm() {
   const { productos } = useProductos();
 
   const [nombre, setNombre] = useState("");
   const [comida, setComida] = useState("");
   const [bebida, setBebida] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [observacion, setObservacion] = useState("");
-  const [pago, setPago] = useState("");
-  const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
-  const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
   const [presupuesto, setPresupuesto] = useState([]);
+  const [pago, setPago] = useState("");
 
   const comidas = productos.filter((p) => p.tipo !== "bebida");
   const bebidas = productos.filter((p) => p.tipo === "bebida");
 
-  useEffect(() => {
-    const seleccionado = productos.find((p) => p.nombre === comida);
-    setAdicionalesDisponibles(seleccionado?.adicionales || []);
-    setAdicionalesSeleccionados([]);
-  }, [comida]);
-
   const agregarComida = () => {
     if (!comida) return;
-    setPresupuesto((prev) => [
-      ...prev,
-      { comida, bebida: "", adicionales: [...adicionalesSeleccionados] },
-    ]);
+    setPresupuesto((prev) => [...prev, { comida, bebida: "" }]);
     setComida("");
-    setAdicionalesSeleccionados([]);
-    setAdicionalesDisponibles([]);
   };
 
   const agregarBebida = () => {
     if (!bebida) return;
-    setPresupuesto((prev) => [
-      ...prev,
-      { comida: "", bebida, adicionales: [] },
-    ]);
+    setPresupuesto((prev) => [...prev, { comida: "", bebida }]);
     setBebida("");
   };
 
@@ -56,31 +38,47 @@ export default function DeliveryForm() {
       const bebidaProd = productos.find((p) => p.nombre === item.bebida);
       const base = comidaProd?.precio || 0;
       const bebidaPrecio = bebidaProd?.precio || 0;
-      const adic = (item.adicionales?.length || 0) * 200;
-      return total + base + adic + bebidaPrecio;
+      return total + base + bebidaPrecio;
     }, 0);
+  };
+  const imprimirDelivery = async (productos, nombre, hora, fecha, pago) => {
+    try {
+      await fetch("/api/printdelivery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mesa: nombre || "MOSTRADOR",
+          productos,
+          orden: Date.now(),
+          hora,
+          fecha,
+          metodoPago: pago,
+        }),
+      });
+    } catch (err) {
+      console.error("Error imprimiendo delivery:", err);
+    }
   };
 
   const total = calcularTotal();
 
   const enviarPedido = async () => {
-    if (!nombre || presupuesto.length === 0 || !direccion || !pago) {
-      alert("Por favor completa todos los campos obligatorios.");
+    if (!nombre || presupuesto.length === 0 || !pago) {
+      alert("Por favor completa todos los campos.");
       return;
     }
 
     const now = new Date();
-    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      direccion
-    )}`;
+    const hora = now.toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const fecha = now.toLocaleDateString("es-AR");
 
     const payload = {
-      modoPedido: "delivery",
-      tipo: "delivery",
+      modoPedido: "restaurante",
+      tipo: "entregalocal",
       nombre,
-      direccion,
-      mapsLink,
-      observacion,
       formaDePago: pago,
       comidas: presupuesto,
       total,
@@ -96,29 +94,13 @@ export default function DeliveryForm() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
+      if (res.ok) {
+        await imprimirDelivery(presupuesto, nombre, hora, fecha, pago);
+        alert("Pedido enviado correctamente.");
+        resetFormulario();
+      } else {
         alert("Error al enviar el pedido.");
-        return;
       }
-
-      // Enviar a la nueva API para impresión automática
-      const productosParaImprimir = presupuesto.map((item) => ({
-        nombre: item.comida || item.bebida,
-      }));
-
-      await fetch("/api/print/envios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre,
-          direccion,
-          productos: productosParaImprimir,
-          total,
-        }),
-      });
-
-      alert("Pedido enviado correctamente.");
-      resetFormulario();
     } catch (error) {
       console.error("Error:", error);
       alert("Error al enviar el pedido.");
@@ -129,11 +111,8 @@ export default function DeliveryForm() {
     setNombre("");
     setComida("");
     setBebida("");
-    setDireccion("");
-    setObservacion("");
-    setPago("");
-    setAdicionalesSeleccionados([]);
     setPresupuesto([]);
+    setPago("");
   };
 
   return (
@@ -142,14 +121,14 @@ export default function DeliveryForm() {
         <input
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
           placeholder="Nombre del cliente"
         />
 
         <select
           value={comida}
           onChange={(e) => setComida(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
         >
           <option className="text-black" value="">
             Selecciona una comida
@@ -161,38 +140,9 @@ export default function DeliveryForm() {
           ))}
         </select>
 
-        {adicionalesDisponibles.length > 0 && (
-          <div className="mb-4">
-            <p className="mb-2 text-sm text-gray-300">Adicionales:</p>
-            <div className="flex flex-wrap gap-3">
-              {adicionalesDisponibles.map((ad, i) => (
-                <label
-                  key={i}
-                  className="flex items-center gap-2 text-sm text-gray-200"
-                >
-                  <input
-                    type="checkbox"
-                    value={ad}
-                    checked={adicionalesSeleccionados.includes(ad)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setAdicionalesSeleccionados((prev) =>
-                        checked
-                          ? [...prev, ad]
-                          : prev.filter((item) => item !== ad)
-                      );
-                    }}
-                  />
-                  {ad}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
         <button
           onClick={agregarComida}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl mb-6"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition mb-6"
         >
           <div className="flex items-center justify-center gap-2">
             <FiPlusCircle /> Agregar comida
@@ -202,7 +152,7 @@ export default function DeliveryForm() {
         <select
           value={bebida}
           onChange={(e) => setBebida(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 placeholder-gray-300 focus:outline-none"
         >
           <option className="text-black" value="">
             Selecciona una bebida
@@ -216,7 +166,7 @@ export default function DeliveryForm() {
 
         <button
           onClick={agregarBebida}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-xl"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-xl transition"
         >
           <div className="flex items-center justify-center gap-2">
             <FiPlusCircle /> Agregar bebida
@@ -232,11 +182,8 @@ export default function DeliveryForm() {
               {presupuesto.map((item, index) => (
                 <li key={index} className="flex justify-between items-center">
                   <span>
-                    {item.comida && <>{item.comida}</>}
-                    {item.adicionales?.length > 0 && (
-                      <> + {item.adicionales.join(", ")}</>
-                    )}
-                    {item.bebida && <>{item.bebida}</>}
+                    {item.comida && item.comida}
+                    {item.bebida && item.bebida}
                   </span>
                   <button
                     onClick={() => eliminarItem(index)}
@@ -252,23 +199,10 @@ export default function DeliveryForm() {
       </div>
 
       <div>
-        <input
-          value={direccion}
-          onChange={(e) => setDireccion(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
-          placeholder="Dirección"
-        />
-        <textarea
-          value={observacion}
-          onChange={(e) => setObservacion(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
-          rows={3}
-          placeholder="Observación (opcional)"
-        />
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none"
         >
           <option className="text-black" value="">
             Forma de pago
@@ -280,12 +214,14 @@ export default function DeliveryForm() {
             Mercado Pago
           </option>
         </select>
+
         <p className="text-right text-lg font-bold text-cyan-300 mb-4">
           Total: ${total.toFixed(2)}
         </p>
+
         <button
           onClick={enviarPedido}
-          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
+          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition"
         >
           Hacer Pedido
         </button>
