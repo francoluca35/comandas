@@ -1,25 +1,30 @@
 import { NextResponse } from "next/server";
 import net from "net";
 
-// IPs de las impresoras
 const IP_COCINA = "192.168.1.100";
 const IP_PARRILLA = "192.168.1.101";
 const PUERTO = 9100;
 
 export async function POST(req) {
   try {
-    const { mesa, productos, orden, hora, fecha, metodoPago } =
-      await req.json();
+    const {
+      nombre,
+      comidas,
+      formaDePago,
+      total,
+      tipo, // puede ser 'delivery' o 'entregalocal'
+      fecha,
+    } = await req.json();
 
-    // Separar por sector
-    const parrilla = productos.filter(
-      (p) => +p.nombre.toLowerCase().includes("pollo a la brasa")
+    const parrilla = comidas.filter((p) =>
+      p.comida?.toLowerCase().includes("pollo a la brasa")
     );
-    const cocina = productos.filter(
-      (p) => !p.nombre.toLowerCase().includes("pollo a la brasa")
+    const cocina = comidas.filter(
+      (p) => !p.comida?.toLowerCase().includes("pollo a la brasa")
     );
 
-    // Función para generar y enviar ticket a una IP
+    const titulo = tipo === "delivery" ? "🛍 PARA LLEVAR" : "🏠 MOSTRADOR";
+
     const enviarAImpresora = (productos, ip) => {
       return new Promise((resolve, reject) => {
         if (productos.length === 0) return resolve("Nada que imprimir");
@@ -29,23 +34,23 @@ export async function POST(req) {
         const cortar = "\x1D\x56\x00";
 
         let ticket = "";
-        ticket += doble;
-        ticket += "     PERU MAR\n";
-        ticket += `MESA: ${mesa}\n`;
+        ticket += doble + "     PERU MAR\n";
+        ticket += `${titulo}\n`;
         ticket += normal;
-        ticket += `ORDEN: ${orden}\n`;
-        ticket += `HORA: ${hora}\n`;
+        ticket += `CLIENTE: ${nombre}\n`;
         ticket += `FECHA: ${fecha}\n`;
-        ticket += "==============================\n";
+        ticket += "------------------------------\n";
 
         for (const p of productos) {
           ticket += doble;
-          ticket += `${p.cantidad}x ${p.nombre.toUpperCase()}\n`;
+          ticket += `1x ${
+            p.comida?.toUpperCase() || p.bebida?.toUpperCase()
+          }\n`;
           ticket += normal;
         }
 
-        ticket += "==============================\n";
-        ticket += `PAGO: ${metodoPago?.toUpperCase() || "NO ESPECIFICADO"}\n`;
+        ticket += "------------------------------\n";
+        ticket += `PAGO: ${formaDePago?.toUpperCase() || "NO ESPECIFICADO"}\n`;
         ticket += "\n\n\n" + cortar;
 
         const socket = new net.Socket();
@@ -63,7 +68,6 @@ export async function POST(req) {
       });
     };
 
-    // Intentar imprimir en ambas impresoras
     const resultados = await Promise.allSettled([
       enviarAImpresora(parrilla, IP_PARRILLA),
       enviarAImpresora(cocina, IP_COCINA),
@@ -76,7 +80,7 @@ export async function POST(req) {
       ),
     });
   } catch (error) {
-    console.error("Error en /api/print:", error);
+    console.error("Error en /api/printdelivery:", error);
     return NextResponse.json({ error: "Error en impresión" }, { status: 500 });
   }
 }

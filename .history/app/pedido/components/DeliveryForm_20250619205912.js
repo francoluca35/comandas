@@ -63,6 +63,54 @@ export default function DeliveryForm() {
 
   const total = calcularTotal();
 
+  const imprimirTicket = () => {
+    // Generamos el ticket en texto plano ESC/POS friendly:
+    let ticket = "";
+
+    ticket += "     📦 Pedido Delivery\n";
+    ticket += "------------------------------\n";
+    ticket += `Cliente: ${nombre}\n`;
+
+    ticket += `Observación: ${observacion || "Ninguna"}\n`;
+    ticket += "------------------------------\n";
+
+    presupuesto.forEach((item) => {
+      if (item.comida) {
+        ticket += `🍽 ${item.comida}\n`;
+        if (item.adicionales?.length > 0) {
+          ticket += `  + ${item.adicionales.join(", ")}\n`;
+        }
+      }
+      if (item.bebida) {
+        ticket += `🥤 ${item.bebida}\n`;
+      }
+    });
+
+    ticket += "------------------------------\n";
+
+    // Ahora lo mostramos en ventana para enviar a imprimir:
+    const html = `
+      <html>
+        <head>
+          <style>
+            body { font-family: monospace; font-size: 13px; margin: 0; padding: 0; }
+            pre { margin: 0; padding: 10px; }
+          </style>
+        </head>
+        <body>
+          <pre>${ticket}</pre>
+          <script>
+            window.onload = function() { window.print(); setTimeout(()=>window.close(), 300); }
+          </script>
+        </body>
+      </html>
+    `;
+
+    const nuevaVentana = window.open("", "Ticket", "width=380,height=600");
+    nuevaVentana.document.write(html);
+    nuevaVentana.document.close();
+  };
+
   const enviarPedido = async () => {
     if (!nombre || presupuesto.length === 0 || !direccion || !pago) {
       alert("Por favor completa todos los campos obligatorios.");
@@ -96,16 +144,24 @@ export default function DeliveryForm() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
+      if (res.ok) {
+        alert("Pedido enviado correctamente.");
+        imprimirTicket();
+        resetFormulario();
+      } else {
         alert("Error al enviar el pedido.");
-        return;
       }
-
-      // Enviar a la nueva API para impresión automática
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error al enviar el pedido.");
+    }
+    if (res.ok) {
+      // Armar los productos para el ticket
       const productosParaImprimir = presupuesto.map((item) => ({
         nombre: item.comida || item.bebida,
       }));
 
+      // ✅ Llamada a la nueva API
       await fetch("/api/print/envios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,10 +174,8 @@ export default function DeliveryForm() {
       });
 
       alert("Pedido enviado correctamente.");
+      imprimirTicket();
       resetFormulario();
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error al enviar el pedido.");
     }
   };
 
