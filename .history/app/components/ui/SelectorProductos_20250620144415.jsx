@@ -7,21 +7,13 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
   const [filtro, setFiltro] = useState("comida");
   const [subfiltro, setSubfiltro] = useState(null);
-  const [subfiltroBebida, setSubfiltroBebida] = useState(null);
 
   const productosFiltrados = productos.filter((p) => {
     if (filtro === "todos") return true;
-
     if (filtro === "comida") {
       if (!subfiltro) return p.tipo === "comida";
       return p.tipo === "comida" && p.categoria === subfiltro;
     }
-
-    if (filtro === "bebida") {
-      if (subfiltroBebida === null) return p.tipo === "bebida";
-      return p.tipo === "bebida" && p.alcohol === (subfiltroBebida === "con");
-    }
-
     return p.tipo === filtro;
   });
 
@@ -138,41 +130,6 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
               className={`px-3 py-1 rounded-full text-sm ${
                 subfiltro === null
                   ? "bg-orange-400 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Todas
-            </button>
-          </div>
-        )}
-        {/* Subfiltros solo si es bebida */}
-        {filtro === "bebida" && (
-          <div className="flex justify-center gap-3 mb-6 flex-wrap">
-            <button
-              onClick={() => setSubfiltroBebida("con")}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === "con"
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Con alcohol
-            </button>
-            <button
-              onClick={() => setSubfiltroBebida("sin")}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === "sin"
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Sin alcohol
-            </button>
-            <button
-              onClick={() => setSubfiltroBebida(null)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === null
-                  ? "bg-blue-500 text-white font-semibold"
                   : "bg-white/10 hover:bg-white/20"
               }`}
             >

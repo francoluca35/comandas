@@ -4,7 +4,7 @@ import cloudinary from "@/lib/cloudinary";
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // necesario para usar formData
   },
 };
 
@@ -16,12 +16,13 @@ export async function POST(req) {
     const nombre = formData.get("nombre");
     const tipo = formData.get("tipo");
     const precio = parseFloat(formData.get("precio"));
+
     const descuento = formData.get("descuento");
     const adicionalesStr = formData.get("adicionales");
     const alcohol = formData.get("alcohol");
     const categoria = formData.get("categoria");
 
-    if (!file || !nombre || !tipo || isNaN(precio)) {
+    if (!file || !nombre || !tipo || isNaN(precio) || isNaN(precioConIVA)) {
       return NextResponse.json(
         { error: "Faltan campos obligatorios" },
         { status: 400 }
@@ -30,6 +31,7 @@ export async function POST(req) {
 
     const adicionales = adicionalesStr ? JSON.parse(adicionalesStr) : [];
 
+    // Leer imagen como base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64String = `data:${file.type};base64,${buffer.toString(
@@ -47,6 +49,7 @@ export async function POST(req) {
       nombre,
       tipo,
       precio,
+
       descuento: descuento ? parseFloat(descuento) : undefined,
       adicionales,
       imagen: uploadResult.secure_url,
@@ -56,9 +59,8 @@ export async function POST(req) {
     if (tipo === "bebida") {
       nuevoMenu.alcohol = alcohol === "true";
     }
-
-    if (tipo === "comida") {
-      nuevoMenu.categoria = categoria;
+    if (tipo === "bebida") {
+      nuevoMenu.alcohol = alcohol === "true";
     }
 
     const result = await db.collection("menus").insertOne(nuevoMenu);

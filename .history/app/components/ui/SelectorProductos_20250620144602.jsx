@@ -145,41 +145,6 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
             </button>
           </div>
         )}
-        {/* Subfiltros solo si es bebida */}
-        {filtro === "bebida" && (
-          <div className="flex justify-center gap-3 mb-6 flex-wrap">
-            <button
-              onClick={() => setSubfiltroBebida("con")}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === "con"
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Con alcohol
-            </button>
-            <button
-              onClick={() => setSubfiltroBebida("sin")}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === "sin"
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Sin alcohol
-            </button>
-            <button
-              onClick={() => setSubfiltroBebida(null)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === null
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Todas
-            </button>
-          </div>
-        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {productosFiltrados.map((p) => (

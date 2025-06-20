@@ -5,25 +5,10 @@ import { FaTimes } from "react-icons/fa";
 export default function SelectorProductos({ productos, onSelect, onClose }) {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
-  const [filtro, setFiltro] = useState("comida");
-  const [subfiltro, setSubfiltro] = useState(null);
-  const [subfiltroBebida, setSubfiltroBebida] = useState(null);
+  const [filtro, setFiltro] = useState("todos");
 
-  const productosFiltrados = productos.filter((p) => {
-    if (filtro === "todos") return true;
-
-    if (filtro === "comida") {
-      if (!subfiltro) return p.tipo === "comida";
-      return p.tipo === "comida" && p.categoria === subfiltro;
-    }
-
-    if (filtro === "bebida") {
-      if (subfiltroBebida === null) return p.tipo === "bebida";
-      return p.tipo === "bebida" && p.alcohol === (subfiltroBebida === "con");
-    }
-
-    return p.tipo === filtro;
-  });
+  const productosFiltrados =
+    filtro === "todos" ? productos : productos.filter((p) => p.tipo === filtro);
 
   if (productoSeleccionado) {
     return (
@@ -85,15 +70,12 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
           Seleccionar producto
         </h3>
 
-        {/* Filtros principales */}
-        <div className="flex justify-center gap-3 mb-4 flex-wrap">
+        {/* Filtros */}
+        <div className="flex justify-center gap-3 mb-6">
           <button
-            onClick={() => {
-              setFiltro("comida");
-              setSubfiltro(null);
-            }}
+            onClick={() => setFiltro("comida")}
             className={`px-4 py-2 rounded-xl ${
-              filtro === "comida" && !subfiltro
+              filtro === "comida"
                 ? "bg-orange-500 text-white font-bold"
                 : "bg-white/10 text-white hover:bg-white/20"
             }`}
@@ -101,10 +83,7 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
             🍽 Comidas
           </button>
           <button
-            onClick={() => {
-              setFiltro("bebida");
-              setSubfiltro(null);
-            }}
+            onClick={() => setFiltro("bebida")}
             className={`px-4 py-2 rounded-xl ${
               filtro === "bebida"
                 ? "bg-blue-500 text-white font-bold"
@@ -114,72 +93,6 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
             🥤 Bebidas
           </button>
         </div>
-
-        {/* Subfiltros solo si es comida */}
-        {filtro === "comida" && (
-          <div className="flex justify-center gap-3 mb-6 flex-wrap">
-            {["brasas", "salteados y criollos", "pescados y mariscos"].map(
-              (cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSubfiltro(cat)}
-                  className={`px-3 py-1 rounded-full border text-sm ${
-                    subfiltro === cat
-                      ? "bg-orange-400 text-white font-semibold"
-                      : "bg-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  {cat}
-                </button>
-              )
-            )}
-            <button
-              onClick={() => setSubfiltro(null)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltro === null
-                  ? "bg-orange-400 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Todas
-            </button>
-          </div>
-        )}
-        {/* Subfiltros solo si es bebida */}
-        {filtro === "bebida" && (
-          <div className="flex justify-center gap-3 mb-6 flex-wrap">
-            <button
-              onClick={() => setSubfiltroBebida("con")}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === "con"
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Con alcohol
-            </button>
-            <button
-              onClick={() => setSubfiltroBebida("sin")}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === "sin"
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Sin alcohol
-            </button>
-            <button
-              onClick={() => setSubfiltroBebida(null)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                subfiltroBebida === null
-                  ? "bg-blue-500 text-white font-semibold"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              Todas
-            </button>
-          </div>
-        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {productosFiltrados.map((p) => (

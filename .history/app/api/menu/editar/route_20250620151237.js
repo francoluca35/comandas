@@ -11,7 +11,7 @@ export const config = {
   },
 };
 
-// Convierte ReadableStream de Next.js en uno compatible con Node
+// Convertir el stream de Next.js a uno compatible con Node
 async function streamToNodeReadable(readableStream) {
   const reader = readableStream.getReader();
   return new Readable({
@@ -23,7 +23,7 @@ async function streamToNodeReadable(readableStream) {
   });
 }
 
-// Subida a Cloudinary
+// Subir imagen a Cloudinary
 async function uploadToCloudinary(filePath) {
   return await cloudinary.uploader.upload(filePath, {
     folder: "comandas",
@@ -41,8 +41,7 @@ async function deleteFromCloudinary(imageUrl) {
   await cloudinary.uploader.destroy(publicId);
 }
 
-// 👉 Método PUT
-export async function PUT(req) {
+export async function POST(req) {
   try {
     const nodeReq = await streamToNodeReadable(req.body);
     nodeReq.headers = Object.fromEntries(req.headers.entries());
@@ -69,8 +68,6 @@ export async function PUT(req) {
     const adicionales = fields.adicionales?.[0]
       ? JSON.parse(fields.adicionales[0])
       : [];
-    const categoria = fields.categoria?.[0];
-    const alcohol = fields.alcohol?.[0] === "true";
 
     const client = await clientPromise;
     const db = client.db("comandas");
@@ -81,22 +78,16 @@ export async function PUT(req) {
       precio,
       precioConIVA,
       descuento,
+      ...(tipo === "comida" && { adicionales }),
     };
 
-    if (tipo === "comida") {
-      update.adicionales = adicionales;
-      if (categoria) update.categoria = categoria;
-    }
-
-    if (tipo === "bebida") {
-      update.alcohol = alcohol;
-    }
-
-    // Si hay nueva imagen
     if (files.imagen?.[0]) {
       const file = files.imagen[0];
+      if (tipo === "comida" && categoria) {
+        updateFields.categoria = categoria;
+      }
 
-      // Buscar imagen anterior
+      // Buscar imagen anterior en MongoDB
       const existing = await db
         .collection("menus")
         .findOne({ _id: new ObjectId(id) });
@@ -105,6 +96,7 @@ export async function PUT(req) {
         await deleteFromCloudinary(existing.imagen);
       }
 
+      // Subir nueva imagen
       const result = await uploadToCloudinary(file.filepath);
       update.imagen = result.secure_url;
     }
@@ -115,7 +107,7 @@ export async function PUT(req) {
 
     return NextResponse.json({ message: "Producto actualizado correctamente" });
   } catch (error) {
-    console.error("❌ Error al editar menú:", error);
+    console.error("Error al editar menú:", error);
     return NextResponse.json(
       { message: "Error del servidor" },
       { status: 500 }
