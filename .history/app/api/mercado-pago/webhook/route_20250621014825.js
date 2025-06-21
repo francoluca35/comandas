@@ -19,19 +19,13 @@ export async function POST(req) {
       if (payment.body.status === "approved") {
         console.log("✅ PAGO CONFIRMADO (vía webhook):", paymentId);
 
-        await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/pago/webhook-confirmacion`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mesa: payment.body.external_reference.replace("mesa-", ""),
-              total: payment.body.transaction_amount,
-              metodo: "Mercado Pago",
-              nombreCliente: payment.body.payer?.name || "Cliente",
-            }),
-          }
-        );
+        // 🔁 Acá podés:
+        // - guardar el pago en tu base de datos
+        // - imprimir el ticket llamando a una API interna
+        // - marcar la mesa como libre
+
+        // Ejemplo:
+        // await fetch("http://localhost:4000/imprimir-ticket", {...});
       }
     }
 

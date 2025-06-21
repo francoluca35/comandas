@@ -51,36 +51,30 @@ export default function CobrarCuentaModal({
 
   useEffect(() => {
     let interval;
-    if ((paso === "qr" || paso === "link") && externalReference) {
+    if (paso === "qr" && externalReference) {
       interval = setInterval(async () => {
-        try {
-          const res = await fetch(
-            `/api/mercado-pago/estado/${externalReference}`
-          );
-          const data = await res.json();
+        const res = await fetch(
+          `/api/mercado-pago/estado/${externalReference}`
+        );
+        const data = await res.json();
 
-          if (data.status === "approved") {
-            clearInterval(interval);
+        if (data.status === "approved") {
+          clearInterval(interval);
 
-            Swal.fire({
-              icon: "success",
-              title: "Pago aprobado",
-              text: "El pago fue confirmado.",
-              timer: 2000,
-              showConfirmButton: false,
-            }).then(() => {
-              setMetodo("Mercado Pago");
-              imprimirTicket();
-              confirmarPago();
-              onClose();
-            });
-          }
-        } catch (err) {
-          console.error("Error al consultar estado del pago:", err);
+          // ✅ Mostrar cartel de confirmación
+          Swal.fire({
+            icon: "success",
+            title: "Pago aprobado",
+            text: "El pago fue confirmado por Mercado Pago.",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+
+          setMetodo("Mercado Pago");
+          setPaso("finalizado");
         }
-      }, 5000);
+      }, 6000);
     }
-
     return () => clearInterval(interval);
   }, [paso, externalReference]);
 

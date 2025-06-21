@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
-import Swal from "sweetalert2";
 
 export default function CobrarCuentaModal({
   onClose,
@@ -51,41 +50,24 @@ export default function CobrarCuentaModal({
 
   useEffect(() => {
     let interval;
-    if ((paso === "qr" || paso === "link") && externalReference) {
+    if (paso === "qr" && externalReference) {
       interval = setInterval(async () => {
-        try {
-          const res = await fetch(
-            `/api/mercado-pago/estado/${externalReference}`
-          );
-          const data = await res.json();
-
-          if (data.status === "approved") {
-            clearInterval(interval);
-
-            Swal.fire({
-              icon: "success",
-              title: "Pago aprobado",
-              text: "El pago fue confirmado.",
-              timer: 2000,
-              showConfirmButton: false,
-            }).then(() => {
-              setMetodo("Mercado Pago");
-              imprimirTicket();
-              confirmarPago();
-              onClose();
-            });
-          }
-        } catch (err) {
-          console.error("Error al consultar estado del pago:", err);
+        const res = await fetch(
+          `/api/mercado-pago/estado/${externalReference}`
+        );
+        const data = await res.json();
+        if (data.status === "approved") {
+          clearInterval(interval);
+          setMetodo("Mercado Pago");
+          setPaso("finalizado");
         }
-      }, 5000);
+      }, 6000);
     }
-
     return () => clearInterval(interval);
   }, [paso, externalReference]);
 
   useEffect(() => {
-    if (paso === "finalizado" && metodo === "Mercado Pago") {
+    if (paso === "finalizado") {
       imprimirTicket();
       confirmarPago();
     }
