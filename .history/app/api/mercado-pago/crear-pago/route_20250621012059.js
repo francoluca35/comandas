@@ -22,9 +22,7 @@ export async function POST(req) {
       ],
       external_reference: `mesa-${mesa}`,
       payer: { name: nombreCliente },
-      notification_url:
-        "https://perumar-app.vercel.app/api/mercado-pago/webhook", // 👈 Webhook aquí
-      back_urls: {}, // ⚠️ No se redirige
+      back_urls: {}, // ⚠️ NO redirige
       auto_return: undefined,
     };
 

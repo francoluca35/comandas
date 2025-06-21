@@ -32,13 +32,6 @@ export async function GET(req, context) {
     }
 
     const aprobado = pagos.find((p) => p.status === "approved");
-    return new Response(
-      JSON.stringify({
-        status: aprobado ? "approved" : pagos[0].status,
-        id: aprobado?.id || pagos[0].id,
-      }),
-      { status: 200 }
-    );
 
     return new Response(
       JSON.stringify({
