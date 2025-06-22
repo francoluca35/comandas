@@ -1,8 +1,7 @@
-// app/api/mercado-pago/webhook/route.js
 export const runtime = "nodejs";
 import mercadopago from "mercadopago";
 import { connectDB } from "@/lib/mongodb";
-import Pago from "@/models/Pago"; // Lo creamos abajo
+import Pago from "@/app/models/Pago";
 
 mercadopago.configure({
   access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN,
