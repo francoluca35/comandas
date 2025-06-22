@@ -64,9 +64,9 @@ export default function RestauranteForm() {
 
     if (pago === "link") {
       window.open(data.init_point, "_blank");
-    } else if (pago === "qr") {
+    } } else if (pago === "qr") {
       const QRCode = await import("qrcode");
-
+    
       Swal.fire({
         title: "Escanea el QR",
         html: `<div id="qrcode"></div><p style="margin-top:10px;"><a href="${data.init_point}" target="_blank">Abrir en nueva pestaña</a></p>`,
@@ -85,6 +85,8 @@ export default function RestauranteForm() {
         allowOutsideClick: false,
       });
     }
+    
+   
 
     esperarConfirmacionPago();
   };
@@ -98,7 +100,6 @@ export default function RestauranteForm() {
       if (data.status === "approved") {
         clearInterval(interval);
         Swal.close();
-        imprimirDelivery();
         enviarPedidoFinal();
       }
 

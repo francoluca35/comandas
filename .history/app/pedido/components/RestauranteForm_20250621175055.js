@@ -65,20 +65,16 @@ export default function RestauranteForm() {
     if (pago === "link") {
       window.open(data.init_point, "_blank");
     } else if (pago === "qr") {
-      const QRCode = await import("qrcode");
-
       Swal.fire({
         title: "Escanea el QR",
-        html: `<div id="qrcode"></div><p style="margin-top:10px;"><a href="${data.init_point}" target="_blank">Abrir en nueva pestaña</a></p>`,
+        html: `<div id="qrcode" style="margin: auto;"></div>
+               <p><a href="${data.init_point}" target="_blank">Abrir pago en nueva ventana</a></p>`,
         didOpen: () => {
           const container = document.getElementById("qrcode");
-          QRCode.toCanvas(data.init_point, { width: 200 }, (err, canvas) => {
-            if (err) {
-              console.error("Error generando QR:", err);
-              container.innerHTML = "<p>Error generando QR</p>";
-              return;
-            }
-            container.appendChild(canvas);
+          import("react-qr-code").then(({ default: QRCode }) => {
+            const el = document.createElement("div");
+            container.appendChild(el);
+            QRCode({ value: data.init_point, size: 200, renderAs: "svg" });
           });
         },
         showConfirmButton: false,
@@ -98,7 +94,6 @@ export default function RestauranteForm() {
       if (data.status === "approved") {
         clearInterval(interval);
         Swal.close();
-        imprimirDelivery();
         enviarPedidoFinal();
       }
 

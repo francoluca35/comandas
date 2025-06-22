@@ -31,14 +31,11 @@ export async function GET(req, context) {
       });
     }
 
-    const pagoMasReciente = pagos
-      .filter((p) => p.status === "approved")
-      .sort((a, b) => new Date(b.date_created) - new Date(a.date_created))[0];
-
+    const aprobado = pagos.find((p) => p.status === "approved");
     return new Response(
       JSON.stringify({
-        status: pagoMasReciente ? "approved" : pagos[0].status,
-        id: pagoMasReciente?.id || pagos[0].id,
+        status: aprobado ? "approved" : pagos[0].status,
+        id: aprobado?.id || pagos[0].id,
       }),
       {
         status: 200,

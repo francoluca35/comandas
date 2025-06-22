@@ -320,7 +320,7 @@ export default function DeliveryForm() {
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          className="..."
         >
           <option className="text-black" value="">
             Forma de pago
@@ -333,31 +333,15 @@ export default function DeliveryForm() {
           </option>
         </select>
 
-        {pago === "link" && urlPago && (
-          <div className="my-4 text-center">
-            <QRCode value={urlPago} size={180} />
-            <a
-              href={urlPago}
-              target="_blank"
-              className="block text-blue-300 underline mt-2"
-            >
-              Pagar ahora con Mercado Pago
-            </a>
-          </div>
-        )}
-
         <p className="text-right text-lg font-bold text-cyan-300 mb-4">
           Total: ${total.toFixed(2)}
         </p>
-
-        {pago === "efectivo" && (
-          <button
-            onClick={enviarPedido}
-            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
-          >
-            Hacer Pedido
-          </button>
-        )}
+        <button
+          onClick={enviarPedido}
+          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
+        >
+          Hacer Pedido
+        </button>
       </div>
     </div>
   );

@@ -10,9 +10,6 @@ export async function POST(req) {
     const body = await req.json();
     const { total, mesa, nombreCliente } = body;
 
-    // ✅ Usamos una única referencia única
-    const referencia = `mesa-${mesa}-${Date.now()}`;
-
     const preference = {
       items: [
         {
@@ -23,12 +20,12 @@ export async function POST(req) {
           unit_price: parseFloat(total),
         },
       ],
-      external_reference: referencia,
+      external_reference: `mesa-${mesa}-${Date.now()}`,
 
       payer: { name: nombreCliente },
       notification_url:
-        "https://perumar-app.vercel.app/api/mercado-pago/webhook",
-      back_urls: {},
+        "https://perumar-app.vercel.app/api/mercado-pago/webhook", // 👈 Webhook aquí
+      back_urls: {}, // ⚠️ No se redirige
       auto_return: undefined,
     };
 
@@ -38,7 +35,7 @@ export async function POST(req) {
       JSON.stringify({
         init_point: response.body.init_point,
         preference_id: response.body.id,
-        external_reference: referencia, // ✅ misma referencia
+        external_reference: `mesa-${mesa}-${Date.now()}`,
       }),
       {
         status: 200,

@@ -54,6 +54,7 @@ export default function CobrarCuentaModal({
     let timeout;
 
     if ((paso === "qr" || paso === "link") && externalReference) {
+      // ⏱ Intervalo para chequear pago cada 5 segundos
       interval = setInterval(async () => {
         try {
           const res = await fetch(
@@ -64,6 +65,7 @@ export default function CobrarCuentaModal({
           if (data.status === "approved") {
             clearInterval(interval);
             clearTimeout(timeout);
+
             Swal.fire({
               icon: "success",
               title: "Pago aprobado",
@@ -72,7 +74,7 @@ export default function CobrarCuentaModal({
               showConfirmButton: false,
             }).then(() => {
               setMetodo("Mercado Pago");
-              confirmarPago();
+              confirmarPago(); // 🔁 ya no se imprime desde acá
               onClose();
             });
           }
@@ -84,13 +86,17 @@ export default function CobrarCuentaModal({
       timeout = setTimeout(() => {
         clearInterval(interval);
         Swal.fire({
-          icon: "error",
-          title: "Pago no confirmado",
-          text: "No se recibió confirmación de pago en el tiempo esperado.",
-          timer: 3000,
+          icon: "success",
+          title: "Pago aprobado",
+          text: "El pago fue confirmado.",
+          timer: 2000,
           showConfirmButton: false,
+        }).then(() => {
+          setMetodo("Mercado Pago");
+          imprimirTicket();
+          confirmarPago();
         });
-      }, 2 * 60 * 1000);
+      }, 2 * 60 * 1000); // 2 minutos
     }
 
     return () => {
@@ -98,6 +104,12 @@ export default function CobrarCuentaModal({
       clearTimeout(timeout);
     };
   }, [paso, externalReference]);
+
+  useEffect(() => {
+    if (paso === "finalizado" && metodo === "Mercado Pago") {
+      confirmarPago();
+    }
+  }, [paso]);
 
   const imprimirTicket = () => {
     const fecha = new Date().toLocaleDateString("es-AR");
@@ -183,14 +195,14 @@ export default function CobrarCuentaModal({
         </body>
       </html>
     `;
+
     const ventana = window.open("", "", "width=400,height=600");
     if (ventana) ventana.document.write(html);
   };
 
   const confirmarPago = async () => {
-    if (metodo === "Efectivo" || metodo === "Mercado Pago") {
+    if (metodo === "Efectivo") {
       imprimirTicket();
-
       await fetch("/api/caja/ingreso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,7 +210,7 @@ export default function CobrarCuentaModal({
           tipo: "restaurante",
           monto: totalFinal,
           descripcion: `Ingreso por mesa ${mesa.numero}`,
-          metodo: metodo.toLowerCase(),
+          metodo: "efectivo",
         }),
       });
     }

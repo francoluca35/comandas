@@ -51,8 +51,6 @@ export default function CobrarCuentaModal({
 
   useEffect(() => {
     let interval;
-    let timeout;
-
     if ((paso === "qr" || paso === "link") && externalReference) {
       interval = setInterval(async () => {
         try {
@@ -63,7 +61,7 @@ export default function CobrarCuentaModal({
 
           if (data.status === "approved") {
             clearInterval(interval);
-            clearTimeout(timeout);
+
             Swal.fire({
               icon: "success",
               title: "Pago aprobado",
@@ -72,6 +70,7 @@ export default function CobrarCuentaModal({
               showConfirmButton: false,
             }).then(() => {
               setMetodo("Mercado Pago");
+
               confirmarPago();
               onClose();
             });
@@ -80,24 +79,17 @@ export default function CobrarCuentaModal({
           console.error("Error al consultar estado del pago:", err);
         }
       }, 5000);
-
-      timeout = setTimeout(() => {
-        clearInterval(interval);
-        Swal.fire({
-          icon: "error",
-          title: "Pago no confirmado",
-          text: "No se recibió confirmación de pago en el tiempo esperado.",
-          timer: 3000,
-          showConfirmButton: false,
-        });
-      }, 2 * 60 * 1000);
     }
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
+    return () => clearInterval(interval);
   }, [paso, externalReference]);
+
+  useEffect(() => {
+    if (paso === "finalizado" && metodo === "Mercado Pago") {
+      imprimirTicket();
+      confirmarPago();
+    }
+  }, [paso]);
 
   const imprimirTicket = () => {
     const fecha = new Date().toLocaleDateString("es-AR");
@@ -183,14 +175,14 @@ export default function CobrarCuentaModal({
         </body>
       </html>
     `;
+
     const ventana = window.open("", "", "width=400,height=600");
     if (ventana) ventana.document.write(html);
   };
 
   const confirmarPago = async () => {
-    if (metodo === "Efectivo" || metodo === "Mercado Pago") {
+    if (metodo === "Efectivo") {
       imprimirTicket();
-
       await fetch("/api/caja/ingreso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,7 +190,7 @@ export default function CobrarCuentaModal({
           tipo: "restaurante",
           monto: totalFinal,
           descripcion: `Ingreso por mesa ${mesa.numero}`,
-          metodo: metodo.toLowerCase(),
+          metodo: "efectivo",
         }),
       });
     }
