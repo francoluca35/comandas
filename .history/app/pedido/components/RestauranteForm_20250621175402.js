@@ -98,7 +98,6 @@ export default function RestauranteForm() {
       if (data.status === "approved") {
         clearInterval(interval);
         Swal.close();
-        imprimirDelivery();
         enviarPedidoFinal();
       }
 

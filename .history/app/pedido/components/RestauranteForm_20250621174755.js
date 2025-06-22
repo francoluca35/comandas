@@ -13,8 +13,9 @@ export default function RestauranteForm() {
   const [bebida, setBebida] = useState("");
   const [presupuesto, setPresupuesto] = useState([]);
   const [pago, setPago] = useState("");
-  const [externalReference, setExternalReference] = useState("");
   const [urlPago, setUrlPago] = useState("");
+  const [externalReference, setExternalReference] = useState("");
+  const [esperandoPago, setEsperandoPago] = useState(false);
 
   const comidas = productos.filter((p) => p.tipo !== "bebida");
   const bebidas = productos.filter((p) => p.tipo === "bebida");
@@ -45,71 +46,6 @@ export default function RestauranteForm() {
     }, 0);
   };
 
-  const total = calcularTotal();
-
-  const generarPagoMP = async () => {
-    const res = await fetch("/api/mercado-pago/crear-pago", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        total,
-        mesa: nombre || "MOSTRADOR",
-        nombreCliente: nombre || "Cliente",
-      }),
-    });
-
-    const data = await res.json();
-    setUrlPago(data.init_point);
-    setExternalReference(data.external_reference);
-
-    if (pago === "link") {
-      window.open(data.init_point, "_blank");
-    } else if (pago === "qr") {
-      const QRCode = await import("qrcode");
-
-      Swal.fire({
-        title: "Escanea el QR",
-        html: `<div id="qrcode"></div><p style="margin-top:10px;"><a href="${data.init_point}" target="_blank">Abrir en nueva pestaña</a></p>`,
-        didOpen: () => {
-          const container = document.getElementById("qrcode");
-          QRCode.toCanvas(data.init_point, { width: 200 }, (err, canvas) => {
-            if (err) {
-              console.error("Error generando QR:", err);
-              container.innerHTML = "<p>Error generando QR</p>";
-              return;
-            }
-            container.appendChild(canvas);
-          });
-        },
-        showConfirmButton: false,
-        allowOutsideClick: false,
-      });
-    }
-
-    esperarConfirmacionPago();
-  };
-
-  const esperarConfirmacionPago = () => {
-    let intentos = 0;
-    const interval = setInterval(async () => {
-      const res = await fetch(`/api/mercado-pago/estado/${externalReference}`);
-      const data = await res.json();
-
-      if (data.status === "approved") {
-        clearInterval(interval);
-        Swal.close();
-        imprimirDelivery();
-        enviarPedidoFinal();
-      }
-
-      intentos++;
-      if (intentos >= 24) {
-        clearInterval(interval);
-        Swal.fire("Pago no confirmado", "Intenta nuevamente.", "error");
-      }
-    }, 5000);
-  };
-
   const imprimirDelivery = async (productos, nombre, hora, fecha, pago) => {
     try {
       await fetch("/api/printdelivery", {
@@ -125,9 +61,11 @@ export default function RestauranteForm() {
         }),
       });
     } catch (err) {
-      console.error("Error imprimiendo:", err);
+      console.error("Error imprimiendo delivery:", err);
     }
   };
+
+  const total = calcularTotal();
 
   const enviarPedido = async () => {
     if (!nombre || presupuesto.length === 0 || !pago) {
@@ -135,20 +73,17 @@ export default function RestauranteForm() {
       return;
     }
 
-    if (pago === "efectivo") {
-      enviarPedidoFinal();
-    } else {
-      await generarPagoMP();
-    }
-  };
-
-  const enviarPedidoFinal = async () => {
     const now = new Date();
     const hora = now.toLocaleTimeString("es-AR", {
       hour: "2-digit",
       minute: "2-digit",
     });
     const fecha = now.toLocaleDateString("es-AR");
+
+    const productosParaImprimir = presupuesto.map((item) => ({
+      nombre: item.comida || item.bebida,
+      cantidad: 1,
+    }));
 
     const payload = {
       modoPedido: "restaurante",
@@ -162,35 +97,69 @@ export default function RestauranteForm() {
       timestamp: now,
     };
 
-    try {
-      const res = await fetch("/api/pedidos", {
+    if (pago === "efectivo") {
+      await fetch("/api/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      await imprimirDelivery(productosParaImprimir, nombre, hora, fecha, pago);
+      alert("Pedido enviado correctamente.");
+      resetFormulario();
+    } else {
+      const res = await fetch("/api/mercado-pago/crear-pago", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          total,
+          mesa: nombre || "MOSTRADOR",
+          nombreCliente: nombre,
+        }),
+      });
+      const data = await res.json();
+      setUrlPago(data.init_point);
+      setExternalReference(data.external_reference);
+      setEsperandoPago(true);
 
-      if (res.ok) {
-        const productosParaImprimir = presupuesto.map((item) => ({
-          nombre: item.comida || item.bebida,
-          cantidad: 1,
-        }));
+      Swal.fire({
+        title: "Esperando pago...",
+        html: `<a href="${data.init_point}" target="_blank" style="color:blue;">Abrir link de pago</a><br/><br/>Escaneá el QR o abrí el link para pagar.`,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        willClose: () => setEsperandoPago(false),
+      });
 
-        await imprimirDelivery(
-          productosParaImprimir,
-          nombre,
-          hora,
-          fecha,
-          pago
+      const intervalo = setInterval(async () => {
+        const estadoRes = await fetch(
+          `/api/mercado-pago/estado/${data.external_reference}`
         );
+        const estado = await estadoRes.json();
+        if (estado.status === "approved") {
+          clearInterval(intervalo);
+          Swal.close();
+          await fetch("/api/pedidos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          await imprimirDelivery(
+            productosParaImprimir,
+            nombre,
+            hora,
+            fecha,
+            "Mercado Pago"
+          );
+          Swal.fire("✅ Pago aprobado", "", "success");
+          resetFormulario();
+        }
+      }, 5000);
 
-        Swal.fire("Pedido enviado correctamente", "", "success");
-        resetFormulario();
-      } else {
-        Swal.fire("Error", "No se pudo enviar el pedido", "error");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      Swal.fire("Error", "Hubo un problema al enviar", "error");
+      setTimeout(() => {
+        clearInterval(intervalo);
+        if (esperandoPago) {
+          Swal.fire("⛔ Pago no confirmado", "Intenta nuevamente", "error");
+        }
+      }, 2 * 60 * 1000);
     }
   };
 
@@ -200,8 +169,8 @@ export default function RestauranteForm() {
     setBebida("");
     setPresupuesto([]);
     setPago("");
-    setExternalReference("");
     setUrlPago("");
+    setExternalReference("");
   };
 
   return (

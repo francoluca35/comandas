@@ -37,8 +37,8 @@ export async function GET(req, context) {
 
     return new Response(
       JSON.stringify({
-        status: pagoMasReciente ? "approved" : pagos[0].status,
-        id: pagoMasReciente?.id || pagos[0].id,
+        status: aprobado ? "approved" : pagos[0].status,
+        id: aprobado?.id || pagos[0].id,
       }),
       {
         status: 200,

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import useProductos from "@/app/hooks/useProductos";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
-import QRCode from "react-qr-code";
 
 export default function DeliveryForm() {
   const { productos } = useProductos();
@@ -14,8 +13,6 @@ export default function DeliveryForm() {
   const [direccion, setDireccion] = useState("");
   const [observacion, setObservacion] = useState("");
   const [pago, setPago] = useState("");
-  const [urlPago, setUrlPago] = useState("");
-  const [externalReference, setExternalReference] = useState("");
   const [adicionalesDisponibles, setAdicionalesDisponibles] = useState([]);
   const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState([]);
   const [presupuesto, setPresupuesto] = useState([]);
@@ -28,57 +25,6 @@ export default function DeliveryForm() {
     setAdicionalesDisponibles(seleccionado?.adicionales || []);
     setAdicionalesSeleccionados([]);
   }, [comida]);
-
-  useEffect(() => {
-    if (pago === "link" && !urlPago) generarPagoMP();
-  }, [pago]);
-
-  useEffect(() => {
-    let interval;
-    let timeout;
-    if (pago === "link" && externalReference) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(
-            `/api/mercado-pago/estado/${externalReference}`
-          );
-          const data = await res.json();
-          if (data.status === "approved") {
-            clearInterval(interval);
-            clearTimeout(timeout);
-            alert("✅ Pago aprobado. Enviando pedido...");
-            enviarPedido();
-          }
-        } catch (err) {
-          console.error("Error consultando estado de pago:", err);
-        }
-      }, 4000);
-
-      timeout = setTimeout(() => {
-        clearInterval(interval);
-        alert("❌ No se recibió el pago a tiempo.");
-      }, 120000);
-    }
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [externalReference]);
-
-  const generarPagoMP = async () => {
-    const res = await fetch("/api/mercado-pago/crear-pago", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        total,
-        mesa: nombre || "DELIVERY",
-        nombreCliente: nombre || "Cliente",
-      }),
-    });
-    const data = await res.json();
-    setUrlPago(data.init_point);
-    setExternalReference(data.external_reference);
-  };
 
   const agregarComida = () => {
     if (!comida) return;
@@ -150,8 +96,12 @@ export default function DeliveryForm() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) return alert("Error al enviar el pedido.");
+      if (!res.ok) {
+        alert("Error al enviar el pedido.");
+        return;
+      }
 
+      // Enviar a la nueva API para impresión automática
       const productosParaImprimir = presupuesto.map((item) => ({
         nombre: item.comida || item.bebida,
       }));
@@ -184,8 +134,6 @@ export default function DeliveryForm() {
     setPago("");
     setAdicionalesSeleccionados([]);
     setPresupuesto([]);
-    setUrlPago("");
-    setExternalReference("");
   };
 
   return (
@@ -320,7 +268,7 @@ export default function DeliveryForm() {
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}
-          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          className="..."
         >
           <option className="text-black" value="">
             Forma de pago
@@ -333,31 +281,15 @@ export default function DeliveryForm() {
           </option>
         </select>
 
-        {pago === "link" && urlPago && (
-          <div className="my-4 text-center">
-            <QRCode value={urlPago} size={180} />
-            <a
-              href={urlPago}
-              target="_blank"
-              className="block text-blue-300 underline mt-2"
-            >
-              Pagar ahora con Mercado Pago
-            </a>
-          </div>
-        )}
-
         <p className="text-right text-lg font-bold text-cyan-300 mb-4">
           Total: ${total.toFixed(2)}
         </p>
-
-        {pago === "efectivo" && (
-          <button
-            onClick={enviarPedido}
-            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
-          >
-            Hacer Pedido
-          </button>
-        )}
+        <button
+          onClick={enviarPedido}
+          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
+        >
+          Hacer Pedido
+        </button>
       </div>
     </div>
   );
