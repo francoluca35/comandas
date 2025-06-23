@@ -56,8 +56,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       }
     };
 
-    await enviarAImpresora(parrilla, "192.168.0.101"); // Impresora de parrilla
-    await enviarAImpresora(cocina, "192.168.0.100"); // ✅ correcto
+    await enviarAImpresora(parrilla, "192.168.1.101"); // Impresora de parrilla
+    await enviarAImpresora(cocina, "192.168.1.100"); // ✅ correcto
     // Impresora de cocina
   };
 

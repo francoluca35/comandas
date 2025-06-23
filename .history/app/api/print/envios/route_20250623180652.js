@@ -8,9 +8,9 @@ export async function POST(req) {
     const { nombre, direccion, productos, total, metodoPago } =
       await req.json();
 
-    const IP_COCINA = "192.168.0.100";
+    const IP_COCINA = "192.168.4.100";
 
-    const IP_PARRILLA = "192.168.0.101";
+    const IP_PARRILLA = "192.168.1.101";
     const PUERTO = 9100;
 
     const reset = "\x1B\x40";

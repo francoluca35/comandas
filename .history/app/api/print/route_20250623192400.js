@@ -10,10 +10,11 @@ export async function POST(req) {
   try {
     const { mesa, productos, orden, hora, fecha, metodoPago } =
       await req.json();
-    // Separar por sector
+
     const parrilla = productos.filter((p) =>
       p.nombre.toLowerCase().includes("pollo a la brasa")
     );
+
     const cocina = productos.filter(
       (p) => !p.nombre.toLowerCase().includes("pollo a la brasa")
     );

@@ -3,16 +3,17 @@ import net from "net";
 
 const IP_COCINA = "192.168.0.100";
 
-const IP_PARRILLA = "192.168.0.101";
+const IP_PARRILLA = "192.168.1.101";
 const PUERTO = 9100;
 
 export async function POST(req) {
   try {
     const { mesa, productos, orden, hora, fecha, metodoPago } =
       await req.json();
+
     // Separar por sector
-    const parrilla = productos.filter((p) =>
-      p.nombre.toLowerCase().includes("pollo a la brasa")
+    const parrilla = productos.filter(
+      (p) => +p.nombre.toLowerCase().includes("pollo a la brasa")
     );
     const cocina = productos.filter(
       (p) => !p.nombre.toLowerCase().includes("pollo a la brasa")

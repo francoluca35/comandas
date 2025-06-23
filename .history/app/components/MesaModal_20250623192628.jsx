@@ -46,7 +46,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             hora,
             fecha,
             metodoPago,
-            ip,
+            ipParrilla: "192.168.0.101",
+            ipCocina: "192.168.0.100",
           }),
         });
         if (!res.ok) throw new Error();

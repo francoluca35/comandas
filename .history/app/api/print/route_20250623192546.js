@@ -10,10 +10,11 @@ export async function POST(req) {
   try {
     const { mesa, productos, orden, hora, fecha, metodoPago } =
       await req.json();
-    // Separar por sector
+
     const parrilla = productos.filter((p) =>
       p.nombre.toLowerCase().includes("pollo a la brasa")
     );
+
     const cocina = productos.filter(
       (p) => !p.nombre.toLowerCase().includes("pollo a la brasa")
     );
@@ -62,10 +63,9 @@ export async function POST(req) {
       });
     };
 
-    // Intentar imprimir en ambas impresoras
     const resultados = await Promise.allSettled([
-      enviarAImpresora(parrilla, IP_PARRILLA),
-      enviarAImpresora(cocina, IP_COCINA),
+      enviarAImpresora(parrilla, req.body.ipParrilla || IP_PARRILLA),
+      enviarAImpresora(cocina, req.body.ipCocina || IP_COCINA),
     ]);
 
     return NextResponse.json({
