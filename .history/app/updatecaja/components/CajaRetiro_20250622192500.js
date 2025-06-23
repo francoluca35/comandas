@@ -16,36 +16,7 @@ export default function CajaRetiro() {
   useEffect(() => {
     fetchCaja();
     fetchInforme();
-
-    try {
-      const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/Argentina/Buenos_Aires",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-
-      const ahoraArgentina = formatter.format(new Date());
-
-      // Validación extra
-      if (ahoraArgentina.includes(":")) {
-        const [horaStr, minutoStr] = ahoraArgentina.split(":");
-        const horaActual = parseInt(horaStr, 10);
-        const minutosActual = parseInt(minutoStr, 10);
-
-        const enHorarioHabilitado =
-          (horaActual === 23 && minutosActual >= 30) ||
-          (horaActual >= 0 && horaActual < 4);
-
-        setMostrarCierre(enHorarioHabilitado);
-      } else {
-        console.warn("Formato de hora inesperado:", ahoraArgentina);
-        setMostrarCierre(false);
-      }
-    } catch (error) {
-      console.error("Error al calcular horario:", error);
-      setMostrarCierre(false);
-    }
+    checkHorario();
   }, []);
 
   const fetchCaja = async () => {
@@ -115,7 +86,7 @@ export default function CajaRetiro() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center p-6">
-      <header className="w-full  flex items-center gap-4 mb-8">
+      <header className="w-full max-w-5xl flex items-center gap-4 mb-8">
         <BackArrow />
         <Image
           src="/Assets/Mesas/logo-peru-mar.png"

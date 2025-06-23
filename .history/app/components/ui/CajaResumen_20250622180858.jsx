@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 export default function CajaResumen() {
   const [efectivo, setEfectivo] = useState(0);
-  const [mercadoPago, setMercadoPago] = useState(0);
 
   const obtenerDatos = async () => {
     try {
@@ -14,9 +13,6 @@ export default function CajaResumen() {
       setEfectivo(dataEfectivo.montoActual || 0); // <-- ACA estaba el problema
 
       // Leer Mercado Pago (queda igual)
-      const resMP = await fetch("/api/mercado-pago/saldo");
-      const dataMP = await resMP.json();
-      setMercadoPago(dataMP.total || 0);
     } catch (error) {
       console.error("Error al cargar datos de caja", error);
     }
@@ -36,7 +32,7 @@ export default function CajaResumen() {
       </div>
       <hr className="border-black" />
       <div className="flex justify-between mt-2 text-lg font-bold">
-        <span>Mercado Pago:</span> <span>${mercadoPago.toFixed(2)}</span>
+        <span>Mercado Pago:</span> <span>$</span>
       </div>
     </div>
   );

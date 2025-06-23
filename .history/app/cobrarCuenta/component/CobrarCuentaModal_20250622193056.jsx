@@ -191,14 +191,11 @@ export default function CobrarCuentaModal({
     if (metodo === "Efectivo" || metodo === "Mercado Pago") {
       imprimirTicket();
 
-      // Sumar a caja registradora
       await fetch("/api/caja-registradora", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ monto: totalFinal }),
       });
-
-      // ✅ Guardar en ingresosDiarios
       await fetch("/api/informe-diario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,8 +204,6 @@ export default function CobrarCuentaModal({
           timestamp: new Date().toISOString(),
         }),
       });
-
-      // Guardar en caja general
       await fetch("/api/caja/ingreso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -221,7 +216,6 @@ export default function CobrarCuentaModal({
       });
     }
 
-    // Liberar mesa
     await fetch("/api/mesas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -293,7 +287,7 @@ export default function CobrarCuentaModal({
             Cobro en efectivo
           </h2>
           <p className="text-center text-lg text-black">
-            Total: <b className="text-green-600">${totalFinal.toFixed(2)}</b>
+            Total: <b>${totalFinal.toFixed(2)}</b>
           </p>
           <input
             type="number"
@@ -302,7 +296,7 @@ export default function CobrarCuentaModal({
             value={montoPagado}
             onChange={(e) => setMontoPagado(e.target.value)}
           />
-          <p className="text-center text-black font-bold">
+          <p className="text-center">
             Vuelto: <span className="text-green-600">${vuelto}</span>
           </p>
           <button

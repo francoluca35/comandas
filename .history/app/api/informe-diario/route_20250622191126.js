@@ -82,25 +82,3 @@ export async function GET() {
     return NextResponse.json([], { status: 200 });
   }
 }
-export async function POST(req) {
-  try {
-    const { totalPedido, timestamp } = await req.json();
-
-    if (!totalPedido || !timestamp) {
-      return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
-    }
-
-    const client = await clientPromise;
-    const db = client.db("comandas");
-
-    await db.collection("ingresosDiarios").insertOne({
-      totalPedido: parseFloat(totalPedido),
-      timestamp: new Date(timestamp),
-    });
-
-    return NextResponse.json({ message: "Ingreso diario registrado" });
-  } catch (err) {
-    console.error("Error al guardar ingreso diario:", err);
-    return NextResponse.json({ error: "Error al guardar" }, { status: 500 });
-  }
-}
