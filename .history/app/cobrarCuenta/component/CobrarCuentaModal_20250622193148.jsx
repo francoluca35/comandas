@@ -191,14 +191,11 @@ export default function CobrarCuentaModal({
     if (metodo === "Efectivo" || metodo === "Mercado Pago") {
       imprimirTicket();
 
-      // Sumar a caja registradora
       await fetch("/api/caja-registradora", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ monto: totalFinal }),
       });
-
-      // ✅ Guardar en ingresosDiarios
       await fetch("/api/informe-diario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,8 +204,6 @@ export default function CobrarCuentaModal({
           timestamp: new Date().toISOString(),
         }),
       });
-
-      // Guardar en caja general
       await fetch("/api/caja/ingreso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -221,7 +216,6 @@ export default function CobrarCuentaModal({
       });
     }
 
-    // Liberar mesa
     await fetch("/api/mesas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
