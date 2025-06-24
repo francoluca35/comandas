@@ -32,17 +32,10 @@ export async function POST(req) {
         ticket += `ORDEN: ${orden}\nHORA: ${hora}\nFECHA: ${fecha}\n`;
         ticket += "==============================\n";
 
-        // Agrupar productos por nombre
-        const agrupados = {};
-        items.forEach((p) => {
-          const nombre = p.nombre?.toUpperCase();
-          if (!nombre) return;
-          agrupados[nombre] = (agrupados[nombre] || 0) + (p.cantidad || 1);
-        });
-
-        for (const nombre in agrupados) {
-          const cantidad = agrupados[nombre];
-          ticket += doble + `${cantidad}x ${nombre}\n` + normal;
+        for (const p of items) {
+          const nombre = p.nombre;
+          const cantidad = p.cantidad || 1;
+          ticket += doble + `${cantidad}x ${nombre.toUpperCase()}\n` + normal;
         }
 
         ticket += "==============================\n";
