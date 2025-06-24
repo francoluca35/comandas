@@ -161,6 +161,7 @@ export default function RegisterPage() {
               required
             >
               <option value="admin">Administrador</option>
+              <option value="mesera">Mesera</option>
               <option value="delivery">Repartidor</option>
             </select>
 
