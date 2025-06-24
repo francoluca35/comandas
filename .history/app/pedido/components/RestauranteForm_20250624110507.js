@@ -117,7 +117,7 @@ export default function RestauranteForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre,
-
+          direccion: "", // o mostrador
           productos,
           total: calcularTotal(),
           hora,
@@ -179,7 +179,6 @@ export default function RestauranteForm() {
         await imprimirDelivery(
           productosParaImprimir,
           nombre,
-          "PARA LLEVAR",
           hora,
           fecha,
           pago
