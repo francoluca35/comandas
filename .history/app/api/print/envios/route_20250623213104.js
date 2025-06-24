@@ -5,7 +5,7 @@ export async function POST(req) {
     const body = await req.json();
 
     const response = await fetch(
-      "https://e527-181-47-132-221.ngrok-free.app/print-delivery", // Ruta específica del servidor local
+      "https://8db1-181-47-132-221.ngrok-free.app/print-delivery", // Ruta específica del servidor local
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -13,7 +13,7 @@ export async function POST(req) {
       }
     );
 
-    const data = await response.text();
+    const data = await response.text(); // puede ser .json() si el server devuelve JSON
     return NextResponse.json({ success: true, message: data });
   } catch (err) {
     console.error("Error al conectar con servidor local:", err);
