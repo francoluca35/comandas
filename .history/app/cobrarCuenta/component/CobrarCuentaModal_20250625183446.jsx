@@ -132,9 +132,9 @@ export default function CobrarCuentaModal({
               text-align: center;
             }
             h2 { margin: 5px 0; font-size: 14px; }
-            .logo { width: 100px; margin-bottom: 5px; }
+            .logo { width: 80px; margin-bottom: 5px; }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
-            .item { display: flex; justify-content: space-between; margin: 2px 0;font-weight: bold; }
+            .item { display: flex; justify-content: space-between; margin: 2px 0; }
             .total { font-weight: bold; font-size: 14px; }
             .footer { font-size: 10px; margin-top: 8px; }
           </style>
