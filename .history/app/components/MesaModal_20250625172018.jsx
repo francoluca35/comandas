@@ -74,10 +74,7 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     const hora = new Date().toLocaleTimeString("es-AR", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: false,
-      timeZone: "America/Argentina/Buenos_Aires",
     });
-
     const fecha = new Date().toLocaleDateString("es-AR");
     const orden = Date.now();
     const productosTotales = [...historial, ...pedidoActual];
