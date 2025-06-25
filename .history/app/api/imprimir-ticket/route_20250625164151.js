@@ -42,7 +42,7 @@ app.post("/print-ticket-pago", async (req, res) => {
 
       if (metodoPago.toLowerCase() === "efectivo") {
         console.log("🟢 Abriendo caja registradora...");
-        printer.raw(Buffer.from([0x1b, 0x70, 0x00, 0x40, 0x50]));
+        printer.raw(Buffer.from([0x1b, 0x70, 0x00, 0x3c, 0x78]));
       }
 
       printer.flush().cut().close();
