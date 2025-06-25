@@ -17,8 +17,6 @@ export default function CajaRetiro() {
     fetchCaja();
     fetchInforme();
 
-    setMostrarCierre(true);
-
     try {
       const formatter = new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Argentina/Buenos_Aires",
@@ -49,26 +47,6 @@ export default function CajaRetiro() {
       setMostrarCierre(false);
     }
   }, []);
-  const realizarCierreCaja = async () => {
-    try {
-      const res = await fetch("/api/cierre-caja", {
-        method: "POST",
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        Swal.fire("Éxito", "Caja cerrada correctamente", "success");
-        fetchCaja();
-        fetchInforme();
-      } else {
-        Swal.fire("Error", data.error || "Ocurrió un error", "error");
-      }
-    } catch (error) {
-      console.error("Error al cerrar caja:", error);
-      Swal.fire("Error", "Error al conectar con el servidor", "error");
-    }
-  };
 
   const fetchCaja = async () => {
     const res = await fetch("/api/caja-registradora");

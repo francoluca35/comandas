@@ -18,57 +18,7 @@ export default function CajaRetiro() {
     fetchInforme();
 
     setMostrarCierre(true);
-
-    try {
-      const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/Argentina/Buenos_Aires",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-
-      const ahoraArgentina = formatter.format(new Date());
-
-      // Validación extra
-      if (ahoraArgentina.includes(":")) {
-        const [horaStr, minutoStr] = ahoraArgentina.split(":");
-        const horaActual = parseInt(horaStr, 10);
-        const minutosActual = parseInt(minutoStr, 10);
-
-        const enHorarioHabilitado =
-          (horaActual === 8 && minutosActual >= 30) ||
-          (horaActual >= 0 && horaActual < 45);
-
-        setMostrarCierre(enHorarioHabilitado);
-      } else {
-        console.warn("Formato de hora inesperado:", ahoraArgentina);
-        setMostrarCierre(true);
-      }
-    } catch (error) {
-      console.error("Error al calcular horario:", error);
-      setMostrarCierre(false);
-    }
-  }, []);
-  const realizarCierreCaja = async () => {
-    try {
-      const res = await fetch("/api/cierre-caja", {
-        method: "POST",
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        Swal.fire("Éxito", "Caja cerrada correctamente", "success");
-        fetchCaja();
-        fetchInforme();
-      } else {
-        Swal.fire("Error", data.error || "Ocurrió un error", "error");
-      }
-    } catch (error) {
-      console.error("Error al cerrar caja:", error);
-      Swal.fire("Error", "Error al conectar con el servidor", "error");
-    }
-  };
+  });
 
   const fetchCaja = async () => {
     const res = await fetch("/api/caja-registradora");
