@@ -243,6 +243,12 @@ export default function AgregarMenu() {
                   <option value="pescados y mariscos" className="text-black">
                     🐟 Pescados y Mariscos
                   </option>
+                  <option value="menu diario" className="text-black">
+                    🍽️ Menu diario
+                  </option>
+                  <option value="extras" className="text-black">
+                    🧀 Extras
+                  </option>
                 </select>
               </div>
             ) : (

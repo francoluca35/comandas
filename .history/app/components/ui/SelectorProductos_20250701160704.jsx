@@ -123,7 +123,6 @@ export default function SelectorProductos({ productos, onSelect, onClose }) {
               "salteados y criollos",
               "pescados y mariscos",
               "menu diario",
-              "extras",
             ].map((cat) => (
               <button
                 key={cat}

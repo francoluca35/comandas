@@ -1,86 +1,98 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import useAgregarMenu from "@/app/hooks/useAgregarMenu";
 import useProductos from "@/app/hooks/useProductos";
 import { validarImagenMenu } from "@/utils/validationApp";
-
 import BackArrow from "@/app/components/ui/BackArrow";
-import { FiPlusCircle, FiX } from "react-icons/fi";
 import Swal from "sweetalert2";
+import ModalEditarProducto from "@/app/components/ModalEditarProducto";
+import { FiPlusCircle, FiX } from "react-icons/fi";
 
 export default function AgregarMenu() {
-  const { agregarMenu, loading, error, success } = useAgregarMenu();
-  const { productos } = useProductos();
-
+  const { agregarMenu, loading } = useAgregarMenu();
+  const { productos, refetch } = useProductos();
   const [modo, setModo] = useState("agregar");
+  const [categoria, setCategoria] = useState("brasas");
+
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState("comida");
   const [precio, setPrecio] = useState("");
-  const [precioConIVA, setPrecioConIVA] = useState("");
   const [descuento, setDescuento] = useState("");
+  const [alcohol, setAlcohol] = useState(false);
   const [adicional, setAdicional] = useState("");
   const [adicionales, setAdicionales] = useState([]);
-  const [productoEditar, setProductoEditar] = useState(null);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [filtroTipo, setFiltroTipo] = useState("todos");
   const [file, setFile] = useState(null);
+  const [productoEditar, setProductoEditar] = useState(null);
+  const fileInputRef = useRef(null);
+  const [preview, setPreview] = useState(null);
 
-  const itemsPorPagina = 3;
-  const productosFiltrados = productos.filter((p) =>
-    filtroTipo === "todos" ? true : p.tipo === filtroTipo
+  const [busqueda, setBusqueda] = useState("");
+  const itemsPorPagina = 5;
+  const [paginaActual, setPaginaActual] = useState(1);
+
+  const productosFiltrados = productos?.filter((p) =>
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
-  const productosPaginados = productosFiltrados.slice(
+
+  const productosPaginados = productosFiltrados?.slice(
     (paginaActual - 1) * itemsPorPagina,
     paginaActual * itemsPorPagina
   );
-  const totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
-  const handleFileChange = (e) => {
-    const archivo = e.target.files[0];
-    const error = validarImagenMenu(archivo);
 
-    if (error) {
-      Swal.fire("Archivo no válido", error, "error");
-      return;
-    }
-
-    setFile(archivo);
-  };
+  const totalPaginas = Math.ceil(
+    (productosFiltrados?.length || 0) / itemsPorPagina
+  );
 
   const handleAgregar = async (e) => {
     e.preventDefault();
+
+    const error = validarImagenMenu(file);
+    if (error) {
+      Swal.fire("Imagen no válida", error, "error");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("nombre", nombre);
     formData.append("tipo", tipo);
     formData.append("precio", precio);
-    formData.append("precioConIVA", precioConIVA);
     formData.append("descuento", descuento || "");
     formData.append(
       "adicionales",
       JSON.stringify(tipo === "comida" ? adicionales : [])
     );
+    if (tipo === "bebida") {
+      formData.append("alcohol", alcohol);
+    } else if (tipo === "comida") {
+      formData.append("categoria", categoria);
+    }
     if (file) formData.append("file", file);
 
     await agregarMenu(formData);
-
     Swal.fire("Agregado", "Menú agregado correctamente.", "success");
 
-    // Reset campos
     setNombre("");
     setPrecio("");
-    setPrecioConIVA("");
     setDescuento("");
     setAdicional("");
     setAdicionales([]);
     setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setPreview(null);
+    setAlcohol(false);
+    refetch?.();
   };
 
   const agregarAdicional = () => {
-    if (adicional) {
-      setAdicionales([...adicionales, adicional]);
+    if (adicional.trim()) {
+      setAdicionales([...adicionales, adicional.trim()]);
       setAdicional("");
     }
+  };
+
+  const eliminarAdicional = (index) => {
+    setAdicionales(adicionales.filter((_, i) => i !== index));
   };
 
   const handleEliminar = async (id) => {
@@ -103,52 +115,10 @@ export default function AgregarMenu() {
         body: JSON.stringify({ id }),
       });
 
-      Swal.fire({
-        title: "Eliminado",
-        text: "El menú ha sido eliminado.",
-        icon: "success",
-        timer: 1300,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+      Swal.fire("Eliminado", "El menú ha sido eliminado.", "success");
+      refetch?.();
     } catch (error) {
       Swal.fire("Error", "Hubo un error al eliminar el menú.", "error");
-    }
-  };
-
-  const handleEditar = (producto) => {
-    setProductoEditar({ ...producto, tipo: producto.tipo || "comida" });
-  };
-
-  const guardarEdicion = async () => {
-    const { _id, nombre, precio, precioConIVA, descuento, adicionales, tipo } =
-      productoEditar;
-    try {
-      await fetch("/api/menu/editar", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: _id,
-          nombre,
-          tipo,
-          precio: parseInt(precio),
-          precioConIVA: parseInt(precioConIVA),
-          descuento: parseInt(descuento || 0),
-          adicionales,
-        }),
-      });
-      Swal.fire(
-        "Actualizado",
-        "El menú ha sido editado correctamente.",
-        "success"
-      );
-      setProductoEditar(null);
-      location.reload();
-    } catch (err) {
-      Swal.fire("Error", "Hubo un error al editar el menú.", "error");
     }
   };
 
@@ -164,7 +134,7 @@ export default function AgregarMenu() {
         </h2>
 
         <div className="flex justify-center mb-8">
-          <div className="bg-white/10 rounded-xl p-1 flex flex-wrap justify-center gap-2 w-full md:w-auto border border-white/20">
+          <div className="bg-white/10 rounded-xl p-1 flex justify-center gap-2 w-full md:w-auto border border-white/20">
             <button
               onClick={() => setModo("agregar")}
               className={`px-4 py-2 rounded-xl transition ${
@@ -188,19 +158,19 @@ export default function AgregarMenu() {
           </div>
         </div>
 
-        {modo === "agregar" ? (
+        {modo === "agregar" && (
           <form
             onSubmit={handleAgregar}
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6"
           >
             <div className="sm:col-span-2 flex justify-center">
-              <div className="bg-white/10 rounded-xl p-1 flex flex-wrap justify-center gap-2 w-full sm:w-auto border border-white/20">
+              <div className="bg-white/10 rounded-xl p-1 flex justify-center gap-2 w-full sm:w-auto border border-white/20">
                 <button
                   type="button"
                   onClick={() => setTipo("comida")}
                   className={`px-4 py-2 rounded-xl transition ${
                     tipo === "comida"
-                      ? "bg-red-500 text-white font-bold"
+                      ? "bg-red-600 text-white font-bold"
                       : "text-white/70 hover:text-white"
                   }`}
                 >
@@ -211,7 +181,7 @@ export default function AgregarMenu() {
                   onClick={() => setTipo("bebida")}
                   className={`px-4 py-2 rounded-xl transition ${
                     tipo === "bebida"
-                      ? "bg-blue-500 text-white font-bold"
+                      ? "bg-blue-600 text-white font-bold"
                       : "text-white/70 hover:text-white"
                   }`}
                 >
@@ -220,49 +190,104 @@ export default function AgregarMenu() {
               </div>
             </div>
 
-            <input
-              type="text"
-              placeholder={`Nombre del ${
-                tipo === "bebida" ? "bebida" : "plato"
-              }`}
-              className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
+            {tipo === "bebida" && (
+              <div className="sm:col-span-2 flex justify-center">
+                <div className="flex items-center gap-6 text-white">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="alcohol"
+                      value="false"
+                      checked={!alcohol}
+                      onChange={() => setAlcohol(false)}
+                      className="accent-cyan-600"
+                    />
+                    Sin alcohol
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="alcohol"
+                      value="true"
+                      checked={alcohol}
+                      onChange={() => setAlcohol(true)}
+                      className="accent-cyan-600"
+                    />
+                    Con alcohol
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {tipo === "comida" ? (
+              <div className="sm:col-span-2 flex flex-col md:flex-row gap-4">
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
+                  required
+                />
+                <select
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  className="w-full md:w-1/2 px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
+                >
+                  <option value="brasas" className="text-black">
+                    🔥 Brasas
+                  </option>
+                  <option value="salteados y criollos" className="text-black">
+                    🍲 Salteados y Criollos
+                  </option>
+                  <option value="pescados y mariscos" className="text-black">
+                    🐟 Pescados y Mariscos
+                  </option>
+                  <option value="menu diario" className="text-black">
+                    🍲 Menu diario
+                  </option>
+                  <option value="extras" className="text-black">
+                    Extras
+                  </option>
+                </select>
+              </div>
+            ) : (
+              <input
+                type="text"
+                placeholder="Nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
+                required
+              />
+            )}
+
             <input
               type="number"
               placeholder="Precio"
-              className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
               value={precio}
               onChange={(e) => setPrecio(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Precio con IVA"
               className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
-              value={precioConIVA}
-              onChange={(e) => setPrecioConIVA(e.target.value)}
               required
             />
+
             <input
               type="number"
               placeholder="Descuento (opcional)"
-              className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
               value={descuento}
               onChange={(e) => setDescuento(e.target.value)}
+              className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
             />
 
             {tipo === "comida" && (
               <>
-                <div className="flex gap-3 sm:col-span-2 flex-col sm:flex-row">
+                <div className="sm:col-span-2 flex gap-3">
                   <input
                     type="text"
                     placeholder="Adicional"
-                    className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
                     value={adicional}
                     onChange={(e) => setAdicional(e.target.value)}
+                    className="w-full px-5 py-3 rounded-xl bg-white/10 text-white border border-gray-600"
                   />
                   <button
                     type="button"
@@ -277,26 +302,49 @@ export default function AgregarMenu() {
                   <div className="sm:col-span-2">
                     <ul className="list-disc pl-6 text-sm text-cyan-300">
                       {adicionales.map((a, i) => (
-                        <li key={i}>{a}</li>
+                        <li
+                          key={i}
+                          className="flex justify-between items-center"
+                        >
+                          {a}
+                          <button
+                            type="button"
+                            className="ml-3 bg-red-500 text-white px-2 rounded-full"
+                            onClick={() => eliminarAdicional(i)}
+                          >
+                            <FiX />
+                          </button>
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
               </>
             )}
+
             <input
               type="file"
               accept="image/*"
+              ref={fileInputRef}
+              onChange={(e) => {
+                const selectedFile = e.target.files[0];
+                const error = validarImagenMenu(selectedFile);
+                if (error) {
+                  Swal.fire("Archivo no válido", error, "error");
+                  e.target.value = "";
+                  return;
+                }
+                setFile(selectedFile);
+                setPreview(URL.createObjectURL(selectedFile));
+              }}
               className="sm:col-span-2 w-full text-white text-sm file:bg-cyan-700 file:text-white file:rounded-xl file:px-4 file:py-2 bg-white/10 border border-gray-600 rounded-xl px-4 py-3"
-              onChange={(e) => setFile(e.target.files[0])}
             />
-            {file && (
-              <div className="sm:col-span-2">
-                <p className="text-white text-sm mb-2">Vista previa:</p>
+            {preview && (
+              <div className="sm:col-span-2 mt-4 flex justify-center">
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={preview}
                   alt="Vista previa"
-                  className="h-32 object-cover rounded-xl border border-white/20"
+                  className="h-40 object-cover rounded-xl border border-white/20"
                 />
               </div>
             )}
@@ -311,27 +359,25 @@ export default function AgregarMenu() {
               </button>
             </div>
           </form>
-        ) : (
+        )}
+
+        {modo === "editar" && (
           <>
             <div className="mb-4 flex justify-center">
-              <select
-                value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
-                className="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-xl"
-              >
-                <option className="text-black" value="todos">
-                  🍽 Todos
-                </option>
-                <option className="text-black" value="comida">
-                  🍝 Solo comidas
-                </option>
-                <option className="text-black" value="bebida">
-                  🥤 Solo bebidas
-                </option>
-              </select>
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                value={busqueda}
+                onChange={(e) => {
+                  setBusqueda(e.target.value);
+                  setPaginaActual(1);
+                }}
+                className="w-full max-w-sm px-4 py-2 rounded-xl bg-white/20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
             </div>
+
             <div className="space-y-4">
-              {productosPaginados.map((p) => (
+              {productosPaginados?.map((p) => (
                 <div
                   key={p._id}
                   className="flex justify-between items-center bg-white/10 p-4 rounded-xl border border-white/10 text-white"
@@ -341,28 +387,19 @@ export default function AgregarMenu() {
                     <p className="text-sm text-cyan-300">
                       Precio: ${p.precio} / IVA: ${p.precioConIVA}
                     </p>
-                    <p className="text-xs text-gray-400 uppercase">
-                      Tipo: {p.tipo === "bebida" ? "🥤 Bebida" : "🍽 Comida"}
-                    </p>
-                    {p.descuento && (
-                      <p className="text-xs text-yellow-400">
-                        Descuento: {p.descuento}
-                      </p>
-                    )}
-                    {p.adicionales?.length > 0 && (
-                      <p className="text-xs text-gray-300">
-                        Adicionales: {p.adicionales.join(", ")}
+                    {p.tipo === "bebida" && (
+                      <p className="text-sm text-yellow-400">
+                        {p.alcohol ? "Con alcohol" : "Sin alcohol"}
                       </p>
                     )}
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleEditar(p)}
+                      onClick={() => setProductoEditar(p)}
                       className="bg-orange-500 hover:bg-orange-600 text-sm px-3 py-1 rounded-xl"
                     >
                       Editar
                     </button>
-
                     <button
                       onClick={() => handleEliminar(p._id)}
                       className="bg-red-600 hover:bg-red-700 text-sm px-3 py-1 rounded-xl"
@@ -372,26 +409,35 @@ export default function AgregarMenu() {
                   </div>
                 </div>
               ))}
-              <div className="flex justify-center mt-6 gap-2">
+
+              <div className="flex justify-center items-center mt-6 gap-4">
                 <button
                   onClick={() => setPaginaActual(paginaActual - 1)}
                   disabled={paginaActual === 1}
-                  className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white hover:bg-white/20 disabled:opacity-40"
+                  className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl disabled:opacity-30"
                 >
                   ← Anterior
                 </button>
-                <span className="text-white px-3 py-1">
-                  Página {paginaActual} de {totalPaginas}
+                <span className="text-white">
+                  {paginaActual} / {totalPaginas}
                 </span>
                 <button
                   onClick={() => setPaginaActual(paginaActual + 1)}
                   disabled={paginaActual === totalPaginas}
-                  className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white hover:bg-white/20 disabled:opacity-40"
+                  className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl disabled:opacity-30"
                 >
                   Siguiente →
                 </button>
               </div>
             </div>
+
+            {productoEditar && (
+              <ModalEditarProducto
+                producto={productoEditar}
+                onClose={() => setProductoEditar(null)}
+                refetch={refetch}
+              />
+            )}
           </>
         )}
       </div>
