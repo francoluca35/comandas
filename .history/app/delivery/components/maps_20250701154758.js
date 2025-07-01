@@ -102,6 +102,7 @@ export default function Maps() {
           <img src="${
             window.location.origin
           }/Assets/logo-tick.png" class="logo" />
+        
           <h1>${encabezado}</h1>
           <h1>Orden #: ${orden}</h1>
           <h1>Hora: ${hora}</h1>
