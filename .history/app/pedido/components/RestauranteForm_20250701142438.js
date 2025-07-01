@@ -117,7 +117,7 @@ export default function RestauranteForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre,
-
+          "PARA LLEVAR",
           productos,
           total: calcularTotal(),
           hora,
