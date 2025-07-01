@@ -117,7 +117,7 @@ export default function RestauranteForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre,
-          modo: "retiro",
+
           productos,
           total: calcularTotal(),
           hora,
@@ -183,7 +183,6 @@ export default function RestauranteForm() {
           "PARA LLEVAR",
           hora,
           fecha,
-
           pago
         );
 

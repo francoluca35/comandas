@@ -165,7 +165,6 @@ export default function DeliveryForm() {
           direccion,
           productos: productosParaImprimir,
           total,
-          modo: "retiro",
         }),
       });
 
