@@ -187,27 +187,24 @@ export default function ScreenHome() {
             <BotonesMenu />
           </Suspense>
 
-          {ticketsPendientes.length > 0 && (
-            <div className="fixed right-4 top-24 z-50 flex flex-col gap-6">
-              {ticketsPendientes.slice(0, 4).map((ticket) => (
-                <div
-                  key={ticket.mesa}
-                  className="bg-yellow-300 text-black p-4 rounded-xl shadow-xl w-72"
-                >
-                  <h2 className="text-lg font-bold">🧾 Ticket pendiente</h2>
-                  <p>Mesa: {ticket.mesa}</p>
-                  <p>Total: ${ticket.total.toFixed(2)}</p>
-                  <p>Pago: {ticket.metodo || "–"}</p>
-                  <button
-                    onClick={() => imprimirTicket(ticket)}
-                    className="mt-3 bg-green-600 hover:bg-green-700 text-white w-full py-2 rounded-lg font-semibold"
-                  >
-                    🖨️ Imprimir ticket
-                  </button>
-                </div>
-              ))}
+          {ticketsPendientes.slice(0, 4).map((ticket, index) => (
+            <div
+              key={ticket.mesa}
+              className="fixed right-4 bg-yellow-300 mb-10  text-black p-4 rounded-xl shadow-xl z-50 w-72"
+              style={{ top: `${100 + index * 160}px` }} // los separa en cascada
+            >
+              <h2 className="text-lg font-bold">🧾 Ticket pendiente</h2>
+              <p>Mesa: {ticket.mesa}</p>
+              <p>Total: ${ticket.total.toFixed(2)}</p>
+              <p>Pago: {ticket.metodo}</p>
+              <button
+                onClick={() => imprimirTicket(ticket)}
+                className="mt-3 bg-green-600 hover:bg-green-700 text-white w-full py-2 rounded-lg font-semibold"
+              >
+                🖨️ Imprimir ticket
+              </button>
             </div>
-          )}
+          ))}
         </div>
 
         <AbrirCaja
