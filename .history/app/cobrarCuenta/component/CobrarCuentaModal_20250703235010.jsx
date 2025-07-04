@@ -151,7 +151,7 @@ export default function CobrarCuentaModal({
   const confirmarPago = async () => {
     imprimirTicket();
 
-    await fetch("/api/print-ticket-pago", {
+    await fetch("http://192.168.1.10:4000/print-ticket-pago", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
