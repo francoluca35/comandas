@@ -374,23 +374,7 @@ export default function CobrarCuentaModal({
             Se envió aviso al administrador para imprimir el ticket.
           </p>
           <button
-            onClick={async () => {
-              // 1. Liberar la mesa en la base de datos
-              await fetch("/api/mesas", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  codigo: mesa.codigo,
-                  productos: [],
-                  metodoPago: metodo,
-                  total,
-                  estado: "libre",
-                  hora: "",
-                  fecha: "",
-                }),
-              });
-
-              // 2. Cerrar modal y refrescar
+            onClick={() => {
               onClose();
               refetch?.();
             }}
@@ -402,38 +386,37 @@ export default function CobrarCuentaModal({
       </div>
     );
   }
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 space-y-4 w-full max-w-md shadow-lg">
-        <h2 className="text-center text-xl font-bold text-gray-800">
-          Seleccionar método de pago
-        </h2>
-        <button
-          onClick={() => setPaso("efectivo")}
-          className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold"
-        >
-          Efectivo
-        </button>
-        <button
-          onClick={() => setPaso("qr")}
-          className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold"
-        >
-          Mercado Pago (QR)
-        </button>
-        <button
-          onClick={() => setPaso("link")}
-          className="w-full py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold"
-        >
-          Link de pago
-        </button>
-        <button
-          onClick={onClose}
-          className="w-full py-3 bg-gray-400 hover:bg-gray-500 text-black rounded-xl font-semibold"
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
-  );
 }
+return (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-2xl p-6 space-y-4 w-full max-w-md shadow-lg">
+      <h2 className="text-center text-xl font-bold text-gray-800">
+        Seleccionar método de pago
+      </h2>
+      <button
+        onClick={() => setPaso("efectivo")}
+        className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold"
+      >
+        Efectivo
+      </button>
+      <button
+        onClick={() => setPaso("qr")}
+        className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold"
+      >
+        Mercado Pago (QR)
+      </button>
+      <button
+        onClick={() => setPaso("link")}
+        className="w-full py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold"
+      >
+        Link de pago
+      </button>
+      <button
+        onClick={onClose}
+        className="w-full py-3 bg-gray-400 hover:bg-gray-500 text-black rounded-xl font-semibold"
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+);

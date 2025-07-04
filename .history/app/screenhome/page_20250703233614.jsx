@@ -9,6 +9,7 @@ import UserDropdown from "../components/ui/UserDropdown";
 import AbrirCaja from "../components/ui/AbrirCaja";
 import { db } from "@/lib/firebase";
 import { onValue, ref, remove } from "firebase/database";
+import TestFirebaseButton from "../TestFirebaseButton";
 
 export default function ScreenHome() {
   const { user } = useAuth();
@@ -72,7 +73,7 @@ export default function ScreenHome() {
     });
 
     const orden = Date.now();
-    const { mesa, productos, metodo } = ticketPendiente;
+    const { mesa, productos, metodo, total } = ticketPendiente;
 
     const subtotal = productos.reduce(
       (acc, p) => acc + p.precio * p.cantidad,
@@ -156,16 +157,6 @@ export default function ScreenHome() {
     if (ventana) {
       ventana.document.write(html);
       ventana.document.close();
-
-      // 🔥 Borrar el ticket de Firebase al cerrar la ventana
-      ventana.onbeforeunload = async () => {
-        try {
-          await remove(ref(db, `tickets/${mesa}`));
-          console.log("✅ Ticket eliminado de Firebase");
-        } catch (error) {
-          console.error("❌ Error al eliminar ticket:", error);
-        }
-      };
     }
   };
 
@@ -184,6 +175,7 @@ export default function ScreenHome() {
             fallback={<p className="text-gray-400">Cargando menú...</p>}
           >
             <BotonesMenu />
+            <TestFirebaseButton />
           </Suspense>
 
           {ticketPendiente && (

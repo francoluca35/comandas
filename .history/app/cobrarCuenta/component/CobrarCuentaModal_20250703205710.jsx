@@ -66,7 +66,6 @@ export default function CobrarCuentaModal({
           if (data.status === "approved") {
             clearInterval(interval);
             clearTimeout(timeout);
-
             Swal.fire({
               icon: "success",
               title: "Pago aprobado",
@@ -75,33 +74,12 @@ export default function CobrarCuentaModal({
               showConfirmButton: false,
             }).then(async () => {
               setMetodo("Mercado Pago");
-
-              try {
-                await set(ref(db, `tickets/${mesa.numero}`), {
-                  mesa: mesa.numero,
-                  hora: new Date().toISOString(),
-                  productos,
-                  total: totalFinal,
-                  metodo: "Mercado Pago",
-                  estado: "pendiente",
-                });
-                console.log("✅ Ticket guardado en Firebase");
-              } catch (err) {
-                console.error("❌ Error al guardar en Firebase:", err);
-                Swal.fire(
-                  "Error",
-                  "No se pudo guardar el ticket en Firebase",
-                  "error"
-                );
-              }
-
+              setPaso("confirmarImpresion");
               await fetch("/api/mesa/pago-confirmado", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ mesa: mesa.numero }),
               });
-
-              setPaso("confirmarImpresion");
             });
           }
         } catch (err) {
@@ -120,7 +98,7 @@ export default function CobrarCuentaModal({
         }).then(async () => {
           setMetodo("Mercado Pago");
 
-          // 🔔 Guardamos en Firebase
+          // 🔔 Guardamos el ticket pendiente en Firebase
           await set(ref(db, `tickets/${mesa.numero}`), {
             mesa: mesa.numero,
             hora: new Date().toISOString(),
@@ -137,6 +115,7 @@ export default function CobrarCuentaModal({
             body: JSON.stringify({ mesa: mesa.numero }),
           });
 
+          // ⏩ Mostramos mensaje al cliente de que se envió el aviso
           setPaso("confirmarImpresion");
         });
       }, 2 * 60 * 1000);
@@ -151,7 +130,7 @@ export default function CobrarCuentaModal({
   const confirmarPago = async () => {
     imprimirTicket();
 
-    await fetch("http://192.168.1.10:4000/print-ticket-pago", {
+    await fetch("http://localhost:4000/print-ticket-pago", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -189,9 +168,7 @@ export default function CobrarCuentaModal({
     onClose();
   };
 
-  const imprimirTicket = async () => {
-    if (!ticketPendiente) return;
-
+  const imprimirTicket = () => {
     const fecha = new Date().toLocaleDateString("es-AR");
     const hora = new Date().toLocaleTimeString("es-AR", {
       hour: "2-digit",
@@ -199,20 +176,7 @@ export default function CobrarCuentaModal({
       hour12: false,
       timeZone: "America/Argentina/Buenos_Aires",
     });
-
     const orden = Date.now();
-    const { mesa, productos, metodo, total } = ticketPendiente;
-
-    const subtotal = productos.reduce(
-      (acc, p) => acc + p.precio * p.cantidad,
-      0
-    );
-    const descuento = productos.reduce(
-      (acc, p) => acc + (p.descuento || 0) * p.cantidad,
-      0
-    );
-    const totalFinal = subtotal - descuento;
-
     const html = `
       <html>
         <head>
@@ -237,7 +201,7 @@ export default function CobrarCuentaModal({
             h2 { margin: 5px 0; font-size: 14px; }
             .logo { width: 100px; margin-bottom: 5px; }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
-            .item { display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; }
+            .item { display: flex; justify-content: space-between; margin: 2px 0;font-weight: bold; }
             .total { font-weight: bold; font-size: 14px; }
             .footer { font-size: 10px; margin-top: 8px; }
           </style>
@@ -247,7 +211,7 @@ export default function CobrarCuentaModal({
             window.location.origin
           }/Assets/logo-tick.png" class="logo" />
           <h2>🍽️ Perú Mar</h2>
-          <h1>Mesa: ${mesa}</h1>
+          <h1>Mesa: ${mesa.numero}</h1>
           <h1>Orden #: ${orden}</h1>
           <h1>Hora: ${hora}</h1>
           <h1>Fecha: ${fecha}</h1>
@@ -277,16 +241,58 @@ export default function CobrarCuentaModal({
             <h1>Dirección: Rivera 2495 V. Celina</h1>
             <h1>Gracias por su visita!</h1>
           </div>
+          <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 500); }</script>
         </body>
       </html>
     `;
-
     const ventana = window.open("", "", "width=400,height=600");
-    if (ventana) {
-      ventana.document.write(html);
-      ventana.document.close();
-    }
+    if (ventana) ventana.document.write(html);
   };
+
+  if (paso === "seleccion") {
+    return (
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl p-6 space-y-4 w-full max-w-md shadow-lg">
+          <h2 className="text-center text-xl font-bold text-gray-800">
+            Seleccionar método de pago
+          </h2>
+          <button
+            onClick={() => {
+              setMetodo("Efectivo");
+              setPaso("efectivo");
+            }}
+            className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold"
+          >
+            💵 Efectivo
+          </button>
+          <button
+            onClick={() => {
+              setMetodo("Mercado Pago");
+              setPaso("qr");
+            }}
+            className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold"
+          >
+            📱 Pagar con QR
+          </button>
+          <button
+            onClick={() => {
+              setMetodo("Mercado Pago");
+              setPaso("link");
+            }}
+            className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-semibold"
+          >
+            🌐 Obtener link de pago
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-gray-400 hover:bg-gray-500 text-black rounded-xl font-semibold"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (paso === "efectivo") {
     return (
@@ -374,23 +380,7 @@ export default function CobrarCuentaModal({
             Se envió aviso al administrador para imprimir el ticket.
           </p>
           <button
-            onClick={async () => {
-              // 1. Liberar la mesa en la base de datos
-              await fetch("/api/mesas", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  codigo: mesa.codigo,
-                  productos: [],
-                  metodoPago: metodo,
-                  total,
-                  estado: "libre",
-                  hora: "",
-                  fecha: "",
-                }),
-              });
-
-              // 2. Cerrar modal y refrescar
+            onClick={() => {
               onClose();
               refetch?.();
             }}
@@ -402,38 +392,4 @@ export default function CobrarCuentaModal({
       </div>
     );
   }
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 space-y-4 w-full max-w-md shadow-lg">
-        <h2 className="text-center text-xl font-bold text-gray-800">
-          Seleccionar método de pago
-        </h2>
-        <button
-          onClick={() => setPaso("efectivo")}
-          className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold"
-        >
-          Efectivo
-        </button>
-        <button
-          onClick={() => setPaso("qr")}
-          className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold"
-        >
-          Mercado Pago (QR)
-        </button>
-        <button
-          onClick={() => setPaso("link")}
-          className="w-full py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold"
-        >
-          Link de pago
-        </button>
-        <button
-          onClick={onClose}
-          className="w-full py-3 bg-gray-400 hover:bg-gray-500 text-black rounded-xl font-semibold"
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
-  );
 }

@@ -9,6 +9,7 @@ import UserDropdown from "../components/ui/UserDropdown";
 import AbrirCaja from "../components/ui/AbrirCaja";
 import { db } from "@/lib/firebase";
 import { onValue, ref, remove } from "firebase/database";
+import TestFirebaseButton from "../TestFirebaseButton";
 
 export default function ScreenHome() {
   const { user } = useAuth();

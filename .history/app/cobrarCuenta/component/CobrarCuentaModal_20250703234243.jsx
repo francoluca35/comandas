@@ -374,23 +374,7 @@ export default function CobrarCuentaModal({
             Se envió aviso al administrador para imprimir el ticket.
           </p>
           <button
-            onClick={async () => {
-              // 1. Liberar la mesa en la base de datos
-              await fetch("/api/mesas", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  codigo: mesa.codigo,
-                  productos: [],
-                  metodoPago: metodo,
-                  total,
-                  estado: "libre",
-                  hora: "",
-                  fecha: "",
-                }),
-              });
-
-              // 2. Cerrar modal y refrescar
+            onClick={() => {
               onClose();
               refetch?.();
             }}
