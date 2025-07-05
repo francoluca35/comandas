@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useProductos from "@/app/hooks/useProductos";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import Swal from "sweetalert2";
-import QRCode from "react-qr-code";
 
 export default function RestauranteForm() {
   const { productos } = useProductos();
@@ -18,7 +17,6 @@ export default function RestauranteForm() {
   const [externalReference, setExternalReference] = useState("");
   const [presupuesto, setPresupuesto] = useState([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
-  const [esperandoPago, setEsperandoPago] = useState(false);
 
   const productosFiltrados = productos.filter((p) =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -55,49 +53,6 @@ export default function RestauranteForm() {
   };
 
   const total = calcularTotal();
-
-  const generarPagoQR = async () => {
-    const res = await fetch("/api/mercado-pago/crear-pago-qr", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        total,
-        nombreCliente: nombre || "Cliente",
-      }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      setUrlPago(data.init_point);
-      setExternalReference(data.external_reference);
-      setEsperandoPago(true);
-      esperarConfirmacionPago(data.external_reference);
-    } else {
-      Swal.fire("Error", "No se pudo generar el QR", "error");
-    }
-  };
-
-  const esperarConfirmacionPago = (ref) => {
-    let intentos = 0;
-    const interval = setInterval(async () => {
-      const res = await fetch(`/api/mercado-pago/estado/${ref}`);
-      const data = await res.json();
-
-      if (data.status === "approved") {
-        clearInterval(interval);
-        setEsperandoPago(false);
-        enviarPedidoFinal();
-      }
-
-      intentos++;
-      if (intentos >= 24) {
-        clearInterval(interval);
-        setEsperandoPago(false);
-        Swal.fire("Pago no confirmado", "Intenta nuevamente", "error");
-      }
-    }, 5000);
-  };
 
   const enviarPedidoFinal = async () => {
     const now = new Date();
@@ -167,20 +122,6 @@ export default function RestauranteForm() {
     setPresupuesto([]);
     setUrlPago("");
     setExternalReference("");
-    setEsperandoPago(false);
-  };
-
-  const manejarPedido = () => {
-    if (!nombre || presupuesto.length === 0 || !pago) {
-      Swal.fire("Completa todos los campos", "", "warning");
-      return;
-    }
-
-    if (pago === "efectivo") {
-      enviarPedidoFinal();
-    } else if (pago === "qr") {
-      generarPagoQR();
-    }
   };
 
   return (
@@ -279,25 +220,17 @@ export default function RestauranteForm() {
           <option className="text-black" value="qr">
             Mercado Pago QR
           </option>
+          <option className="text-black" value="link">
+            Link de pago
+          </option>
         </select>
-
-        {pago === "qr" && urlPago && (
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <QRCode value={urlPago} size={200} />
-            {esperandoPago && (
-              <p className="text-sm text-white mt-2">
-                Esperando confirmación de pago...
-              </p>
-            )}
-          </div>
-        )}
 
         <p className="text-right text-lg font-bold text-cyan-300 mb-4">
           Total: ${total.toFixed(2)}
         </p>
 
         <button
-          onClick={manejarPedido}
+          onClick={enviarPedidoFinal}
           className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
         >
           Hacer Pedido

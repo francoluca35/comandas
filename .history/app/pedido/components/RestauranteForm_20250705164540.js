@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useProductos from "@/app/hooks/useProductos";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import Swal from "sweetalert2";
@@ -18,7 +18,6 @@ export default function RestauranteForm() {
   const [externalReference, setExternalReference] = useState("");
   const [presupuesto, setPresupuesto] = useState([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
-  const [esperandoPago, setEsperandoPago] = useState(false);
 
   const productosFiltrados = productos.filter((p) =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -71,14 +70,56 @@ export default function RestauranteForm() {
     if (res.ok) {
       setUrlPago(data.init_point);
       setExternalReference(data.external_reference);
-      setEsperandoPago(true);
-      esperarConfirmacionPago(data.external_reference);
+      mostrarAlertaQR(data.init_point, data.external_reference);
     } else {
       Swal.fire("Error", "No se pudo generar el QR", "error");
     }
   };
 
+  const mostrarAlertaQR = (link, ref) => {
+    Swal.fire({
+      title: "Esperando confirmación de pago...",
+      html: `
+        <p>Escaneá el código QR:</p>
+        <div style="margin:10px auto;">
+          <div id="qr-container"></div>
+        </div>
+        <p>Una vez acreditado se enviará automáticamente el pedido.</p>
+      `,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        const container = document.getElementById("qr-container");
+        if (container) {
+          import("react-dom").then((ReactDOM) => {
+            import("react").then((React) => {
+              const QRCodeComponent = require("react-qr-code").default;
+              ReactDOM.default.render(
+                React.createElement(QRCodeComponent, {
+                  value: link,
+                  size: 200,
+                }),
+                container
+              );
+            });
+          });
+        }
+        esperarConfirmacionPago(ref);
+      },
+    });
+  };
+
   const esperarConfirmacionPago = (ref) => {
+    Swal.fire({
+      title: "Esperando confirmación de pago...",
+      html: "Escanea el código y realiza el pago.",
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     let intentos = 0;
     const interval = setInterval(async () => {
       const res = await fetch(`/api/mercado-pago/estado/${ref}`);
@@ -86,14 +127,13 @@ export default function RestauranteForm() {
 
       if (data.status === "approved") {
         clearInterval(interval);
-        setEsperandoPago(false);
+        Swal.close();
         enviarPedidoFinal();
       }
 
       intentos++;
       if (intentos >= 24) {
         clearInterval(interval);
-        setEsperandoPago(false);
         Swal.fire("Pago no confirmado", "Intenta nuevamente", "error");
       }
     }, 5000);
@@ -167,7 +207,6 @@ export default function RestauranteForm() {
     setPresupuesto([]);
     setUrlPago("");
     setExternalReference("");
-    setEsperandoPago(false);
   };
 
   const manejarPedido = () => {
@@ -185,6 +224,17 @@ export default function RestauranteForm() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {mostrarModalQR && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+          <div className="bg-white p-6 rounded-xl text-center">
+            <h2 className="text-lg font-bold mb-4">Escaneá el código QR</h2>
+            <QRCode value={urlPago} size={200} />
+            <p className="mt-4 text-sm text-gray-700">
+              Esperando confirmación de pago...
+            </p>
+          </div>
+        </div>
+      )}
       <div>
         <input
           value={nombre}
@@ -283,12 +333,8 @@ export default function RestauranteForm() {
 
         {pago === "qr" && urlPago && (
           <div className="flex flex-col items-center gap-2 mb-4">
+            <p className="text-white">Escaneá el QR para pagar:</p>
             <QRCode value={urlPago} size={200} />
-            {esperandoPago && (
-              <p className="text-sm text-white mt-2">
-                Esperando confirmación de pago...
-              </p>
-            )}
           </div>
         )}
 
