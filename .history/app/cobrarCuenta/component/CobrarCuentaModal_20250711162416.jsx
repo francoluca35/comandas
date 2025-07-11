@@ -19,8 +19,6 @@ export default function CobrarCuentaModal({
   const [vuelto, setVuelto] = useState(0);
   const [urlPago, setUrlPago] = useState("");
   const [externalReference, setExternalReference] = useState("");
-  const [comisionMP, setComisionMP] = useState(0);
-  const [totalMP, setTotalMP] = useState(0);
 
   const subtotal = productos.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
   const descuento = productos.reduce(
@@ -28,15 +26,6 @@ export default function CobrarCuentaModal({
     0
   );
   const totalFinal = subtotal - descuento;
-
-  // Cuando paso a QR/Link, inicializo totalMP con el totalFinal + comisión (si hay)
-  useEffect(() => {
-    if (paso === "qr" || paso === "link") {
-      setTotalMP(
-        Math.round((Number(totalFinal) + Number(comisionMP)) * 100) / 100
-      );
-    }
-  }, [paso, totalFinal, comisionMP]);
 
   useEffect(() => {
     const pago = parseFloat(montoPagado);
@@ -48,7 +37,7 @@ export default function CobrarCuentaModal({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        total: totalMP, // <---- Usamos totalMP que incluye comisión
+        total: totalFinal,
         mesa: mesa.numero,
         nombreCliente: nombreCliente || "Cliente",
       }),
@@ -60,10 +49,7 @@ export default function CobrarCuentaModal({
 
   useEffect(() => {
     if (paso === "qr" || paso === "link") generarPagoMP();
-    // eslint-disable-next-line
-  }, [paso, totalMP]);
-
-  // ...El resto igual...
+  }, [paso]);
 
   useEffect(() => {
     let interval;
@@ -95,10 +81,9 @@ export default function CobrarCuentaModal({
                   mesa: mesa.numero,
                   hora: new Date().toISOString(),
                   productos,
-                  total: totalMP,
+                  total: totalFinal,
                   metodo: "Mercado Pago",
                   estado: "pendiente",
-                  comision: comisionMP || 0,
                 });
                 console.log("✅ Ticket guardado en Firebase");
               } catch (err) {
@@ -135,16 +120,17 @@ export default function CobrarCuentaModal({
         }).then(async () => {
           setMetodo("Mercado Pago");
 
+          // 🔔 Guardamos en Firebase
           await set(ref(db, `tickets/${mesa.numero}`), {
             mesa: mesa.numero,
             hora: new Date().toISOString(),
             productos,
-            total: totalMP,
+            total: totalFinal,
             metodo: "Mercado Pago",
             estado: "pendiente",
-            comision: comisionMP || 0,
           });
 
+          // 🔄 Informamos que el pago fue confirmado
           await fetch("/api/mesa/pago-confirmado", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -160,9 +146,7 @@ export default function CobrarCuentaModal({
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [paso, externalReference, totalMP, comisionMP, mesa.numero, productos]);
-
-  // ... El resto igual...
+  }, [paso, externalReference]);
 
   const confirmarPago = async () => {
     imprimirTicket();
@@ -405,6 +389,7 @@ export default function CobrarCuentaModal({
           </p>
           <button
             onClick={async () => {
+              // 1. Guardar ticket en Firebase
               await set(ref(db, `tickets/${mesa.numero}`), {
                 mesa: mesa.numero,
                 hora: new Date().toISOString(),
@@ -412,6 +397,15 @@ export default function CobrarCuentaModal({
                 total: totalFinal,
                 metodo: "Efectivo",
                 estado: "pendiente",
+              });
+
+              await fetch("/api/caja/ingreso", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  monto: totalFinal, // O el valor que corresponde cobrar
+                  fecha: new Date().toLocaleDateString("es-AR"),
+                }),
               });
 
               Swal.fire({
@@ -422,6 +416,7 @@ export default function CobrarCuentaModal({
                 showConfirmButton: false,
               });
 
+              // 3. Liberar la mesa
               await fetch("/api/mesas", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -429,7 +424,7 @@ export default function CobrarCuentaModal({
                   codigo: mesa.codigo,
                   productos: [],
                   metodoPago: "Efectivo",
-                  total,
+                  total: totalFinal,
                   estado: "libre",
                   hora: "",
                   fecha: "",
@@ -443,6 +438,7 @@ export default function CobrarCuentaModal({
           >
             Confirmar y enviar a caja
           </button>
+
           <button
             onClick={onClose}
             className="w-full py-3 bg-gray-400 hover:bg-gray-500 text-black rounded-xl font-semibold"

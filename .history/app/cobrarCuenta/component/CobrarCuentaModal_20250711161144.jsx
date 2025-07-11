@@ -315,33 +315,19 @@ export default function CobrarCuentaModal({
               <span className="text-gray-700 text-sm">$</span>
               <input
                 type="number"
-                min={0}
+                min={500}
                 step="0.01"
-                value={comisionMP === 0 ? "" : comisionMP}
+                value={comisionMP}
                 onChange={(e) => {
-                  // Borra ceros a la izquierda y fuerza float (sin NaN)
-                  let value = e.target.value;
-                  if (
-                    value.startsWith("0") &&
-                    value.length > 1 &&
-                    !value.startsWith("0.")
-                  ) {
-                    value = value.replace(/^0+/, "");
-                  }
-                  const floatValue = parseFloat(value);
-                  setComisionMP(isNaN(floatValue) ? 0 : floatValue);
+                  const value = parseFloat(e.target.value) || 0;
+                  setComisionMP(value);
                   setTotalMP(
-                    Math.round(
-                      (Number(totalFinal) +
-                        (isNaN(floatValue) ? 0 : floatValue)) *
-                        100
-                    ) / 100
+                    Math.round((Number(totalFinal) + value) * 100) / 100
                   );
                 }}
                 className="w-24 border px-2 py-1 rounded text-center"
                 placeholder="0.00"
               />
-
               <span className="text-gray-700 text-xs">(opcional)</span>
             </div>
             <div className="text-center mt-1">
