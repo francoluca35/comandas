@@ -2,16 +2,11 @@
 
 import { useEffect, useState } from "react";
 import useProductos from "../hooks/useProductos";
-import {
-  FaTrash,
-  FaUser,
-  FaMoneyBillWave,
-  FaPlus,
-  FaTimes,
-} from "react-icons/fa";
+import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
+import { FaTrash, FaPlus, FaTimes, FaMoneyBillWave } from "react-icons/fa";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -30,78 +25,61 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
   }, [mesa]);
 
-  const imprimirTicket = (orden, hora, fecha) => {
-    const nuevaVentana = window.open("", "Ticket", "width=300,height=600");
-    const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
-    const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
-    const urlSitio = "https://francomputer.com.ar";
+  const imprimirTicket = async (productos, mesa, orden, hora, fecha) => {
+    const parrilla = productos.filter(
+      (p) => p.categoria?.toLowerCase() === "brasas"
+    );
+    const cocina = productos.filter(
+      (p) => p.categoria?.toLowerCase() !== "brasas"
+    );
 
-    const html = `
-      <html>
-        <head>
-          <style>
-            body { font-family: monospace; font-size: 12px; padding: 10px; text-align: center; }
-            h2 { margin: 10px 0 5px; }
-            img.logo { width: 80px; margin-bottom: 10px; }
-            hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-            ul { text-align: left; padding-left: 0; list-style: none; }
-          </style>
-        </head>
-        <body>
-          <img src="${window.location.origin}/logo-peru-mar.png" class="logo" />
-          <h2>🍽️ Perú Mar</h2>
-          <p><strong>Mesa:</strong> ${mesa.numero}</p>
-          <p><strong>Orden #:</strong> ${orden}</p>
-          <p><strong>Hora:</strong> ${hora}</p>
-          <p><strong>Fecha:</strong> ${fecha}</p>
-          <hr />
-          <p><strong>Comidas:</strong></p>
-          <ul>
-            ${comidas
-              .map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`)
-              .join("")}
-          </ul>
-          <p><strong>Bebidas:</strong></p>
-          <ul>
-            ${bebidas
-              .map((p) => `<li>${p.cantidad}x ${p.nombre}</li>`)
-              .join("")}
-          </ul>
-          <hr />
-          <p><strong>Visítanos:</strong></p>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-            urlSitio
-          )}" />
-          <p style="font-size: 10px; margin-top: 5px;">${urlSitio}</p>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => window.close(), 500);
-            };
-          </script>
-        </body>
-      </html>
-    `;
+    const enviarAImpresora = async (items, ip) => {
+      if (items.length === 0) return;
+      try {
+        const res = await fetch("/api/print", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mesa,
+            productos: items,
+            orden,
+            hora,
+            fecha,
+            metodoPago,
+            ip,
+          }),
+        });
+        if (!res.ok) throw new Error();
+      } catch (err) {
+        console.error("Error al imprimir:", err);
+        Swal.fire("Error", "No se pudo imprimir el ticket", "error");
+      }
+    };
 
-    nuevaVentana.document.write(html);
-    nuevaVentana.document.close();
+    await enviarAImpresora(parrilla, "192.168.0.101"); // Impresora de parrilla
+    await enviarAImpresora(cocina, "192.168.0.100"); // ✅ correcto
+    // Impresora de cocina
   };
 
   const enviarPedido = async () => {
     if (!pedidoActual.length) {
-      alert("Agrega productos antes de enviar.");
+      Swal.fire({
+        icon: "warning",
+        title: "Sin productos",
+        text: "Agrega productos antes de enviar el pedido.",
+      });
       return;
     }
 
     const hora = new Date().toLocaleTimeString("es-AR", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Argentina/Buenos_Aires",
     });
+
     const fecha = new Date().toLocaleDateString("es-AR");
     const orden = Date.now();
-
-    imprimirTicket(orden, hora, fecha);
-
     const productosTotales = [...historial, ...pedidoActual];
     const total = productosTotales.reduce(
       (acc, p) =>
@@ -125,16 +103,26 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         }),
       });
 
+      await Swal.fire({
+        icon: "success",
+        title: "Pedido enviado",
+        text: "La mesa quedó ocupada correctamente.",
+        timer: 2000,
+      });
+
+      await imprimirTicket(productosTotales, mesa.numero, orden, hora, fecha);
       setHistorial(productosTotales);
       setPedidoActual([]);
       refetch?.();
-      alert("Pedido enviado e impreso correctamente.");
     } catch (err) {
-      console.error("Error al actualizar mesa:", err);
-      alert("No se pudo enviar el pedido.");
+      console.error("Error al guardar en la base de datos:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo enviar el pedido.",
+      });
     }
   };
-
   const eliminarComanda = async () => {
     const confirmar = confirm(
       "¿Seguro que querés liberar la mesa sin comanda?"
@@ -220,9 +208,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
         <button
           onClick={() => setMostrarSelector(true)}
-          className="w-full bg-cyan-600 hover:bg-cyan-700 py-2 rounded-xl font-semibold"
+          className="w-full bg-orange-600 hover:bg-orange-700 py-2 rounded-xl font-semibold"
         >
-          ➕ Añadir producto con imagen
+          ➕ Añadir producto
         </button>
 
         <div className="overflow-x-auto mt-4">
@@ -241,6 +229,11 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
                 <tr key={i} className="border-t border-white/10">
                   <td className="p-2">
                     {p.nombre}
+                    {p.observacion && (
+                      <div className="text-[11px] text-cyan-300 italic">
+                        📝 {p.observacion}
+                      </div>
+                    )}
                     {p.adicionales?.length > 0 && (
                       <div className="text-[10px] text-gray-400">
                         + {p.adicionales.join(", ")}
@@ -276,7 +269,20 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
                         setPedidoActual(nuevosActual);
                       }}
                     >
-                      🗑️
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="inline w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
                     </button>
                   </td>
                 </tr>
@@ -294,11 +300,9 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             Descuento:{" "}
             <span className="text-white/80">-${descuento.toFixed(2)}</span>
           </p>
-          <p>
-            IVA (18%): <span className="text-white/80">+${iva.toFixed(2)}</span>
-          </p>
+
           <p className="text-cyan-400 font-bold text-lg mt-2">
-            Total: ${total.toFixed(2)}
+            Total: ${subtotal.toFixed(2)}
           </p>
         </div>
 
