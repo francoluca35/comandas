@@ -243,7 +243,7 @@ export default function RestauranteForm() {
             min={1}
             value={cantidad}
             onChange={(e) => setCantidad(Number(e.target.value))}
-            className=" px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
+            className="w-1/2 px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
           />
           {/* Observación por producto */}
           <input
@@ -251,7 +251,7 @@ export default function RestauranteForm() {
             placeholder="Obs. para cocina (opcional)"
             value={observacionProducto}
             onChange={(e) => setObservacionProducto(e.target.value)}
-            className=" px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
+            className="w-1/2 px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
           />
 
           <button
