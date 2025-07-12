@@ -1,23 +1,16 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
-// GET para consultar el monto actual
 export async function GET() {
   try {
     const client = await clientPromise;
     const db = client.db("comandas");
-
     const caja = await db.collection("cajaRegistradora").findOne({});
-    if (!caja) {
-      return NextResponse.json({ montoActual: 0 });
-    }
-
     return NextResponse.json({
-      montoActual: caja.montoActual,
-      fechaActualizacion: caja.fechaActualizacion,
+      montoActual: caja?.montoActual || 0,
+      fechaActualizacion: caja?.fechaActualizacion || null,
     });
   } catch (err) {
-    console.error("Error al obtener caja:", err);
     return NextResponse.json(
       { error: "Error en el servidor" },
       { status: 500 }
@@ -25,32 +18,51 @@ export async function GET() {
   }
 }
 
-// POST para actualizar el monto manualmente
 export async function POST(req) {
   try {
-    const { monto } = await req.json();
-
-    if (monto == null) {
-      return NextResponse.json({ error: "Falta el monto" }, { status: 400 });
-    }
-
+    const pedido = await req.json();
     const client = await clientPromise;
     const db = client.db("comandas");
 
-    const update = {
-      montoActual: parseFloat(monto),
-      fechaActualizacion: new Date(),
-    };
+    const collection = db.collection("pedidos");
+    const resultado = await collection.insertOne({
+      ...pedido,
+      estado: pedido.estado || "en curso",
+      fecha: pedido.fecha || new Date().toISOString(),
+    });
 
-    await db
-      .collection("cajaRegistradora")
-      .updateOne({}, { $set: update }, { upsert: true });
+    if (pedido.formaDePago === "efectivo") {
+      const fechaLocal = new Date().toLocaleDateString("es-AR");
 
-    return NextResponse.json({ message: "Monto actualizado correctamente" });
-  } catch (err) {
-    console.error("Error al actualizar caja:", err);
+      // 🔹 SUMAR al informe diario
+      await db
+        .collection("ingresosDiarios")
+        .updateOne(
+          { fecha: fechaLocal },
+          { $inc: { ingresoTotal: pedido.total } },
+          { upsert: true }
+        );
+
+      // 🔹 SUMAR a la caja registradora
+      await db.collection("cajaRegistradora").updateOne(
+        {},
+        {
+          $inc: { montoActual: pedido.total },
+          $set: { fechaActualizacion: new Date() },
+        },
+        { upsert: true }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Pedido guardado correctamente",
+      id: resultado.insertedId,
+    });
+  } catch (error) {
+    console.error("Error al guardar pedido:", error);
     return NextResponse.json(
-      { error: "Error en el servidor" },
+      { error: "Error al guardar el pedido" },
       { status: 500 }
     );
   }
