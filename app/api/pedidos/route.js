@@ -16,16 +16,20 @@ export async function POST(req) {
 
     const resultado = await collection.insertOne(nuevoPedido);
 
-    // ⬇️ Agregamos ingreso a ingresosDiarios solo si es en efectivo
     if (pedido.formaDePago === "efectivo") {
-      const fechaActual = new Date();
-      const fechaLocal = fechaActual.toLocaleDateString("es-AR"); // ej: "14/6/2025"
+      const timestamp = new Date();
 
-      const ingresosCollection = db.collection("ingresosDiarios");
+      await db.collection("ingresosDiarios").insertOne({
+        totalPedido: pedido.total,
+        timestamp,
+      });
 
-      await ingresosCollection.updateOne(
-        { fecha: fechaLocal },
-        { $inc: { efectivo: pedido.total } },
+      await db.collection("cajaRegistradora").updateOne(
+        {},
+        {
+          $inc: { montoActual: pedido.total },
+          $set: { fechaActualizacion: timestamp },
+        },
         { upsert: true }
       );
     }

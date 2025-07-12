@@ -405,6 +405,21 @@ export default function CobrarCuentaModal({
           </p>
           <button
             onClick={async () => {
+              // 1. Guardar el pedido como ingreso
+              await fetch("/api/pedidos", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  mesa: mesa.numero,
+                  productos,
+                  total: totalFinal,
+                  nombreCliente: nombreCliente || "Cliente",
+                  formaDePago: "efectivo", // muy importante
+                  fecha: new Date().toISOString(),
+                }),
+              });
+
+              // 2. Registrar ticket en Firebase
               await set(ref(db, `tickets/${mesa.numero}`), {
                 mesa: mesa.numero,
                 hora: new Date().toISOString(),
@@ -414,6 +429,14 @@ export default function CobrarCuentaModal({
                 estado: "pendiente",
               });
 
+              // 3. Sumar efectivo a caja (opcional si ya se hace en /api/pedidos)
+              await fetch("/api/caja/sumar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ total: totalFinal }),
+              });
+
+              // 4. Feedback visual
               Swal.fire({
                 icon: "success",
                 title: "Ticket enviado a caja",
@@ -422,6 +445,7 @@ export default function CobrarCuentaModal({
                 showConfirmButton: false,
               });
 
+              // 5. Liberar la mesa
               await fetch("/api/mesas", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -443,6 +467,7 @@ export default function CobrarCuentaModal({
           >
             Confirmar y enviar a caja
           </button>
+
           <button
             onClick={onClose}
             className="w-full py-3 bg-gray-400 hover:bg-gray-500 text-black rounded-xl font-semibold"
