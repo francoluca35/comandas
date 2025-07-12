@@ -19,13 +19,10 @@ export default function RestauranteForm() {
   const [presupuesto, setPresupuesto] = useState([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const [esperandoPago, setEsperandoPago] = useState(false);
+
+  // --- NUEVO ---
   const [comisionMP, setComisionMP] = useState(0);
   const [totalMP, setTotalMP] = useState(0);
-
-  // Observación general del pedido (para el repartidor)
-  const [observacion, setObservacion] = useState("");
-  // Observación por producto (para ticket/cocina)
-  const [observacionProducto, setObservacionProducto] = useState("");
 
   const productosFiltrados = productos.filter((p) =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -56,13 +53,11 @@ export default function RestauranteForm() {
         comida: tipo !== "bebida" ? productoSeleccionado : "",
         bebida: tipo === "bebida" ? productoSeleccionado : "",
         cantidad,
-        observacion: observacionProducto, // Observación por producto
       },
     ]);
     setProductoSeleccionado("");
     setCantidad(1);
     setBusqueda("");
-    setObservacionProducto("");
   };
 
   const eliminarItem = (index) => {
@@ -125,7 +120,6 @@ export default function RestauranteForm() {
       modoPedido: "restaurante",
       tipo: "entregalocal",
       nombre,
-      observacion, // Observación general para el repartidor
       formaDePago: pago,
       comidas: presupuesto,
       total: pago === "qr" ? totalMP : total,
@@ -147,7 +141,6 @@ export default function RestauranteForm() {
         const productosParaImprimir = presupuesto.map((item) => ({
           nombre: item.comida || item.bebida,
           cantidad: item.cantidad,
-          observacion: item.observacion, // Para ticket/cocina
         }));
 
         await fetch("/api/print/envios", {
@@ -186,8 +179,6 @@ export default function RestauranteForm() {
     setExternalReference("");
     setEsperandoPago(false);
     setComisionMP(0);
-    setObservacion("");
-    setObservacionProducto("");
   };
 
   const manejarPedido = () => {
@@ -204,69 +195,62 @@ export default function RestauranteForm() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
-      {/* LADO IZQUIERDO */}
-      <div className="flex flex-col gap-4 bg-black/20 p-6 rounded-xl">
-        {/* Productos */}
-        <div className="flex flex-col gap-2">
-          <input
-            type="text"
-            placeholder="Buscar comida o bebida..."
-            value={busqueda}
-            onChange={(e) => {
-              setBusqueda(e.target.value);
-              setMostrarDropdown(true);
-            }}
-            onFocus={() => setMostrarDropdown(true)}
-            className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
-          />
-          {mostrarDropdown && productosFiltrados.length > 0 && (
-            <ul className="absolute z-10 w-full bg-white text-black rounded-xl shadow-md max-h-40 overflow-y-auto">
-              {productosFiltrados.map((p) => (
-                <li
-                  key={p._id}
-                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => {
-                    setProductoSeleccionado(p.nombre);
-                    setBusqueda(p.nombre);
-                    setMostrarDropdown(false);
-                  }}
-                >
-                  {p.nombre}
-                </li>
-              ))}
-            </ul>
-          )}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <input
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
+          placeholder="Nombre del cliente"
+        />
 
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min={1}
-              value={cantidad}
-              onChange={(e) => setCantidad(Number(e.target.value))}
-              className="w-1/2 px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
-            />
-            {/* Observación por producto */}
-            <input
-              type="text"
-              placeholder="Obs. para cocina (opcional)"
-              value={observacionProducto}
-              onChange={(e) => setObservacionProducto(e.target.value)}
-              className="w-1/2 px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
-            />
+        <input
+          type="text"
+          placeholder="Buscar comida o bebida..."
+          value={busqueda}
+          onChange={(e) => {
+            setBusqueda(e.target.value);
+            setMostrarDropdown(true);
+          }}
+          className="w-full px-4 py-3 mb-2 bg-white/10 text-white rounded-xl border border-white/20"
+          onFocus={() => setMostrarDropdown(true)}
+        />
+
+        {mostrarDropdown && productosFiltrados.length > 0 && (
+          <ul className="absolute z-10 w-full bg-white text-black rounded-xl shadow-md max-h-40 overflow-y-auto">
+            {productosFiltrados.map((p) => (
+              <li
+                key={p._id}
+                className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                onClick={() => {
+                  setProductoSeleccionado(p.nombre);
+                  setBusqueda(p.nombre);
+                  setMostrarDropdown(false);
+                }}
+              >
+                {p.nombre}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <input
+          type="number"
+          min={1}
+          value={cantidad}
+          onChange={(e) => setCantidad(Number(e.target.value))}
+          className="w-full px-4 py-2 mb-2 bg-white/10 text-white rounded-xl border border-white/20"
+        />
+
+        <button
+          onClick={agregarProducto}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl mb-6"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <FiPlusCircle /> Agregar producto
           </div>
+        </button>
 
-          <button
-            onClick={agregarProducto}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl mt-2"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <FiPlusCircle /> Agregar producto
-            </div>
-          </button>
-        </div>
-
-        {/* Resumen de productos */}
         {presupuesto.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold text-cyan-400 mb-2">
@@ -274,23 +258,16 @@ export default function RestauranteForm() {
             </h3>
             <ul className="space-y-2 text-sm text-gray-200">
               {presupuesto.map((item, index) => (
-                <li key={index} className="flex flex-col gap-0.5">
-                  <div className="flex justify-between items-center">
-                    <span>
-                      {item.cantidad}x {item.comida || item.bebida}
-                    </span>
-                    <button
-                      onClick={() => eliminarItem(index)}
-                      className="text-red-400 hover:text-red-600"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                  {item.observacion && (
-                    <div className="ml-2 text-cyan-300 italic text-xs">
-                      📝 {item.observacion}
-                    </div>
-                  )}
+                <li key={index} className="flex justify-between items-center">
+                  <span>
+                    {item.cantidad}x {item.comida || item.bebida}
+                  </span>
+                  <button
+                    onClick={() => eliminarItem(index)}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    <FiTrash2 />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -298,15 +275,7 @@ export default function RestauranteForm() {
         )}
       </div>
 
-      {/* LADO DERECHO */}
-      <div className="flex flex-col gap-6 bg-black/10 p-6 rounded-xl">
-        <input
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
-          placeholder="Nombre del cliente"
-        />
-
+      <div>
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}

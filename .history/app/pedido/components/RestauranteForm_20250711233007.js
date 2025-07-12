@@ -307,6 +307,13 @@ export default function RestauranteForm() {
           placeholder="Nombre del cliente"
         />
 
+        <textarea
+          value={observacion}
+          onChange={(e) => setObservacion(e.target.value)}
+          rows={2}
+          placeholder="Observación para el repartidor (opcional)"
+          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
+        />
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}

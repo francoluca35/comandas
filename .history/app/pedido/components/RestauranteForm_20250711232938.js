@@ -207,6 +207,21 @@ export default function RestauranteForm() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
       {/* LADO IZQUIERDO */}
       <div className="flex flex-col gap-4 bg-black/20 p-6 rounded-xl">
+        <input
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
+          placeholder="Nombre del cliente"
+        />
+
+        <textarea
+          value={observacion}
+          onChange={(e) => setObservacion(e.target.value)}
+          rows={2}
+          placeholder="Observación para el repartidor (opcional)"
+          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
+        />
+
         {/* Productos */}
         <div className="flex flex-col gap-2">
           <input
@@ -300,13 +315,6 @@ export default function RestauranteForm() {
 
       {/* LADO DERECHO */}
       <div className="flex flex-col gap-6 bg-black/10 p-6 rounded-xl">
-        <input
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
-          placeholder="Nombre del cliente"
-        />
-
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}
