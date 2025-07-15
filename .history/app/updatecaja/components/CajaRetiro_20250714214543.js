@@ -79,10 +79,10 @@ export default function CajaRetiro() {
 
   const fetchInforme = async () => {
     const res = await fetch(`/api/informe-diario?page=1&limit=4`);
-    const json = await res.json();
+    const data = await res.json();
 
-    const ordenado = Array.isArray(json.data)
-      ? json.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    const ordenado = Array.isArray(data.datos)
+      ? data.datos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       : [];
 
     setInforme(ordenado);
@@ -198,20 +198,15 @@ export default function CajaRetiro() {
                     ${item.neto.toLocaleString()}
                   </span>
                 </p>
+
+                {/* 👇 NUEVO CAMPO: Cierre de Caja */}
                 {item.cierreCaja !== null && (
-                  <>
-                    <p>
-                      Cierre Caja:{" "}
-                      <span className="text-blue-400">
-                        ${item.cierreCaja.toLocaleString()}
-                      </span>
-                    </p>
-                    {item.horaCierre && (
-                      <p className="text-xs text-gray-400">
-                        Hora: {item.horaCierre}
-                      </p>
-                    )}
-                  </>
+                  <p>
+                    Cierre de caja:{" "}
+                    <span className="text-yellow-400">
+                      ${item.cierreCaja.toLocaleString("es-AR")}
+                    </span>
+                  </p>
                 )}
               </div>
 

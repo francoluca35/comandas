@@ -12,13 +12,10 @@ export default function CajaRetiro() {
   const [informe, setInforme] = useState([]);
   const [mostrarDetalles, setMostrarDetalles] = useState({});
   const [mostrarCierre, setMostrarCierre] = useState(false);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [totalPaginas, setTotalPaginas] = useState(1);
 
   useEffect(() => {
     fetchCaja();
     fetchInforme();
-
     setMostrarCierre(true);
 
     try {
@@ -30,34 +27,28 @@ export default function CajaRetiro() {
       });
 
       const ahoraArgentina = formatter.format(new Date());
-
       if (ahoraArgentina.includes(":")) {
         const [horaStr, minutoStr] = ahoraArgentina.split(":");
         const horaActual = parseInt(horaStr, 10);
         const minutosActual = parseInt(minutoStr, 10);
-
         const enHorarioHabilitado =
           (horaActual === 8 && minutosActual >= 30) ||
           (horaActual >= 0 && horaActual < 45);
-
         setMostrarCierre(enHorarioHabilitado);
       } else {
-        console.warn("Formato de hora inesperado:", ahoraArgentina);
         setMostrarCierre(true);
       }
     } catch (error) {
-      console.error("Error al calcular horario:", error);
       setMostrarCierre(false);
     }
   }, []);
+
   const realizarCierreCaja = async () => {
     try {
       const res = await fetch("/api/cierre-caja", {
         method: "POST",
       });
-
       const data = await res.json();
-
       if (res.ok) {
         Swal.fire("Éxito", "Caja cerrada correctamente", "success");
         fetchCaja();
@@ -66,7 +57,6 @@ export default function CajaRetiro() {
         Swal.fire("Error", data.error || "Ocurrió un error", "error");
       }
     } catch (error) {
-      console.error("Error al cerrar caja:", error);
       Swal.fire("Error", "Error al conectar con el servidor", "error");
     }
   };
@@ -78,27 +68,12 @@ export default function CajaRetiro() {
   };
 
   const fetchInforme = async () => {
-    const res = await fetch(`/api/informe-diario?page=1&limit=4`);
-    const json = await res.json();
-
-    const ordenado = Array.isArray(json.data)
-      ? json.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    const res = await fetch("/api/informe-diario");
+    const data = await res.json();
+    const ordenado = Array.isArray(data)
+      ? data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       : [];
-
     setInforme(ordenado);
-  };
-
-  const checkHorario = () => {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Argentina/Buenos_Aires",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    const ahora = formatter.format(new Date());
-    const [h, m] = ahora.split(":".map(Number));
-    const habilitado = (h === 23 && m >= 30) || (h >= 0 && h < 4);
-    setMostrarCierre(habilitado);
   };
 
   const handleRetiro = async () => {
@@ -131,7 +106,6 @@ export default function CajaRetiro() {
       const a = document.createElement("a");
       a.href = url;
       a.download = `retiros-${tipo}.csv`;
-
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -141,7 +115,7 @@ export default function CajaRetiro() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center p-6">
-      <header className="w-full  flex items-center gap-4 mb-8">
+      <header className="w-full flex items-center gap-4 mb-8">
         <BackArrow />
         <Image
           src="/Assets/Mesas/logo-peru-mar.png"
@@ -158,6 +132,7 @@ export default function CajaRetiro() {
       <h2 className="text-4xl font-semibold mb-6">Caja & Retiros</h2>
 
       <div className="flex flex-col md:flex-row gap-10 w-full max-w-5xl">
+        {/* INFORME */}
         <div className="flex-1 bg-zinc-900 p-6 rounded-2xl shadow-md">
           <h3 className="text-xl mb-4 font-bold">Informe Diario</h3>
           {informe.map((item, i) => (
@@ -198,20 +173,14 @@ export default function CajaRetiro() {
                     ${item.neto.toLocaleString()}
                   </span>
                 </p>
-                {item.cierreCaja !== null && (
-                  <>
-                    <p>
-                      Cierre Caja:{" "}
-                      <span className="text-blue-400">
-                        ${item.cierreCaja.toLocaleString()}
-                      </span>
-                    </p>
-                    {item.horaCierre && (
-                      <p className="text-xs text-gray-400">
-                        Hora: {item.horaCierre}
-                      </p>
-                    )}
-                  </>
+
+                {/* Cierre de caja si existe */}
+                {item.cierre && (
+                  <div className="mt-1 text-sm text-cyan-300">
+                    🕐 Cerrado a las <strong>{item.cierre.hora}</strong> - Saldo
+                    final:{" "}
+                    <strong>${item.cierre.saldoEnCaja.toLocaleString()}</strong>
+                  </div>
                 )}
               </div>
 
@@ -226,32 +195,6 @@ export default function CajaRetiro() {
               )}
             </div>
           ))}
-
-          <div className="flex justify-center gap-4 mt-4">
-            <button
-              onClick={() => {
-                if (paginaActual > 1) {
-                  fetchInforme(paginaActual - 1);
-                }
-              }}
-              disabled={paginaActual === 1}
-              className="px-4 py-1 rounded bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50"
-            >
-              ← Anterior
-            </button>
-            <span className="px-2 py-1">{`Página ${paginaActual} de ${totalPaginas}`}</span>
-            <button
-              onClick={() => {
-                if (paginaActual < totalPaginas) {
-                  fetchInforme(paginaActual + 1);
-                }
-              }}
-              disabled={paginaActual === totalPaginas}
-              className="px-4 py-1 rounded bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50"
-            >
-              Siguiente →
-            </button>
-          </div>
 
           <div className="flex justify-center gap-4 mt-6">
             <button
@@ -269,6 +212,7 @@ export default function CajaRetiro() {
           </div>
         </div>
 
+        {/* RETIRO Y CIERRE */}
         <div className="flex-1 bg-zinc-900 p-6 rounded-2xl shadow-md">
           <h3 className="text-xl text-center font-bold mb-4">Dinero en caja</h3>
           <div className="bg-white text-black rounded-full text-center py-3 text-lg font-bold mb-6">
@@ -301,7 +245,7 @@ export default function CajaRetiro() {
 
           {mostrarCierre && (
             <button
-              onClick={() => realizarCierreCaja()}
+              onClick={realizarCierreCaja}
               className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
             >
               Cerrar Caja Diario

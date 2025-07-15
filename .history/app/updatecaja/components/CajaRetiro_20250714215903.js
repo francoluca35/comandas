@@ -198,20 +198,15 @@ export default function CajaRetiro() {
                     ${item.neto.toLocaleString()}
                   </span>
                 </p>
+
+                {/* 👇 NUEVO CAMPO: Cierre de Caja */}
                 {item.cierreCaja !== null && (
-                  <>
-                    <p>
-                      Cierre Caja:{" "}
-                      <span className="text-blue-400">
-                        ${item.cierreCaja.toLocaleString()}
-                      </span>
-                    </p>
-                    {item.horaCierre && (
-                      <p className="text-xs text-gray-400">
-                        Hora: {item.horaCierre}
-                      </p>
-                    )}
-                  </>
+                  <p>
+                    Cierre de caja:{" "}
+                    <span className="text-yellow-400">
+                      ${item.cierreCaja.toLocaleString("es-AR")}
+                    </span>
+                  </p>
                 )}
               </div>
 
