@@ -18,6 +18,7 @@ export async function POST() {
       hoy.getDate() + 1
     );
 
+    // Ingresos del día
     const ingresos = await db
       .collection("ingresosDiarios")
       .aggregate([
@@ -27,6 +28,7 @@ export async function POST() {
       .toArray();
     const totalIngresos = ingresos[0]?.total || 0;
 
+    // Retiros del día
     const retiros = await db
       .collection("retiroEfectivo")
       .aggregate([
@@ -38,9 +40,11 @@ export async function POST() {
 
     const neto = totalIngresos - totalRetiros;
 
+    // Caja actual
     const caja = await db.collection("cajaRegistradora").findOne({});
     const saldoEnCaja = caja?.montoActual || 0;
 
+    // Guardar cierre (pero NO se reinicia el monto)
     await db.collection("cierresCaja").insertOne({
       fechaCierre: hoy.toLocaleDateString("es-AR"),
       horaCierre: hoy.toLocaleTimeString("es-AR"),

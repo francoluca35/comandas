@@ -77,15 +77,17 @@ export default function CajaRetiro() {
     setDineroCaja(data.montoActual || 0);
   };
 
-  const fetchInforme = async () => {
-    const res = await fetch(`/api/informe-diario?page=1&limit=4`);
-    const json = await res.json();
+  const fetchInforme = async (pagina = 1) => {
+    const res = await fetch(`/api/informe-diario?page=${pagina}&limit=4`);
+    const data = await res.json();
 
-    const ordenado = Array.isArray(json.data)
-      ? json.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-      : [];
-
-    setInforme(ordenado);
+    if (Array.isArray(data.datos)) {
+      setInforme(data.datos); // ahora es data.datos, no data directamente
+      setPaginaActual(data.paginaActual);
+      setTotalPaginas(data.totalPaginas);
+    } else {
+      setInforme([]);
+    }
   };
 
   const checkHorario = () => {
@@ -198,23 +200,7 @@ export default function CajaRetiro() {
                     ${item.neto.toLocaleString()}
                   </span>
                 </p>
-                {item.cierreCaja !== null && (
-                  <>
-                    <p>
-                      Cierre Caja:{" "}
-                      <span className="text-blue-400">
-                        ${item.cierreCaja.toLocaleString()}
-                      </span>
-                    </p>
-                    {item.horaCierre && (
-                      <p className="text-xs text-gray-400">
-                        Hora: {item.horaCierre}
-                      </p>
-                    )}
-                  </>
-                )}
               </div>
-
               {mostrarDetalles[item.fecha] && item.retiros?.length > 0 && (
                 <ul className="mt-2 text-xs text-gray-300 list-disc list-inside">
                   {item.retiros.map((r, j) => (
@@ -226,7 +212,6 @@ export default function CajaRetiro() {
               )}
             </div>
           ))}
-
           <div className="flex justify-center gap-4 mt-4">
             <button
               onClick={() => {

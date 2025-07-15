@@ -79,10 +79,10 @@ export default function CajaRetiro() {
 
   const fetchInforme = async () => {
     const res = await fetch(`/api/informe-diario?page=1&limit=4`);
-    const json = await res.json();
+    const data = await res.json();
 
-    const ordenado = Array.isArray(json.data)
-      ? json.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    const ordenado = Array.isArray(data.datos)
+      ? data.datos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       : [];
 
     setInforme(ordenado);
@@ -198,23 +198,7 @@ export default function CajaRetiro() {
                     ${item.neto.toLocaleString()}
                   </span>
                 </p>
-                {item.cierreCaja !== null && (
-                  <>
-                    <p>
-                      Cierre Caja:{" "}
-                      <span className="text-blue-400">
-                        ${item.cierreCaja.toLocaleString()}
-                      </span>
-                    </p>
-                    {item.horaCierre && (
-                      <p className="text-xs text-gray-400">
-                        Hora: {item.horaCierre}
-                      </p>
-                    )}
-                  </>
-                )}
               </div>
-
               {mostrarDetalles[item.fecha] && item.retiros?.length > 0 && (
                 <ul className="mt-2 text-xs text-gray-300 list-disc list-inside">
                   {item.retiros.map((r, j) => (
@@ -226,7 +210,6 @@ export default function CajaRetiro() {
               )}
             </div>
           ))}
-
           <div className="flex justify-center gap-4 mt-4">
             <button
               onClick={() => {

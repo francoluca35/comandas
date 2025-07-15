@@ -1,6 +1,3 @@
-import clientPromise from "@/lib/mongodb";
-import { NextResponse } from "next/server";
-
 export async function POST() {
   try {
     const client = await clientPromise;
@@ -18,6 +15,7 @@ export async function POST() {
       hoy.getDate() + 1
     );
 
+    // Ingresos
     const ingresos = await db
       .collection("ingresosDiarios")
       .aggregate([
@@ -27,6 +25,7 @@ export async function POST() {
       .toArray();
     const totalIngresos = ingresos[0]?.total || 0;
 
+    // Retiros
     const retiros = await db
       .collection("retiroEfectivo")
       .aggregate([
@@ -38,9 +37,11 @@ export async function POST() {
 
     const neto = totalIngresos - totalRetiros;
 
+    // Saldo actual de caja
     const caja = await db.collection("cajaRegistradora").findOne({});
     const saldoEnCaja = caja?.montoActual || 0;
 
+    // Guardar el cierre
     await db.collection("cierresCaja").insertOne({
       fechaCierre: hoy.toLocaleDateString("es-AR"),
       horaCierre: hoy.toLocaleTimeString("es-AR"),
@@ -51,8 +52,20 @@ export async function POST() {
       timestamp: new Date(),
     });
 
+    // 🔴 Reiniciar el monto en caja a 0
+    await db.collection("cajaRegistradora").updateOne(
+      {},
+      {
+        $set: {
+          montoActual: 0,
+          fechaActualizacion: new Date(),
+        },
+      },
+      { upsert: true }
+    );
+
     return NextResponse.json({
-      message: "Cierre registrado correctamente",
+      message: "Cierre realizado correctamente",
       cierre: { totalIngresos, totalRetiros, neto, saldoEnCaja },
     });
   } catch (err) {

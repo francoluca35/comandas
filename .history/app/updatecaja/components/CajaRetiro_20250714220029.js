@@ -197,22 +197,15 @@ export default function CajaRetiro() {
                   >
                     ${item.neto.toLocaleString()}
                   </span>
-                </p>
-                {item.cierreCaja !== null && (
-                  <>
+                  {item.cierreCaja !== null && (
                     <p>
                       Cierre Caja:{" "}
                       <span className="text-blue-400">
                         ${item.cierreCaja.toLocaleString()}
                       </span>
                     </p>
-                    {item.horaCierre && (
-                      <p className="text-xs text-gray-400">
-                        Hora: {item.horaCierre}
-                      </p>
-                    )}
-                  </>
-                )}
+                  )}
+                </p>
               </div>
 
               {mostrarDetalles[item.fecha] && item.retiros?.length > 0 && (
