@@ -3,7 +3,7 @@ import ExcelJS from "exceljs";
 import { connectToDatabase } from "@/lib/db";
 import { startOfWeek, startOfMonth, isAfter } from "date-fns";
 
-export async function GET(req) {
+export async function GET(req: Request) {
   try {
     const db = await connectToDatabase();
     const url = new URL(req.url);
@@ -13,28 +13,34 @@ export async function GET(req) {
     const inicioSemana = startOfWeek(ahora, { weekStartsOn: 1 });
     const inicioMes = startOfMonth(ahora);
 
-    let fechaInicio = null;
+    let fechaInicio: Date | null = null;
 
     if (tipo === "semana") {
       fechaInicio = inicioSemana;
     } else if (tipo === "mes") {
       fechaInicio = inicioMes;
     } else if (tipo === "todo") {
-      fechaInicio = null; // sin filtro de fecha
+      fechaInicio = null; // no se filtra por fecha
     } else {
       return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
 
+    // Obtener todos los datos
     const ingresos = await db.collection("ingresosDiarios").find().toArray();
     const retiros = await db.collection("retiroEfectivo").find().toArray();
 
-    const filtrarPorTipo = (fecha) => {
+    // Filtrar por fecha si corresponde
+    const filtrarPorTipo = (fecha: string | Date) => {
       const f = new Date(fecha);
       if (fechaInicio) return isAfter(f, fechaInicio);
       return true;
     };
 
-    const agruparPorFecha = {};
+    // Agrupación por fecha
+    const agruparPorFecha: Record<
+      string,
+      { ingreso: number, retiros: number, motivos: string[] }
+    > = {};
 
     for (const ingreso of ingresos) {
       if (!ingreso.timestamp || !filtrarPorTipo(ingreso.timestamp)) continue;
@@ -63,6 +69,7 @@ export async function GET(req) {
       );
     }
 
+    // Crear Excel
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Informe");
 
@@ -92,6 +99,7 @@ export async function GET(req) {
 
     const buffer = await workbook.xlsx.writeBuffer();
 
+    // ✅ BORRAR SOLO SI tipo === "todo"
     if (tipo === "todo") {
       await db.collection("ingresosDiarios").deleteMany({});
       await db.collection("retiroEfectivo").deleteMany({});

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 function StadisticDinner() {
   const [data, setData] = useState(null);
   const ahora = new Date();
-  const esDiciembre = ahora.getMonth() === 11;
+  const esDiciembre = ahora.getMonth() === 11; // Diciembre = 11 (0-indexed)
 
   useEffect(() => {
     fetch("/api/estadisticas/dinner")

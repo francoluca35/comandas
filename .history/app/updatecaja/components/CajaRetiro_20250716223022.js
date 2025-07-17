@@ -123,10 +123,10 @@ export default function CajaRetiro() {
   };
 
   const descargarExcel = async (tipo) => {
-    if (tipo === "todo") {
+    if (tipo === "mes") {
       const confirm = await Swal.fire({
-        title: "¿Descargar todo el historial?",
-        text: "Esto descargará todos los datos y luego los eliminará de forma permanente.",
+        title: "¿Estás seguro?",
+        text: "Esto descargará el informe mensual y eliminará los datos del mes actual.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Sí, continuar",
@@ -148,7 +148,7 @@ export default function CajaRetiro() {
       URL.revokeObjectURL(url);
 
       Swal.fire("Éxito", "Archivo descargado correctamente", "success");
-      fetchInforme(); // opcional, para refrescar después del borrado
+      fetchInforme(); // opcional: refresca el informe luego de eliminación
     } catch (err) {
       Swal.fire("Error", err.message, "error");
     }
@@ -280,12 +280,6 @@ export default function CajaRetiro() {
               className="bg-purple-500 px-4 py-2 rounded hover:bg-purple-600"
             >
               Descargar Mensual
-            </button>
-            <button
-              onClick={() => descargarExcel("todo")}
-              className="bg-red-600 px-4 py-2 rounded hover:bg-red-700"
-            >
-              Descargar Todo & Borrar
             </button>
           </div>
         </div>
