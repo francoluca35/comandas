@@ -6,31 +6,19 @@ import { startOfWeek, startOfMonth, isAfter } from "date-fns";
 export async function GET(req) {
   try {
     const db = await connectToDatabase();
-    const url = new URL(req.url);
-    const tipo = url.searchParams.get("tipo") || "semana";
+    const tipo = new URL(req.url).searchParams.get("tipo") || "general";
+
+    const ingresos = await db.collection("ingresosDiarios").find().toArray();
+    const retiros = await db.collection("retiroEfectivo").find().toArray();
 
     const ahora = new Date();
     const inicioSemana = startOfWeek(ahora, { weekStartsOn: 1 });
     const inicioMes = startOfMonth(ahora);
 
-    let fechaInicio = null;
-
-    if (tipo === "semana") {
-      fechaInicio = inicioSemana;
-    } else if (tipo === "mes") {
-      fechaInicio = inicioMes;
-    } else if (tipo === "todo") {
-      fechaInicio = null; // sin filtro de fecha
-    } else {
-      return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
-    }
-
-    const ingresos = await db.collection("ingresosDiarios").find().toArray();
-    const retiros = await db.collection("retiroEfectivo").find().toArray();
-
     const filtrarPorTipo = (fecha) => {
       const f = new Date(fecha);
-      if (fechaInicio) return isAfter(f, fechaInicio);
+      if (tipo === "semana") return isAfter(f, inicioSemana);
+      if (tipo === "mes") return isAfter(f, inicioMes);
       return true;
     };
 
@@ -92,9 +80,15 @@ export async function GET(req) {
 
     const buffer = await workbook.xlsx.writeBuffer();
 
-    if (tipo === "todo") {
-      await db.collection("ingresosDiarios").deleteMany({});
-      await db.collection("retiroEfectivo").deleteMany({});
+    // ✅ Eliminar registros del mes si tipo === "mes"
+    if (tipo === "mes") {
+      await db.collection("ingresosDiarios").deleteMany({
+        timestamp: { $gte: inicioMes, $lt: ahora },
+      });
+
+      await db.collection("retiroEfectivo").deleteMany({
+        timestamp: { $gte: inicioMes, $lt: ahora },
+      });
     }
 
     return new Response(buffer, {

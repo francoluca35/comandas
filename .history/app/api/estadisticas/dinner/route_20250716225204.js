@@ -1,3 +1,4 @@
+// /api/estadisticas/dinner/route.js
 import clientPromise from "@/lib/mongodb";
 
 export async function GET() {
@@ -8,7 +9,7 @@ export async function GET() {
     const pipeline = [
       {
         $project: {
-          total: "$totalPedido",
+          total: "$totalPedido", // usamos el campo correcto
           timestamp: 1,
           dia: {
             $dateToString: { format: "%Y-%m-%d", date: "$timestamp" },
@@ -52,28 +53,9 @@ export async function GET() {
     ];
 
     const resultado = await db
-      .collection("ingresosDiarios")
+      .collection("ingresosDiarios") // colección corregida
       .aggregate(pipeline)
       .toArray();
-
-    // ✅ Guardar total mensual solo si no existe en la colección totalMensual
-    const totalMesActual = resultado[0].porMes?.[0];
-
-    if (totalMesActual) {
-      const yaExiste = await db.collection("totalMensual").findOne({
-        año: totalMesActual._id.año,
-        mes: totalMesActual._id.mes,
-      });
-
-      if (!yaExiste) {
-        await db.collection("totalMensual").insertOne({
-          año: totalMesActual._id.año,
-          mes: totalMesActual._id.mes,
-          total: totalMesActual.total,
-          creadoEn: new Date(),
-        });
-      }
-    }
 
     return new Response(JSON.stringify(resultado[0]), {
       status: 200,
