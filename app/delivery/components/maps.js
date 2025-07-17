@@ -12,7 +12,23 @@ export default function Maps() {
   const [detalle, setDetalle] = useState(null);
   const [enviandoId, setEnviandoId] = useState(null);
   const [filtro, setFiltro] = useState("todos");
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 10;
 
+  const handleExportarExcel = async () => {
+    if (!desde || !hasta) {
+      alert("Seleccioná ambas fechas");
+      return;
+    }
+
+    const url = `/api/maps/export?desde=${desde}&hasta=${hasta}`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Pedidos_${desde}_a_${hasta}.xlsx`;
+    link.click();
+  };
   const imprimirTicketPOS = (pedido) => {
     const fecha = new Date().toLocaleDateString("es-AR");
     const hora = new Date().toLocaleTimeString("es-AR", {
@@ -187,6 +203,46 @@ export default function Maps() {
     return pedido.tipo === filtro;
   });
 
+  const inicio = (paginaActual - 1) * itemsPorPagina;
+  const fin = inicio + itemsPorPagina;
+  const pedidosPag = pedidosFiltrados.slice(inicio, fin);
+  const totalPaginas = Math.ceil(pedidosFiltrados.length / itemsPorPagina);
+
+  const renderizarBotones = () => {
+    const botones = [];
+
+    if (totalPaginas <= 5) {
+      for (let i = 1; i <= totalPaginas; i++) {
+        botones.push(i);
+      }
+    } else {
+      if (paginaActual <= 3) {
+        botones.push(1, 2, 3, 4, 5, "...");
+      } else if (paginaActual >= totalPaginas - 2) {
+        botones.push(
+          "...",
+          totalPaginas - 4,
+          totalPaginas - 3,
+          totalPaginas - 2,
+          totalPaginas - 1,
+          totalPaginas
+        );
+      } else {
+        botones.push(
+          1,
+          "...",
+          paginaActual - 1,
+          paginaActual,
+          paginaActual + 1,
+          "...",
+          totalPaginas
+        );
+      }
+    }
+
+    return botones;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 text-white px-6 py-12 flex flex-col items-center">
       <div className="w-full max-w-4xl mb-6">
@@ -224,9 +280,35 @@ export default function Maps() {
         <h2 className="text-3xl font-bold text-white mb-8 text-center">
           📍 Pedidos
         </h2>
+        <div className="w-full max-w-4xl mb-6 bg-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-center">
+          <label className="text-sm">
+            Desde:{" "}
+            <input
+              type="date"
+              value={desde}
+              onChange={(e) => setDesde(e.target.value)}
+              className="text-black bg-white rounded px-2 py-1 ml-1"
+            />
+          </label>
+          <label className="text-sm">
+            Hasta:{" "}
+            <input
+              type="date"
+              value={hasta}
+              onChange={(e) => setHasta(e.target.value)}
+              className="text-black bg-white rounded px-2 py-1 ml-1"
+            />
+          </label>
+          <button
+            onClick={handleExportarExcel}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+          >
+            📥 Descargar Excel
+          </button>
+        </div>
 
         <ul className="space-y-4">
-          {pedidosFiltrados.map((pedido) => (
+          {pedidosPag.map((pedido) => (
             <li
               key={pedido._id}
               className="bg-white/10 border border-white/10 rounded-xl p-5 shadow-md flex flex-col md:flex-row md:items-center md:justify-between"
@@ -280,6 +362,45 @@ export default function Maps() {
             </li>
           ))}
         </ul>
+      </div>
+      <div className="flex justify-center gap-1 mt-6">
+        <button
+          onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+          disabled={paginaActual === 1}
+          className="px-3 py-1 rounded-lg bg-white/10 text-white disabled:opacity-40"
+        >
+          ◀
+        </button>
+
+        {renderizarBotones().map((num, i) =>
+          num === "..." ? (
+            <span key={i} className="px-3 py-1 text-gray-400">
+              ...
+            </span>
+          ) : (
+            <button
+              key={i}
+              onClick={() => setPaginaActual(num)}
+              className={`px-3 py-1 rounded-lg ${
+                paginaActual === num
+                  ? "bg-cyan-600 text-white"
+                  : "bg-white/10 text-gray-200"
+              }`}
+            >
+              {num}
+            </button>
+          )
+        )}
+
+        <button
+          onClick={() =>
+            setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))
+          }
+          disabled={paginaActual === totalPaginas}
+          className="px-3 py-1 rounded-lg bg-white/10 text-white disabled:opacity-40"
+        >
+          ▶
+        </button>
       </div>
 
       {detalle && (

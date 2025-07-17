@@ -12,89 +12,152 @@ export default function Maps() {
   const [detalle, setDetalle] = useState(null);
   const [enviandoId, setEnviandoId] = useState(null);
   const [filtro, setFiltro] = useState("todos");
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 10;
 
+  const handleExportarExcel = async () => {
+    if (!desde || !hasta) {
+      alert("Seleccioná ambas fechas");
+      return;
+    }
+
+    const url = `/api/maps/export?desde=${desde}&hasta=${hasta}`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Pedidos_${desde}_a_${hasta}.xlsx`;
+    link.click();
+  };
   const imprimirTicketPOS = (pedido) => {
-    const numeroOrden = Date.now(); // Puedes cambiar esto por el real si lo tienes
-    const ahora = new Date();
-    const horaActual = ahora.toLocaleTimeString("es-AR", {
+    const fecha = new Date().toLocaleDateString("es-AR");
+    const hora = new Date().toLocaleTimeString("es-AR", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Argentina/Buenos_Aires",
     });
-    const fechaActual = ahora.toLocaleDateString("es-AR");
+
+    const orden = Date.now();
+    const encabezado = pedido.tipo === "delivery" ? "DELIVERY" : "PARA LLEVAR";
 
     let subtotal = 0;
 
-    let ticket = `<div style="font-family: monospace; font-size: 12px; text-align: center; width: 58mm;">
-<img src="/Assets/Mesas/logo-peru-mar.png" style="width:60px; margin-bottom:5px; filter: grayscale(100%) contrast(200%);" />
+    const productosHTML = pedido.comidas
+      .map((item) => {
+        let nombre = item.comida || item.bebida || "";
+        let precio = 0;
 
-      <p><b>Orden #:</b> ${numeroOrden}</p>
-      <p><b>Hora:</b> ${horaActual}</p>
-      <p><b>Fecha:</b> ${fechaActual}</p>
-      <hr style="border-top:1px dashed #000;">`;
+        if (item.comida) {
+          const p = productos.find((prod) => prod.nombre === item.comida);
+          precio = p?.precio || 0;
+          subtotal += precio;
 
-    pedido.comidas.forEach((item) => {
-      if (item.comida) {
-        const productoComida = productos.find((p) => p.nombre === item.comida);
-        const precioComida = productoComida ? productoComida.precio : 0;
-        subtotal += precioComida;
-
-        ticket += `<div style="display:flex; justify-content:space-between;">
-          <span>1x ${item.comida}</span><span>$${precioComida.toFixed(2)}</span>
-        </div>`;
-
-        if (item.adicionales?.length > 0) {
-          const adicionalesPrecio = item.adicionales.length * 200;
-          subtotal += adicionalesPrecio;
-          ticket += `<div style="text-align:left;">+ ${item.adicionales.join(
-            ", "
-          )} ($${adicionalesPrecio.toFixed(2)})</div>`;
+          if (item.adicionales?.length > 0) {
+            const adicTotal = item.adicionales.length * 200;
+            subtotal += adicTotal;
+            return `
+              <div class="item"><span>1x ${
+                item.comida
+              }</span><span>$${precio.toFixed(2)}</span></div>
+              <div style="text-align:left;">+ ${item.adicionales.join(
+                ", "
+              )} ($${adicTotal.toFixed(2)})</div>
+            `;
+          }
         }
-      }
 
-      if (item.bebida) {
-        const productoBebida = productos.find((p) => p.nombre === item.bebida);
-        const precioBebida = productoBebida ? productoBebida.precio : 0;
-        subtotal += precioBebida;
+        if (item.bebida) {
+          const p = productos.find((prod) => prod.nombre === item.bebida);
+          precio = p?.precio || 0;
+          subtotal += precio;
+        }
 
-        ticket += `<div style="display:flex; justify-content:space-between;">
-          <span>1x ${item.bebida}</span><span>$${precioBebida.toFixed(2)}</span>
-        </div>`;
-      }
-    });
+        return `<div class="item"><span>1x ${nombre}</span><span>$${precio.toFixed(
+          2
+        )}</span></div>`;
+      })
+      .join("");
 
-    ticket += `<hr style="border-top:1px dashed #000;">`;
-
+    const totalFinal = pedido.total.toFixed(2);
     const descuento = 0;
-    const total = pedido.total.toFixed(2);
     const pago = pedido.formaDePago;
-    const montoPagado = pedido.total.toFixed(2); // Supongamos siempre exacto
+    const montoPagado = totalFinal;
     const vuelto = 0;
 
-    ticket += `
-      <div style="text-align:left;">Subtotal: $${subtotal.toFixed(2)}</div>
-      <div style="text-align:left;">Descuento: -$${descuento.toFixed(2)}</div>
-      <div style="text-align:left;"><b>Total: $${total}</b></div>
-      <div style="text-align:left;">Pago: ${pago}</div>
-      <div style="text-align:left;">Pagó: $${montoPagado}</div>
-      <div style="text-align:left;">Vuelto: $${vuelto.toFixed(2)}</div>
-      <hr style="border-top:1px dashed #000;">
-      <p style="margin-top:5px;">Tel: 1140660136</p>
-      <p>Dirección: Rivera 2525 V. Celina</p>
-      <p>Gracias por su visita!</p>
-      </div>
-  
-      <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 300); }</script>
+    const html = `
+      <html>
+        <head>
+          <style>
+            @page { size: 58mm auto; margin: 0; }
+            @media print {
+              html, body {
+                width: 54mm;
+                margin: 0;
+                padding: 0;
+                transform: scale(0.90);
+                transform-origin: top left;
+              }
+            }
+            body {
+              font-family: monospace;
+              font-size: 12px;
+              width: 52mm;
+              margin: 0;
+              text-align: center;
+            }
+            h2 { margin: 5px 0; font-size: 14px; }
+            .logo { width: 100px; margin-bottom: 5px; filter: grayscale(100%) contrast(200%); }
+            hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+            .item { display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; }
+            .total { font-weight: bold; font-size: 14px; }
+            .footer { font-size: 10px; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <img src="${
+            window.location.origin
+          }/Assets/logo-tick.png" class="logo" />
+          <h1>${encabezado}</h1>
+          <h1>Orden #: ${orden}</h1>
+          <h1>Hora: ${hora}</h1>
+          <h1>Fecha: ${fecha}</h1>
+          <hr />
+          ${productosHTML}
+          <hr />
+          <div class="item"><span>Subtotal:</span><span>$${subtotal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Descuento:</span><span>-$${descuento.toFixed(
+            2
+          )}</span></div>
+          <div class="item total"><span>Total:</span><span>$${totalFinal}</span></div>
+          <div class="item"><span>Pago:</span><span>${pago}</span></div>
+          <div class="item"><span>Pagó:</span><span>$${montoPagado}</span></div>
+          <div class="item"><span>Vuelto:</span><span>$${vuelto.toFixed(
+            2
+          )}</span></div>
+          <hr />
+          <div class="footer">
+            <h1>Tel: 1140660136</h1>
+            <h1>Dirección: Rivera 2495 V. Celina</h1>
+            <h1>Gracias por su visita!</h1>
+          </div>
+          <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 500); }</script>
+        </body>
+      </html>
     `;
 
-    const ventana = window.open("", "_blank", "width=300,height=600");
-    ventana.document.write(`<html><body>${ticket}</body></html>`);
-    ventana.document.close();
+    const ventana = window.open("", "_blank", "width=400,height=600");
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+    }
   };
 
   const handleEnviar = async (pedido) => {
     setEnviandoId(pedido._id);
 
-    // ⬇ Primero imprimimos antes de hacer cualquier llamada asincrónica
     imprimirTicketPOS(pedido);
 
     try {
@@ -140,6 +203,46 @@ export default function Maps() {
     return pedido.tipo === filtro;
   });
 
+  const inicio = (paginaActual - 1) * itemsPorPagina;
+  const fin = inicio + itemsPorPagina;
+  const pedidosPag = pedidosFiltrados.slice(inicio, fin);
+  const totalPaginas = Math.ceil(pedidosFiltrados.length / itemsPorPagina);
+
+  const renderizarBotones = () => {
+    const botones = [];
+
+    if (totalPaginas <= 5) {
+      for (let i = 1; i <= totalPaginas; i++) {
+        botones.push(i);
+      }
+    } else {
+      if (paginaActual <= 3) {
+        botones.push(1, 2, 3, 4, 5, "...");
+      } else if (paginaActual >= totalPaginas - 2) {
+        botones.push(
+          "...",
+          totalPaginas - 4,
+          totalPaginas - 3,
+          totalPaginas - 2,
+          totalPaginas - 1,
+          totalPaginas
+        );
+      } else {
+        botones.push(
+          1,
+          "...",
+          paginaActual - 1,
+          paginaActual,
+          paginaActual + 1,
+          "...",
+          totalPaginas
+        );
+      }
+    }
+
+    return botones;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 text-white px-6 py-12 flex flex-col items-center">
       <div className="w-full max-w-4xl mb-6">
@@ -177,9 +280,35 @@ export default function Maps() {
         <h2 className="text-3xl font-bold text-white mb-8 text-center">
           📍 Pedidos
         </h2>
+        <div className="w-full max-w-4xl mb-6 bg-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-center">
+          <label className="text-sm">
+            Desde:{" "}
+            <input
+              type="date"
+              value={desde}
+              onChange={(e) => setDesde(e.target.value)}
+              className="text-black bg-white rounded px-2 py-1 ml-1"
+            />
+          </label>
+          <label className="text-sm">
+            Hasta:{" "}
+            <input
+              type="date"
+              value={hasta}
+              onChange={(e) => setHasta(e.target.value)}
+              className="text-black rounded px-2 py-1 ml-1"
+            />
+          </label>
+          <button
+            onClick={handleExportarExcel}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+          >
+            📥 Descargar Excel
+          </button>
+        </div>
 
         <ul className="space-y-4">
-          {pedidosFiltrados.map((pedido) => (
+          {pedidosPag.map((pedido) => (
             <li
               key={pedido._id}
               className="bg-white/10 border border-white/10 rounded-xl p-5 shadow-md flex flex-col md:flex-row md:items-center md:justify-between"
@@ -234,8 +363,46 @@ export default function Maps() {
           ))}
         </ul>
       </div>
+      <div className="flex justify-center gap-1 mt-6">
+        <button
+          onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+          disabled={paginaActual === 1}
+          className="px-3 py-1 rounded-lg bg-white/10 text-white disabled:opacity-40"
+        >
+          ◀
+        </button>
 
-      {/* Modal de detalle */}
+        {renderizarBotones().map((num, i) =>
+          num === "..." ? (
+            <span key={i} className="px-3 py-1 text-gray-400">
+              ...
+            </span>
+          ) : (
+            <button
+              key={i}
+              onClick={() => setPaginaActual(num)}
+              className={`px-3 py-1 rounded-lg ${
+                paginaActual === num
+                  ? "bg-cyan-600 text-white"
+                  : "bg-white/10 text-gray-200"
+              }`}
+            >
+              {num}
+            </button>
+          )
+        )}
+
+        <button
+          onClick={() =>
+            setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))
+          }
+          disabled={paginaActual === totalPaginas}
+          className="px-3 py-1 rounded-lg bg-white/10 text-white disabled:opacity-40"
+        >
+          ▶
+        </button>
+      </div>
+
       {detalle && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-white text-black p-6 rounded-2xl max-w-lg w-full shadow-2xl relative">
