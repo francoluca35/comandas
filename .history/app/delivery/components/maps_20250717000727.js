@@ -12,52 +12,157 @@ export default function Maps() {
   const [detalle, setDetalle] = useState(null);
   const [enviandoId, setEnviandoId] = useState(null);
   const [filtro, setFiltro] = useState("todos");
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 10;
+  const inicio = (paginaActual - 1) * itemsPorPagina;
+  const fin = inicio + itemsPorPagina;
+  const pedidosPag = pedidosFiltrados.slice(inicio, fin);
 
+  const handleExportarExcel = async () => {
+    if (!desde || !hasta) {
+      alert("Seleccioná ambas fechas");
+      return;
+    }
+
+    const url = `/api/maps/export?desde=${desde}&hasta=${hasta}`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Pedidos_${desde}_a_${hasta}.xlsx`;
+    link.click();
+  };
   const imprimirTicketPOS = (pedido) => {
-    let ticket = `<div style="font-family: monospace; font-size: 12px; text-align: center; width: 58mm;">
-      <h2>📦 Pedido</h2>
-      <p><b>Cliente:</b> ${pedido.nombre}</p>
-      ${pedido.direccion ? `<p><b>Dirección:</b> ${pedido.direccion}</p>` : ""}
-      <p><b>Fecha:</b> ${pedido.fecha}</p>
-      <p><b>Pago:</b> ${pedido.formaDePago}</p>
-      <p><b>Observación:</b> ${pedido.observacion || "Ninguna"}</p>
-      <hr style="border-top:1px dashed #000;">`;
-
-    pedido.comidas.forEach((item) => {
-      if (item.comida) {
-        const productoComida = productos.find((p) => p.nombre === item.comida);
-        const precioComida = productoComida ? productoComida.precio : 0;
-        ticket += `<div style="text-align:left;">🍽 ${
-          item.comida
-        } - $${precioComida.toFixed(2)}</div>`;
-        if (item.adicionales?.length > 0) {
-          const adicionalesPrecio = (item.adicionales.length * 200).toFixed(2);
-          ticket += `<div style="text-align:left;">+ ${item.adicionales.join(
-            ", "
-          )} ($${adicionalesPrecio})</div>`;
-        }
-      }
-      if (item.bebida) {
-        const productoBebida = productos.find((p) => p.nombre === item.bebida);
-        const precioBebida = productoBebida ? productoBebida.precio : 0;
-        ticket += `<div style="text-align:left;">🥤 ${
-          item.bebida
-        } - $${precioBebida.toFixed(2)}</div>`;
-      }
+    const fecha = new Date().toLocaleDateString("es-AR");
+    const hora = new Date().toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Argentina/Buenos_Aires",
     });
 
-    ticket += `<hr style="border-top:1px dashed #000;">
-      <p><b>TOTAL: $${pedido.total.toFixed(2)}</b></p>
-      <p>¡Gracias por su compra!</p></div>
-      <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 300); }</script>`;
+    const orden = Date.now();
+    const encabezado = pedido.tipo === "delivery" ? "DELIVERY" : "PARA LLEVAR";
 
-    const ventana = window.open("", "_blank", "width=300,height=600");
-    ventana.document.write(`<html><body>${ticket}</body></html>`);
-    ventana.document.close();
+    let subtotal = 0;
+
+    const productosHTML = pedido.comidas
+      .map((item) => {
+        let nombre = item.comida || item.bebida || "";
+        let precio = 0;
+
+        if (item.comida) {
+          const p = productos.find((prod) => prod.nombre === item.comida);
+          precio = p?.precio || 0;
+          subtotal += precio;
+
+          if (item.adicionales?.length > 0) {
+            const adicTotal = item.adicionales.length * 200;
+            subtotal += adicTotal;
+            return `
+              <div class="item"><span>1x ${
+                item.comida
+              }</span><span>$${precio.toFixed(2)}</span></div>
+              <div style="text-align:left;">+ ${item.adicionales.join(
+                ", "
+              )} ($${adicTotal.toFixed(2)})</div>
+            `;
+          }
+        }
+
+        if (item.bebida) {
+          const p = productos.find((prod) => prod.nombre === item.bebida);
+          precio = p?.precio || 0;
+          subtotal += precio;
+        }
+
+        return `<div class="item"><span>1x ${nombre}</span><span>$${precio.toFixed(
+          2
+        )}</span></div>`;
+      })
+      .join("");
+
+    const totalFinal = pedido.total.toFixed(2);
+    const descuento = 0;
+    const pago = pedido.formaDePago;
+    const montoPagado = totalFinal;
+    const vuelto = 0;
+
+    const html = `
+      <html>
+        <head>
+          <style>
+            @page { size: 58mm auto; margin: 0; }
+            @media print {
+              html, body {
+                width: 54mm;
+                margin: 0;
+                padding: 0;
+                transform: scale(0.90);
+                transform-origin: top left;
+              }
+            }
+            body {
+              font-family: monospace;
+              font-size: 12px;
+              width: 52mm;
+              margin: 0;
+              text-align: center;
+            }
+            h2 { margin: 5px 0; font-size: 14px; }
+            .logo { width: 100px; margin-bottom: 5px; filter: grayscale(100%) contrast(200%); }
+            hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+            .item { display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; }
+            .total { font-weight: bold; font-size: 14px; }
+            .footer { font-size: 10px; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <img src="${
+            window.location.origin
+          }/Assets/logo-tick.png" class="logo" />
+          <h1>${encabezado}</h1>
+          <h1>Orden #: ${orden}</h1>
+          <h1>Hora: ${hora}</h1>
+          <h1>Fecha: ${fecha}</h1>
+          <hr />
+          ${productosHTML}
+          <hr />
+          <div class="item"><span>Subtotal:</span><span>$${subtotal.toFixed(
+            2
+          )}</span></div>
+          <div class="item"><span>Descuento:</span><span>-$${descuento.toFixed(
+            2
+          )}</span></div>
+          <div class="item total"><span>Total:</span><span>$${totalFinal}</span></div>
+          <div class="item"><span>Pago:</span><span>${pago}</span></div>
+          <div class="item"><span>Pagó:</span><span>$${montoPagado}</span></div>
+          <div class="item"><span>Vuelto:</span><span>$${vuelto.toFixed(
+            2
+          )}</span></div>
+          <hr />
+          <div class="footer">
+            <h1>Tel: 1140660136</h1>
+            <h1>Dirección: Rivera 2495 V. Celina</h1>
+            <h1>Gracias por su visita!</h1>
+          </div>
+          <script>window.onload = function() { window.print(); setTimeout(()=>window.close(), 500); }</script>
+        </body>
+      </html>
+    `;
+
+    const ventana = window.open("", "_blank", "width=400,height=600");
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+    }
   };
 
   const handleEnviar = async (pedido) => {
     setEnviandoId(pedido._id);
+
+    imprimirTicketPOS(pedido);
+
     try {
       const nuevoEstado =
         pedido.tipo === "delivery" ? "en camino" : "entregado";
@@ -66,6 +171,22 @@ export default function Maps() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: pedido._id, nuevoEstado }),
+      });
+
+      if (pedido.tipo === "entregalocal") {
+        await fetch("/api/caja-registradora", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ monto: pedido.total }),
+        });
+      }
+      await fetch("/api/informe-diario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          totalPedido: pedido.total,
+          timestamp: new Date(),
+        }),
       });
 
       imprimirTicketPOS(pedido);
@@ -122,9 +243,35 @@ export default function Maps() {
         <h2 className="text-3xl font-bold text-white mb-8 text-center">
           📍 Pedidos
         </h2>
+        <div className="w-full max-w-4xl mb-6 bg-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-center">
+          <label className="text-sm">
+            Desde:{" "}
+            <input
+              type="date"
+              value={desde}
+              onChange={(e) => setDesde(e.target.value)}
+              className="text-black rounded px-2 py-1 ml-1"
+            />
+          </label>
+          <label className="text-sm">
+            Hasta:{" "}
+            <input
+              type="date"
+              value={hasta}
+              onChange={(e) => setHasta(e.target.value)}
+              className="text-black rounded px-2 py-1 ml-1"
+            />
+          </label>
+          <button
+            onClick={handleExportarExcel}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+          >
+            📥 Descargar Excel
+          </button>
+        </div>
 
         <ul className="space-y-4">
-          {pedidosFiltrados.map((pedido) => (
+          {pedidosPag.map((pedido) => (
             <li
               key={pedido._id}
               className="bg-white/10 border border-white/10 rounded-xl p-5 shadow-md flex flex-col md:flex-row md:items-center md:justify-between"
@@ -179,8 +326,25 @@ export default function Maps() {
           ))}
         </ul>
       </div>
+      <div className="flex justify-center gap-2 mt-6">
+        {Array.from(
+          { length: Math.ceil(pedidosFiltrados.length / itemsPorPagina) },
+          (_, i) => (
+            <button
+              key={i}
+              onClick={() => setPaginaActual(i + 1)}
+              className={`px-3 py-1 rounded-lg ${
+                paginaActual === i + 1
+                  ? "bg-cyan-600 text-white"
+                  : "bg-white/10 text-gray-200"
+              }`}
+            >
+              {i + 1}
+            </button>
+          )
+        )}
+      </div>
 
-      {/* Modal de detalle */}
       {detalle && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-white text-black p-6 rounded-2xl max-w-lg w-full shadow-2xl relative">
