@@ -244,7 +244,7 @@ export default function Maps() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-black to-blue-950 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -252,9 +252,18 @@ export default function Maps() {
             <BackArrow />
             <h1 className="text-2xl font-bold text-white">Panel de Delivery</h1>
           </div>
+
+          {/* Aviso temporal sobre mapas */}
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-2 rounded-lg text-sm">
+            <p>
+              <strong>⚠️ Aviso:</strong> Los mapas están temporalmente
+              deshabilitados
+            </p>
+            <p>Se puede acceder a la ubicación desde el botón "Ver Mapa"</p>
+          </div>
         </div>
 
-        <div className="flex gap-4 mb-6 justify-center">
+        <div className="flex gap-4 mb-6">
           <button
             onClick={() => setFiltro("todos")}
             className={`px-4 py-2 rounded-xl ${
@@ -281,11 +290,11 @@ export default function Maps() {
           </button>
         </div>
 
-        <div className="w-full max-w-5xl mx-auto rounded-3xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-2xl p-6">
+        <div className="w-full max-w-4xl rounded-3xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-2xl p-6">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">
             📍 Pedidos
           </h2>
-          <div className="w-full max-w-4xl mx-auto mb-6 bg-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-center">
+          <div className="w-full max-w-4xl mb-6 bg-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-center">
             <label className="text-sm">
               Desde:{" "}
               <input

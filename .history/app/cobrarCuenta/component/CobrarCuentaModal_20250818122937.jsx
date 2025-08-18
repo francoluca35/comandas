@@ -167,17 +167,6 @@ export default function CobrarCuentaModal({
   const confirmarPago = async () => {
     imprimirTicket();
 
-    // COBRO AUTOMÁTICO: Solo se cobra cuando se imprime el ticket de pago
-    await fetch("/api/tickets/pago-confirmado", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mesa: mesa.numero,
-        total: totalMP, // Incluye la comisión
-        metodoPago: metodo,
-      }),
-    });
-
     await fetch("/api/print-ticket-pago", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
