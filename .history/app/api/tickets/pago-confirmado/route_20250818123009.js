@@ -4,7 +4,7 @@ import clientPromise from "@/lib/mongodb";
 export async function POST(req) {
   try {
     const { mesa, total, metodoPago } = await req.json();
-
+    
     if (!mesa || !total || !metodoPago) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }

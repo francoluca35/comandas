@@ -23,7 +23,7 @@ app.post("/print-ticket-pago", async (req, res) => {
         const client = new MongoClient(process.env.MONGODB_URI);
         await client.connect();
         const db = client.db("comandas");
-
+        
         // Registrar ingreso diario
         await db.collection("ingresosDiarios").insertOne({
           totalPedido: parseFloat(total),
