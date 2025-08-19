@@ -244,9 +244,7 @@ export default function VerMapa() {
                   Información para Repartidor
                 </span>
               </div>
-              <p className="text-white/90 text-sm">
-                {pedido.descripcionRepartidor}
-              </p>
+              <p className="text-white/90 text-sm">{pedido.descripcionRepartidor}</p>
             </div>
           )}
         </div>
