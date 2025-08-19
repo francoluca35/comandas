@@ -166,9 +166,7 @@ export default function MapaTemporal({ direccion, pedido }) {
                   Info Repartidor
                 </span>
               </div>
-              <p className="text-white/90 text-sm">
-                {pedido.descripcionRepartidor}
-              </p>
+              <p className="text-white/90 text-sm">{pedido.descripcionRepartidor}</p>
             </div>
           )}
         </div>

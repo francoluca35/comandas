@@ -524,23 +524,11 @@ export default function Maps() {
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-blue-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
+                  <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold">
-                  📝 Descripción para Repartidor
-                </h3>
+                <h3 className="text-2xl font-bold">📝 Descripción para Repartidor</h3>
               </div>
 
               <div className="mb-4">
@@ -563,8 +551,7 @@ export default function Maps() {
                   className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Describe cualquier detalle importante sobre el lugar de
-                  entrega
+                  Describe cualquier detalle importante sobre el lugar de entrega
                 </p>
               </div>
 
@@ -588,9 +575,7 @@ export default function Maps() {
                       : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
                 >
-                  {enviandoId === pedidoSeleccionado?._id
-                    ? "Enviando..."
-                    : "Confirmar Envío"}
+                  {enviandoId === pedidoSeleccionado?._id ? "Enviando..." : "Confirmar Envío"}
                 </button>
               </div>
             </div>
