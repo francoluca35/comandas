@@ -190,7 +190,7 @@ export default function DeliveryForm() {
             fecha,
             metodoPago: pago,
             modo: "envio",
-          }),
+          }),s
         });
 
         Swal.fire("Pedido enviado correctamente", "", "success");
