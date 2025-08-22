@@ -7,7 +7,7 @@ const PUERTO = 9100;
 
 export async function POST(req) {
   try {
-    const { mesa, productos, orden, hora, fecha, metodoPago, modo, direccion } =
+    const { mesa, productos, orden, hora, fecha, metodoPago, modo } =
       await req.json();
 
     const parrilla = productos.filter(
@@ -30,9 +30,6 @@ export async function POST(req) {
         ticket += `MESA: ${mesa}\n`;
         ticket += normal;
         ticket += `ORDEN: ${orden}\nHORA: ${hora}\nFECHA: ${fecha}\n`;
-        if (direccion) {
-          ticket += `DIRECCION: ${direccion}\n`;
-        }
         ticket += "==============================\n";
 
         // Agrupar productos por nombre
