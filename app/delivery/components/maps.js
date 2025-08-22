@@ -502,6 +502,18 @@ export default function Maps() {
                     </a>
                   </div>
                 )}
+                
+                <div className="mt-4 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      imprimirTicketPOS(detalle);
+                      setDetalle(null);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    🖨️ Imprimir Ticket
+                  </button>
+                </div>
               </div>
             </div>
           </div>
