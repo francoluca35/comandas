@@ -150,22 +150,6 @@ export default function RestauranteForm() {
           observacion: item.observacion, // Para ticket/cocina
         }));
 
-        // Impresión doble - primera impresión
-        await fetch("/api/print/envios", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nombre,
-            productos: productosParaImprimir,
-            total: pago === "qr" ? totalMP : total,
-            hora,
-            fecha,
-            metodoPago: pago,
-            modo: "retiro",
-          }),
-        });
-
-        // Impresión doble - segunda impresión
         await fetch("/api/print/envios", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
