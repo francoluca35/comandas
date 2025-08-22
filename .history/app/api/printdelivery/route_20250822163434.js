@@ -7,7 +7,7 @@ const PUERTO = 9100;
 
 export async function POST(req) {
   try {
-    const { mesa, productos, orden, hora, fecha, metodoPago, modo, observacion } =
+    const { mesa, productos, orden, hora, fecha, metodoPago, modo } =
       await req.json();
 
     const parrilla = productos.filter(
@@ -43,21 +43,9 @@ export async function POST(req) {
         for (const nombre in agrupados) {
           const cantidad = agrupados[nombre];
           ticket += doble + `${cantidad}x ${nombre}\n` + normal;
-          
-          // Buscar observaciones para este producto
-          const productosConObservacion = items.filter(p => p.nombre?.toUpperCase() === nombre);
-          productosConObservacion.forEach(p => {
-            if (p.observacion && p.observacion.trim()) {
-              ticket += `   Obs: ${p.observacion}\n`;
-            }
-          });
         }
 
         ticket += "==============================\n";
-        if (observacion && observacion.trim()) {
-          ticket += `OBSERVACIÓN: ${observacion}\n`;
-          ticket += "==============================\n";
-        }
         ticket += `PAGO: ${metodoPago?.toUpperCase() || "NO ESPECIFICADO"}\n`;
         ticket += "\n\n\n" + cortar;
 
