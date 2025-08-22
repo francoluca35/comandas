@@ -191,7 +191,6 @@ export default function DeliveryForm() {
             fecha,
             metodoPago: pago,
             modo: "envio",
-            observacion: observacion, // Incluir observación general
           }),
         });
 

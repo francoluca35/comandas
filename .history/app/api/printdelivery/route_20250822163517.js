@@ -54,10 +54,6 @@ export async function POST(req) {
         }
 
         ticket += "==============================\n";
-        if (observacion && observacion.trim()) {
-          ticket += `OBSERVACIÓN: ${observacion}\n`;
-          ticket += "==============================\n";
-        }
         ticket += `PAGO: ${metodoPago?.toUpperCase() || "NO ESPECIFICADO"}\n`;
         ticket += "\n\n\n" + cortar;
 

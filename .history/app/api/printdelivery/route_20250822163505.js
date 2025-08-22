@@ -7,7 +7,7 @@ const PUERTO = 9100;
 
 export async function POST(req) {
   try {
-    const { mesa, productos, orden, hora, fecha, metodoPago, modo, observacion } =
+    const { mesa, productos, orden, hora, fecha, metodoPago, modo } =
       await req.json();
 
     const parrilla = productos.filter(
@@ -54,10 +54,6 @@ export async function POST(req) {
         }
 
         ticket += "==============================\n";
-        if (observacion && observacion.trim()) {
-          ticket += `OBSERVACIÓN: ${observacion}\n`;
-          ticket += "==============================\n";
-        }
         ticket += `PAGO: ${metodoPago?.toUpperCase() || "NO ESPECIFICADO"}\n`;
         ticket += "\n\n\n" + cortar;
 

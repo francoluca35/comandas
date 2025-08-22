@@ -176,7 +176,6 @@ export default function DeliveryForm() {
         const productosParaImprimir = presupuesto.map((item) => ({
           nombre: item.comida || item.bebida,
           cantidad: item.cantidad,
-          observacion: item.observacion, // Incluir observación por producto
         }));
 
         // Imprimir ticket doble para cocina
@@ -191,7 +190,6 @@ export default function DeliveryForm() {
             fecha,
             metodoPago: pago,
             modo: "envio",
-            observacion: observacion, // Incluir observación general
           }),
         });
 
