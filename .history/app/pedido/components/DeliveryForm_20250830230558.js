@@ -455,14 +455,9 @@ export default function DeliveryForm() {
 
         <button
           onClick={enviarPedido}
-          disabled={enviando}
-          className={`w-full text-white font-bold py-3 rounded-xl ${
-            enviando 
-              ? 'bg-gray-500 cursor-not-allowed' 
-              : 'bg-cyan-600 hover:bg-cyan-700'
-          }`}
+          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl"
         >
-          {enviando ? 'Enviando...' : 'Hacer Pedido'}
+          Hacer Pedido
         </button>
       </div>
     </div>
