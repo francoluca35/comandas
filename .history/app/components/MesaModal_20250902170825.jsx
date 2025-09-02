@@ -2,16 +2,11 @@
 
 import { useEffect, useState } from "react";
 import useProductos from "../hooks/useProductos";
-import {
-  FaTrash,
-  FaUser,
-  FaMoneyBillWave,
-  FaPlus,
-  FaTimes,
-} from "react-icons/fa";
+import Swal from "sweetalert2";
 import Resumen from "./Resumen";
 import CobrarCuentaModal from "../cobrarCuenta/component/CobrarCuentaModal";
 import SelectorProductos from "../components/ui/SelectorProductos";
+import { FaTrash, FaPlus, FaTimes, FaMoneyBillWave } from "react-icons/fa";
 
 export default function ModalMesa({ mesa, onClose, refetch }) {
   const { productos } = useProductos();
@@ -30,107 +25,45 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     }
   }, [mesa]);
 
-  const imprimirTicket = (orden, hora, fecha) => {
-    const nuevaVentana = window.open("", "Ticket", "width=400,height=600");
-    const comidas = pedidoActual.filter((p) => p.tipo !== "bebida");
-    const bebidas = pedidoActual.filter((p) => p.tipo === "bebida");
+  const imprimirTicket = async (productos, mesa, orden, hora, fecha) => {
+    // Lógica inteligente de impresión según tipo de pedido
+    const tieneBrasas = productos.some(p => p.categoria?.toLowerCase() === "brasas");
 
-    const html = `
-      <html>
-        <head>
-          <style>
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-            body {
-              width: 320px; /* unos 72mm aprox en pantalla */
-              margin: 0;
-              padding: 5px;
-              font-family: monospace;
-              font-size: 11px;
-              text-align: center;
-            }
-            h2 {
-              margin: 5px 0;
-              font-size: 14px;
-            }
-            img.logo {
-              width: 80px;
-              margin-bottom: 5px;
-              filter: grayscale(100%);
-            }
-            hr {
-              border: none;
-              border-top: 1px dashed #000;
-              margin: 6px 0;
-            }
-            .item {
-              display: flex;
-              justify-content: space-between;
-              margin: 2px 0;
-            }
-            .qr {
-              width: 80px;
-              margin-top: 6px;
-            }
-            .small {
-              font-size: 8px;
-              margin-top: 4px;
-            }
-          </style>
-        </head>
-        <body>
-          <img src="${
-            window.location.origin
-          }/Assets/logo-oficial.png" class="logo" />
-          <h2>🍽️ Perú Mar</h2>
-          <p><strong>Mesa:</strong> ${mesa.numero}</p>
-          <p><strong>Orden #:</strong> ${orden}</p>
-          <p><strong>Hora:</strong> ${hora}</p>
-          <p><strong>Fecha:</strong> ${fecha}</p>
-          <hr />
-          <p><strong>Comidas:</strong></p>
-          ${comidas
-            .map(
-              (p) => `
-              <div class="item">
-                <span>${p.cantidad}x ${p.nombre}</span>
-         
-              </div>
-          `
-            )
-            .join("")}
-          <p><strong>Bebidas:</strong></p>
-          ${bebidas
-            .map(
-              (p) => `
-              <div class="item">
-                <span>${p.cantidad}x ${p.nombre}</span>
-                
-              </div>
-          `
-            )
-            .join("")}
-          <hr />
-          <div class="item">
-           
-          </div>
-          <hr />
-        
-  
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => window.close(), 300);
-            };
-          </script>
-        </body>
-      </html>
-    `;
+    const enviarAImpresora = async (items, ip) => {
+      if (items.length === 0) return;
+      try {
+        const res = await fetch("/api/print", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mesa,
+            productos: items,
+            orden,
+            hora,
+            fecha,
+            metodoPago,
+            ip,
+          }),
+        });
+        if (!res.ok) throw new Error();
+      } catch (err) {
+        console.error("Error al imprimir:", err);
+        Swal.fire("Error", "No se pudo imprimir el ticket", "error");
+      }
+    };
 
-    nuevaVentana.document.write(html);
-    nuevaVentana.document.close();
+    if (tieneBrasas) {
+      // Si tiene brasas: 1 en cocina, 1 en parrilla
+      const parrilla = productos.filter(p => p.categoria?.toLowerCase() === "brasas");
+      const cocina = productos.filter(p => p.categoria?.toLowerCase() !== "brasas");
+      
+      await enviarAImpresora(parrilla, "192.168.0.101"); // Impresora de parrilla
+      await enviarAImpresora(cocina, "192.168.0.100"); // Impresora de cocina
+    } else {
+      // Si NO tiene brasas: 2 en cocina, 0 en parrilla
+      await enviarAImpresora(productos, "192.168.0.100"); // Primera impresión en cocina
+      await enviarAImpresora(productos, "192.168.0.100"); // Segunda impresión en cocina
+    }
   };
 
   const enviarPedido = async () => {
@@ -146,13 +79,13 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     const hora = new Date().toLocaleTimeString("es-AR", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Argentina/Buenos_Aires",
     });
 
     const fecha = new Date().toLocaleDateString("es-AR");
     const orden = Date.now();
-
     const productosTotales = [...historial, ...pedidoActual];
-
     const total = productosTotales.reduce(
       (acc, p) =>
         acc + (p.precio * p.cantidad - (p.descuento || 0) * p.cantidad),
@@ -160,49 +93,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     );
 
     try {
-      // 1️⃣ Primero imprimimos localmente
-      const res = await fetch("http://localhost:5000/print", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mesa: mesa.numero,
-          productos: productosTotales,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        await Swal.fire({
-          icon: "success",
-          title: "Impresión exitosa",
-          text: `Se imprimieron: ${data.impresos.join(", ")}`,
-          timer: 3000,
-        });
-
-        // 2️⃣ Generamos el PDF
-        const doc = new jsPDF();
-        doc.setFontSize(16);
-        doc.text(`PERU MAR - Mesa ${mesa.numero}`, 20, 20);
-        doc.setFontSize(12);
-        doc.text(`Fecha: ${fecha} - Hora: ${hora}`, 20, 30);
-        doc.text("Productos:", 20, 40);
-
-        productosTotales.forEach((p, i) => {
-          doc.text(`${p.cantidad}x ${p.nombre}`, 20, 50 + i * 10);
-        });
-
-        doc.text(
-          `Total: $${total.toFixed(2)}`,
-          20,
-          60 + productosTotales.length * 10
-        );
-
-        // Descargamos el PDF
-        doc.save(`Ticket-Mesa-${mesa.numero}-${orden}.pdf`);
-      }
-
-      // 3️⃣ Después actualizamos el estado de la mesa
       await fetch("/api/mesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -218,12 +108,19 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
         }),
       });
 
-      // 4️⃣ Limpiamos estado
+      await Swal.fire({
+        icon: "success",
+        title: "Pedido enviado",
+        text: "La mesa quedó ocupada correctamente.",
+        timer: 2000,
+      });
+
+      await imprimirTicket(productosTotales, mesa.numero, orden, hora, fecha);
       setHistorial(productosTotales);
       setPedidoActual([]);
       refetch?.();
     } catch (err) {
-      console.error("Error al imprimir o guardar:", err);
+      console.error("Error al guardar en la base de datos:", err);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -231,7 +128,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       });
     }
   };
-
   const eliminarComanda = async () => {
     const confirmar = confirm(
       "¿Seguro que querés liberar la mesa sin comanda?"
@@ -338,6 +234,11 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
                 <tr key={i} className="border-t border-white/10">
                   <td className="p-2">
                     {p.nombre}
+                    {p.observacion && (
+                      <div className="text-[11px] text-cyan-300 italic">
+                        📝 {p.observacion}
+                      </div>
+                    )}
                     {p.adicionales?.length > 0 && (
                       <div className="text-[10px] text-gray-400">
                         + {p.adicionales.join(", ")}
@@ -447,17 +348,22 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
               const nuevo = {
                 ...producto,
                 descuento: producto.descuento || 0,
-                adicionales: [],
+                adicionales: producto.adicionales || [],
+                observacion: producto.observacion || "",
               };
 
-              const existente = pedidoActual.find(
-                (p) => p.nombre === nuevo.nombre
+              // Si ya existe ese producto con el MISMO nombre y la MISMA observación, sumá la cantidad
+              const indexExistente = pedidoActual.findIndex(
+                (p) =>
+                  p.nombre === nuevo.nombre &&
+                  (p.observacion || "") === (nuevo.observacion || "")
               );
-              if (existente) {
+
+              if (indexExistente !== -1) {
                 setPedidoActual(
-                  pedidoActual.map((p) =>
-                    p.nombre === nuevo.nombre
-                      ? { ...p, cantidad: p.cantidad + producto.cantidad }
+                  pedidoActual.map((p, i) =>
+                    i === indexExistente
+                      ? { ...p, cantidad: p.cantidad + nuevo.cantidad }
                       : p
                   )
                 );
