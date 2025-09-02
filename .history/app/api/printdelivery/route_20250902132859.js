@@ -1,26 +1,15 @@
 import { NextResponse } from "next/server";
-// import net from "net";
+import net from "net";
 
-// const IP_COCINA = "192.168.1.100";
-// const IP_PARRILLA = "192.168.1.101";
-// const PUERTO = 9100;
+const IP_COCINA = "192.168.1.100";
+const IP_PARRILLA = "192.168.1.101";
+const PUERTO = 9100;
 
 export async function POST(req) {
   try {
     const { mesa, productos, orden, hora, fecha, metodoPago, modo } =
       await req.json();
 
-    // API DESACTIVADA - Usar solo el servidor externo de Node.js
-    // para evitar impresión doble
-    
-    return NextResponse.json({
-      success: true,
-      message: "API de impresión desactivada. Usar servidor externo de Node.js",
-      results: ["API desactivada", "API desactivada"]
-    });
-
-    // CÓDIGO COMENTADO - NO SE EJECUTA
-    /*
     // Si es delivery o para llevar, enviar el ticket completo a ambas impresoras
     if (modo === "delivery" || modo === "retiro") {
       const enviarTicketCompleto = (ip) => {
@@ -114,7 +103,7 @@ export async function POST(req) {
 
         for (const nombre in agrupados) {
           const cantidad = agrupados[nombre];
-          ticket += normal + `${cantidad}x ${nombre}\n`;
+          ticket += normal + `${cantidad}x ${cantidad}\n`;
         }
 
         ticket += "==============================\n";
@@ -147,7 +136,6 @@ export async function POST(req) {
         r.status === "fulfilled" ? r.value : r.reason.message
       ),
     });
-    */
   } catch (error) {
     console.error("Error en /api/printdelivery:", error);
     return NextResponse.json({ error: "Error en impresión" }, { status: 500 });
