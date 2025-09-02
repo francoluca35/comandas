@@ -198,42 +198,42 @@ export default function DeliveryForm() {
           cantidad: item.cantidad,
         }));
 
-                  // Impresión separada: 1 en parrilla y 1 en cocina
-          // Primera impresión - Parrilla
-          await fetch("/api/print-ip", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre,
-              direccion,
-              observacion,
-              productos: productosParaImprimir,
-              total: pago === "link" ? totalMP : total,
-              hora,
-              fecha,
-              metodoPago: pago,
-              modo: "envio",
-              ip: "192.168.1.101", // IP de parrilla
-            }),
-          });
+        // Impresión separada: 1 en parrilla y 1 en cocina
+        // Primera impresión - Parrilla
+        await fetch("/api/print", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre,
+            direccion,
+            observacion,
+            productos: productosParaImprimir,
+            total: pago === "link" ? totalMP : total,
+            hora,
+            fecha,
+            metodoPago: pago,
+            modo: "envio",
+            ip: "192.168.1.101", // IP de parrilla
+          }),
+        });
 
-          // Segunda impresión - Cocina
-          await fetch("/api/print-ip", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre,
-              direccion,
-              observacion,
-              productos: productosParaImprimir,
-              total: pago === "link" ? totalMP : total,
-              hora,
-              fecha,
-              metodoPago: pago,
-              modo: "envio",
-              ip: "192.168.1.100", // IP de cocina
-            }),
-          });
+        // Segunda impresión - Cocina
+        await fetch("/api/print", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre,
+            direccion,
+            observacion,
+            productos: productosParaImprimir,
+            total: pago === "link" ? totalMP : total,
+            hora,
+            fecha,
+            metodoPago: pago,
+            modo: "envio",
+            ip: "192.168.1.100", // IP de cocina
+          }),
+        });
 
         Swal.fire("Pedido enviado correctamente", "", "success");
         resetFormulario();
