@@ -36,7 +36,8 @@ export default function Resumen({ mesa, onClose }) {
     mesa.productos.forEach((p, i) => {
       const adicionales =
         p.adicionales?.length > 0 ? ` + ${p.adicionales.join(", ")}` : "";
-      doc.text(`${p.cantidad} x ${p.nombre}${adicionales}`, 10, y);
+      const observacion = p.observacion ? ` (📝 ${p.observacion})` : "";
+      doc.text(`${p.cantidad} x ${p.nombre}${adicionales}${observacion}`, 10, y);
       y += 6;
     });
 
@@ -54,6 +55,8 @@ export default function Resumen({ mesa, onClose }) {
         (p) =>
           `${p.cantidad} x ${p.nombre}${
             p.adicionales?.length ? ` + ${p.adicionales.join(", ")}` : ""
+          }${
+            p.observacion ? ` (📝 ${p.observacion})` : ""
           }`
       )
       .join("\n");
@@ -109,6 +112,11 @@ export default function Resumen({ mesa, onClose }) {
                   {prod.nombre} x {prod.cantidad}{" "}
                   {prod.adicionales?.length > 0 && (
                     <>+ {prod.adicionales.join(", ")}</>
+                  )}
+                  {prod.observacion && (
+                    <div className="text-cyan-600 text-xs italic mt-1">
+                      📝 {prod.observacion}
+                    </div>
                   )}
                 </li>
               ))}

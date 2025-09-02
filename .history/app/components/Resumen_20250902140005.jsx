@@ -24,7 +24,7 @@ export default function Resumen({ mesa, onClose }) {
     doc.text(`Cliente: ${mesa.cliente}`, 10, y);
     y += 6;
     doc.text(`Hora: ${mesa.hora}`, 10, y);
-    y += 10;
+    y += 6;
     doc.text(`Fecha: ${mesa.fecha}`, 10, y);
     y += 10;
 
@@ -36,7 +36,8 @@ export default function Resumen({ mesa, onClose }) {
     mesa.productos.forEach((p, i) => {
       const adicionales =
         p.adicionales?.length > 0 ? ` + ${p.adicionales.join(", ")}` : "";
-      doc.text(`${p.cantidad} x ${p.nombre}${adicionales}`, 10, y);
+      const observacion = p.observacion ? ` (📝 ${p.observacion})` : "";
+      doc.text(`${p.cantidad} x ${p.nombre}${adicionales}${observacion}`, 10, y);
       y += 6;
     });
 
@@ -54,6 +55,8 @@ export default function Resumen({ mesa, onClose }) {
         (p) =>
           `${p.cantidad} x ${p.nombre}${
             p.adicionales?.length ? ` + ${p.adicionales.join(", ")}` : ""
+          }${
+            p.observacion ? ` (📝 ${p.observacion})` : ""
           }`
       )
       .join("\n");

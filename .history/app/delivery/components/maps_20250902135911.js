@@ -80,8 +80,7 @@ export default function Maps() {
 
         return `<div class="item"><span>1x ${nombre}</span><span>$${precio.toFixed(
           2
-        )}</span></div>
-              ${item.observacion ? `<div class="observacion">📝 ${item.observacion}</div>` : ''}`;
+        )}</span></div>`;
       })
       .join("");
 
@@ -129,7 +128,6 @@ export default function Maps() {
             .logo { width: 100px; margin-bottom: 5px; filter: grayscale(100%) contrast(200%); }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
             .item { display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; }
-            .observacion { font-size: 10px; color: #666; font-style: italic; margin-top: 2px; text-align: left; }
             .total { font-weight: bold; font-size: 14px; }
             .footer { font-size: 10px; margin-top: 8px; }
           </style>

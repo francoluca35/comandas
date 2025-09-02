@@ -124,7 +124,6 @@ export default function ScreenHome() {
             .logo { width: 100px; margin-bottom: 5px; }
             hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
             .item { display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; }
-            .observacion { font-size: 10px; color: #666; font-style: italic; margin-top: 2px; text-align: left; }
             .total { font-weight: bold; font-size: 14px; }
             .footer { font-size: 10px; margin-top: 8px; }
           </style>
