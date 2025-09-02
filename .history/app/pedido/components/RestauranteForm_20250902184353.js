@@ -177,7 +177,7 @@ export default function RestauranteForm() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              cliente: nombre, // Usar nombre como mesa para compatibilidad
+              mesa: nombre, // Usar nombre como mesa para compatibilidad
               productos: productosParaImprimir,
               orden: Date.now(),
               hora,
@@ -203,30 +203,36 @@ export default function RestauranteForm() {
         } else {
           // Si NO tiene brasas: 2 en cocina, 0 en parrilla
           console.log("🍽️ Retiro sin brasas: enviando 2 a cocina");
-          await fetch("/api/print", {
+          await fetch("/api/print-ip", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              mesa: nombre, // Usar nombre como mesa para compatibilidad
+              nombre,
+              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
-              orden: Date.now(),
+              total: pago === "qr" ? totalMP : total,
               hora,
               fecha,
               metodoPago: pago,
+              modo: "retiro",
+              tipoTicket: "para_llevar", // Identificar que es para llevar
               ip: "192.168.1.100", // IP de cocina
             }),
           });
 
-          await fetch("/api/print", {
+          await fetch("/api/print-ip", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              mesa: nombre, // Usar nombre como mesa para compatibilidad
+              nombre,
+              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
-              orden: Date.now(),
+              total: pago === "qr" ? totalMP : total,
               hora,
               fecha,
               metodoPago: pago,
+              modo: "retiro",
+              tipoTicket: "para_llevar", // Identificar que es para llevar
               ip: "192.168.1.100", // IP de cocina (segunda vez)
             }),
           });

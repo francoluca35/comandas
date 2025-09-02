@@ -177,7 +177,7 @@ export default function RestauranteForm() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              cliente: nombre, // Usar nombre como mesa para compatibilidad
+              mesa: nombre, // Usar nombre como mesa para compatibilidad
               productos: productosParaImprimir,
               orden: Date.now(),
               hora,
