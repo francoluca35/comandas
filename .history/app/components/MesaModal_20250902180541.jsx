@@ -31,9 +31,6 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
 
     const enviarAImpresora = async (items, ip) => {
       if (items.length === 0) return;
-      
-      console.log("📤 Enviando a impresora:", { ip, items: items.length, mesa: numeroMesa });
-      
       try {
         const res = await fetch("/api/print", {
           method: "POST",
@@ -48,26 +45,19 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
             ip,
           }),
         });
-        
-        console.log("📥 Respuesta impresora:", { status: res.status, ok: res.ok });
-        
         if (!res.ok) throw new Error();
       } catch (err) {
-        console.error("❌ Error al imprimir:", err);
+        console.error("Error al imprimir:", err);
         Swal.fire("Error", "No se pudo imprimir el ticket", "error");
       }
     };
 
-    console.log("🔍 Debug impresión:", { tieneBrasas, totalProductos: productos.length });
-    
     if (tieneBrasas) {
       // Si tiene brasas: 1 ticket en parrilla
-      console.log("🔥 Enviando a parrilla (192.168.1.101)");
-      await enviarAImpresora(productos, "192.168.1.101"); // Impresora de parrilla
+      await enviarAImpresora(productos, "192.168.0.101"); // Impresora de parrilla
     } else {
       // Si NO tiene brasas: 1 ticket en cocina
-      console.log("🍽️ Enviando a cocina (192.168.1.100)");
-      await enviarAImpresora(productos, "192.168.1.100"); // Impresora de cocina
+      await enviarAImpresora(productos, "192.168.0.100"); // Impresora de cocina
     }
   };
 
