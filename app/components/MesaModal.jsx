@@ -26,12 +26,8 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
   }, [mesa]);
 
   const imprimirTicket = async (productos, mesa, orden, hora, fecha) => {
-    const parrilla = productos.filter(
-      (p) => p.categoria?.toLowerCase() === "brasas"
-    );
-    const cocina = productos.filter(
-      (p) => p.categoria?.toLowerCase() !== "brasas"
-    );
+    // Lógica inteligente de impresión: 1 solo ticket según tipo de pedido
+    const tieneBrasas = productos.some(p => p.categoria?.toLowerCase() === "brasas");
 
     const enviarAImpresora = async (items, ip) => {
       if (items.length === 0) return;
@@ -56,9 +52,13 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
       }
     };
 
-    await enviarAImpresora(parrilla, "192.168.0.101"); // Impresora de parrilla
-    await enviarAImpresora(cocina, "192.168.0.100"); // ✅ correcto
-    // Impresora de cocina
+    if (tieneBrasas) {
+      // Si tiene brasas: 1 ticket en parrilla
+      await enviarAImpresora(productos, "192.168.0.101"); // Impresora de parrilla
+    } else {
+      // Si NO tiene brasas: 1 ticket en cocina
+      await enviarAImpresora(productos, "192.168.0.100"); // Impresora de cocina
+    }
   };
 
   const enviarPedido = async () => {
