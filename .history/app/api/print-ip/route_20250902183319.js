@@ -27,7 +27,6 @@ export async function POST(req) {
           fecha,
           metodoPago,
           modo,
-          tipoTicket,
         }),
       }
     );

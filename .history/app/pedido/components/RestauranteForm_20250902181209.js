@@ -178,14 +178,12 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
               fecha,
               metodoPago: pago,
               modo: "retiro",
-              tipoTicket: "para_llevar", // Identificar que es para llevar
               ip: "192.168.1.101", // IP de parrilla
             }),
           });
@@ -195,33 +193,28 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
               fecha,
               metodoPago: pago,
               modo: "retiro",
-              tipoTicket: "para_llevar", // Identificar que es para llevar
               ip: "192.168.1.100", // IP de cocina
             }),
           });
         } else {
           // Si NO tiene brasas: 2 en cocina, 0 en parrilla
-          console.log("🍽️ Retiro sin brasas: enviando 2 a cocina");
           await fetch("/api/print-ip", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
               fecha,
               metodoPago: pago,
               modo: "retiro",
-              tipoTicket: "para_llevar", // Identificar que es para llevar
               ip: "192.168.1.100", // IP de cocina
             }),
           });
@@ -231,14 +224,12 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
               fecha,
               metodoPago: pago,
               modo: "retiro",
-              tipoTicket: "para_llevar", // Identificar que es para llevar
               ip: "192.168.1.100", // IP de cocina (segunda vez)
             }),
           });

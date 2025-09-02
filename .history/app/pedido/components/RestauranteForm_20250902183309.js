@@ -178,7 +178,6 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
@@ -195,7 +194,6 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
@@ -214,7 +212,6 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,
@@ -231,7 +228,6 @@ export default function RestauranteForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nombre,
-              observacion, // Agregar observación general del pedido
               productos: productosParaImprimir,
               total: pago === "qr" ? totalMP : total,
               hora,

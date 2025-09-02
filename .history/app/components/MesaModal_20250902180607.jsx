@@ -62,12 +62,12 @@ export default function ModalMesa({ mesa, onClose, refetch }) {
     
     if (tieneBrasas) {
       // Si tiene brasas: 1 ticket en parrilla
-      console.log("🔥 Enviando a parrilla (192.168.1.101)");
-      await enviarAImpresora(productos, "192.168.1.101"); // Impresora de parrilla
+      console.log("🔥 Enviando a parrilla (192.168.0.101)");
+      await enviarAImpresora(productos, "192.168.0.101"); // Impresora de parrilla
     } else {
       // Si NO tiene brasas: 1 ticket en cocina
-      console.log("🍽️ Enviando a cocina (192.168.1.100)");
-      await enviarAImpresora(productos, "192.168.1.100"); // Impresora de cocina
+      console.log("🍽️ Enviando a cocina (192.168.0.100)");
+      await enviarAImpresora(productos, "192.168.0.100"); // Impresora de cocina
     }
   };
 
