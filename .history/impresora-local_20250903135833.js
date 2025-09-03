@@ -37,89 +37,6 @@ function imprimirTicket(ip, contenido) {
   });
 }
 
-function generarTicketCocina({
-  mesa,
-  productos,
-  orden,
-  hora,
-  fecha,
-  metodoPago,
-  ip,
-}) {
-  const doble = "\x1D\x21\x11";
-  const tercero = "\x1D\x21\x01";
-  const normal = "\x1D\x21\x00";
-  const cortar = "\x1D\x56\x00";
-  const negrita = "\x1B\x45\x01";
-
-  // Detectar si es para llevar (cuando mesa es un nombre y no un número)
-  // También considerar que si mesa contiene letras, es un cliente
-  const esParaLlevar = (isNaN(mesa) && mesa !== undefined) || 
-                       (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa));
-  
-  const titulo = productos.every((p) => p.categoria?.toLowerCase() === "brasas")
-    ? "HORNO"
-    : "COCINA";
-
-  let ticket = "";
-  
-  if (esParaLlevar) {
-    // Ticket para llevar
-    ticket += doble + `     PARA LLEVAR\n`;
-    ticket += "======================\n";
-    ticket += doble + `CLIENTE: ${mesa}\n`;
-    ticket += normal;
-    ticket += `ORDEN: ${orden}\nHORA: ${hora}\nFECHA: ${fecha}\n`;
-  } else {
-    // Ticket de mesa
-    ticket += doble + ` ${titulo}\n`;
-    ticket += "======================\n";
-    ticket += `MESA: ${mesa}\n`;
-    ticket += normal;
-    ticket += ` ORDEN: ${orden}\nHORA: ${hora}\nFECHA: ${fecha}\n`;
-  }
-  
-  ticket += doble + "======================\n";
-
-  // Agrupar productos por nombre
-  const productosAgrupados = productos.reduce((acc, p) => {
-    const nombre = p.nombre.toUpperCase();
-    if (!acc[nombre]) {
-      acc[nombre] = { ...p, cantidad: p.cantidad || 1 };
-    } else {
-      acc[nombre].cantidad += p.cantidad || 1;
-    }
-    return acc;
-  }, {});
-
-  // Imprimir productos agrupados
-  for (const nombre in productosAgrupados) {
-    const item = productosAgrupados[nombre];
-    ticket += normal + "cant   producto";
-    ticket += "\n";
-    ticket += doble + `${item.cantidad} ${nombre}\n`;
-    // Observación (si hay)
-    if (item.observacion && item.observacion.trim() !== "") {
-      ticket += negrita + tercero + `(${item.observacion.trim()})\n`;
-    }
-    // Adicionales (si hay)
-    if (item.adicionales && item.adicionales.length > 0) {
-      ticket += normal + ` + ${item.adicionales.join(", ")}\n`;
-    }
-  }
-  
-  if (esParaLlevar) {
-    // Para tickets de para llevar, NO mostrar precio
-    // ticket += "\n\n";
-    // ticket += `TOTAL:  $${total.toFixed(2)} \n`;
-  }
-  
-  ticket += "\n\n";
-  ticket += "  ==========================\n";
-  ticket += "\n\n\n" + cortar;
-  return ticket;
-}
-
 // 🧾 Generador de ticket delivery o mostrador
 function generarTicketDelivery({ nombre, direccion, productos, total, modo, observacion, orden, hora, fecha }) {
   const doble = "\x1D\x21\x11";
@@ -173,7 +90,7 @@ function generarTicketDelivery({ nombre, direccion, productos, total, modo, obse
     if (item.adicionales && item.adicionales.length > 0) {
       ticket += normal + `   + ${item.adicionales.join(", ")}\n`;
     }
-  }
+  }  
   
   // Observación general del pedido
   if (observacion && observacion.trim() !== "") {
@@ -182,7 +99,7 @@ function generarTicketDelivery({ nombre, direccion, productos, total, modo, obse
     ticket += normal + `${observacion.trim()}\n`;
   }
   
-    ticket += "\n\n";
+  ticket += "\n\n";
   // Calcular el total si no se proporciona, o usar el proporcionado
   // SOLO mostrar precio para DELIVERY, NO para "para llevar"
   if (modo !== "retiro") {
@@ -209,6 +126,7 @@ function generarTicketDelivery({ nombre, direccion, productos, total, modo, obse
     
     ticket += `TOTAL:  $${totalFinal.toFixed(2)} \n`;
   }
+  
   ticket += doble + "======================\n";
   ticket += normal;
   ticket += "\n\n\n";
@@ -298,22 +216,17 @@ app.post("/print", async (req, res) => {
     // Nota: 'mesa' puede ser un número (mesa real) o un nombre (cliente para llevar)
     if (ip) {
       // Detectar si es para llevar (cuando mesa es un nombre y no un número)
-      // Para "para llevar" desde RestauranteForm, mesa será el nombre del cliente
       const esParaLlevar = (isNaN(mesa) && mesa !== undefined) || 
-                           (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
-                           (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
-      
-      console.log("🔍 Debug para llevar con IP:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
+                           (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa));
       
       if (esParaLlevar) {
-        // Para "para llevar" con IP específica, usar formato de para llevar
+        // Para "para llevar" con IP específica, usar formato de delivery
         const ticket = generarTicketParaLlevar({
           nombre: mesa, // Usar el nombre del cliente
           productos: productos,
           orden: orden,
           hora: hora,
-          fecha: fecha,
-          observacion: null
+          fecha: fecha
         });
         
         const resultado = await imprimirTicket(ip, ticket);
@@ -324,14 +237,16 @@ app.post("/print", async (req, res) => {
         });
       } else {
         // Para mesas normales, usar formato de cocina
-        const ticket = generarTicketCocina({
-          mesa,
-          productos,
-          orden,
-          hora,
-          fecha,
-          metodoPago,
-          ip,
+        const ticket = generarTicketDelivery({
+          nombre: mesa, // Usar el nombre del cliente
+          direccion: null,
+          productos: productos,
+          total: null,
+          modo: "retiro", // Para llevar
+          observacion: null,
+          orden: orden,
+          hora: hora,
+          fecha: fecha
         });
         
         const resultado = await imprimirTicket(ip, ticket);
@@ -355,33 +270,32 @@ app.post("/print", async (req, res) => {
     let resultadoCocina = "Nada que imprimir";
 
     // Detectar si es para llevar (cuando mesa es un nombre y no un número)
-    // Para "para llevar" desde RestauranteForm, mesa será el nombre del cliente
     const esParaLlevar = (isNaN(mesa) && mesa !== undefined) || 
-                         (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
-                         (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
-    
-    console.log("🔍 Debug para llevar:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
+                         (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa));
 
     if (parrilla.length > 0) {
       let ticketParaImprimir;
       
         if (esParaLlevar) {
-          // Para "para llevar" con brasas: GENERAR TICKET DE PARA LLEVAR para AMBAS IMPRESORAS
-          ticketParaImprimir = generarTicketParaLlevar({
+          // Para "para llevar" con brasas: GENERAR TICKET DE DELIVERY para AMBAS IMPRESORAS
+          ticketParaImprimir = generarTicketDelivery({
             nombre: mesa, // Usar el nombre del cliente
+            direccion: null,
             productos: productos, // TODOS los productos (no solo parrilla)
+            total: null, // No usar total predefinido, calcularlo internamente
+            modo: "retiro", // Para llevar
+            observacion: null,
             orden: orden, // Usar la orden original del pedido
             hora: hora,   // Usar la hora original del pedido
-            fecha: fecha, // Usar la fecha original del pedido
-            observacion: null
+            fecha: fecha  // Usar la fecha original del pedido
           });
           
-          // ENVIAR EL MISMO TICKET DE PARA LLEVAR A AMBAS IMPRESORAS
+          // ENVIAR EL MISMO TICKET DE DELIVERY A AMBAS IMPRESORAS
           resultadoParrilla = await imprimirTicket(IP_PARRILLA, ticketParaImprimir);
           resultadoCocina = await imprimirTicket(IP_COCINA, ticketParaImprimir);
         } else {
           // Para mesas normales, usar generarTicketCocina
-          ticketParaImprimir = generarTicketCocina({
+          ticketParaImprimir = generarTicketDelivery({
             mesa,
             productos: parrilla,
             orden,
@@ -398,7 +312,7 @@ app.post("/print", async (req, res) => {
     if (cocina.length > 0 && !esParaLlevar) {
       // Solo procesar productos de cocina para mesas normales
       // Para "para llevar" con brasas, ya se envió todo en el ticket anterior
-      const ticketCocina = generarTicketCocina({
+      const ticketCocina = generarTicketDelivery({
         mesa,
         productos: cocina,
         orden,
