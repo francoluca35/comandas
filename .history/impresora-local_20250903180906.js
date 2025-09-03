@@ -218,8 +218,8 @@ function generarTicketDelivery({ nombre, direccion, productos, total, modo, obse
   return ticket;
 }
 
-// 🧾 Generador de ticket para llevar (basado en delivery pero CON precio)
-function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observacion, total }) {
+// 🧾 Generador de ticket para llevar (basado en delivery pero sin precio)
+function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observacion }) {
   const doble = "\x1D\x21\x11";
   const normal = "\x1D\x21\x00";
   const cortar = "\x1D\x56\x00";
@@ -279,8 +279,7 @@ function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observ
   }
   
   ticket += "\n\n";
-  // MOSTRAR precio para "para llevar" (como solicitó el usuario)
-  ticket += `TOTAL:  $${total || 0.00} \n`;
+  // NO mostrar precio para "para llevar"
   ticket += doble + "======================\n";
   ticket += normal;
   ticket += "\n\n\n";
@@ -314,8 +313,7 @@ app.post("/print", async (req, res) => {
           orden: orden,
           hora: hora,
           fecha: fecha,
-          observacion: null,
-          total: req.body.total || 0 // Agregar el total del pedido
+          observacion: null
         });
         
         const resultado = await imprimirTicket(ip, ticket);
@@ -375,8 +373,7 @@ app.post("/print", async (req, res) => {
             orden: orden, // Usar la orden original del pedido
             hora: hora,   // Usar la hora original del pedido
             fecha: fecha, // Usar la fecha original del pedido
-            observacion: null,
-            total: req.body.total || 0 // Agregar el total del pedido
+            observacion: null
           });
           
           // ENVIAR EL MISMO TICKET DE PARA LLEVAR A AMBAS IMPRESORAS

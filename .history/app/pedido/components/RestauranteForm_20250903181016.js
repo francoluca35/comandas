@@ -432,7 +432,7 @@ export default function RestauranteForm() {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {/* 🧪 Toggle Modo Prueba - COMENTADO
+      {/* 🧪 Toggle Modo Prueba */}
       <div className="flex justify-center mb-6">
         <div className="bg-black/20 p-3 rounded-xl border border-white/10">
           <label className="flex items-center gap-3 text-white">
@@ -454,7 +454,6 @@ export default function RestauranteForm() {
           </p>
         </div>
       </div>
-      */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* LADO IZQUIERDO */}
