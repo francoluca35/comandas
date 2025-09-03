@@ -298,12 +298,8 @@ app.post("/print", async (req, res) => {
     // Nota: 'mesa' puede ser un número (mesa real) o un nombre (cliente para llevar)
     if (ip) {
       // Detectar si es para llevar (cuando mesa es un nombre y no un número)
-      // Para "para llevar" desde RestauranteForm, mesa será el nombre del cliente
       const esParaLlevar = (isNaN(mesa) && mesa !== undefined) || 
-                           (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
-                           (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
-      
-      console.log("🔍 Debug para llevar con IP:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
+                           (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa));
       
       if (esParaLlevar) {
         // Para "para llevar" con IP específica, usar formato de para llevar
@@ -359,8 +355,6 @@ app.post("/print", async (req, res) => {
     const esParaLlevar = (isNaN(mesa) && mesa !== undefined) || 
                          (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
                          (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
-    
-    console.log("🔍 Debug para llevar:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
 
     if (parrilla.length > 0) {
       let ticketParaImprimir;

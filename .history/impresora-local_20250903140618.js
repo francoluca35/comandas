@@ -303,8 +303,6 @@ app.post("/print", async (req, res) => {
                            (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
                            (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
       
-      console.log("🔍 Debug para llevar con IP:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
-      
       if (esParaLlevar) {
         // Para "para llevar" con IP específica, usar formato de para llevar
         const ticket = generarTicketParaLlevar({
