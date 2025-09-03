@@ -199,7 +199,7 @@ export default function DeliveryForm() {
           observacion: item.observacion, // Para ticket/cocina
         }));
 
-        // Lógica de impresión según tipo de pedido
+        // Lógica inteligente de impresión según tipo de pedido
         const tieneBrasas = presupuesto.some(item => {
           const producto = productos.find(p => p.nombre === (item.comida || item.bebida));
           return producto?.categoria?.toLowerCase() === "brasas";
@@ -207,29 +207,14 @@ export default function DeliveryForm() {
 
         console.log("🔍 Debug impresión delivery:", { tieneBrasas, totalProductos: presupuesto.length });
 
+        // COMENTADO: La impresión se realizará solo cuando se confirme el envío desde maps.js
+        // para evitar impresiones duplicadas
+        /*
         if (tieneBrasas) {
-          // Si tiene brasas: 1 en cocina, 1 en parrilla
-          console.log("🔥 Delivery con brasas: enviando 1 a cocina y 1 a parrilla");
+          // Si tiene brasas: 1 en parrilla, 1 en cocina
+          console.log("🔥 Delivery con brasas: enviando a parrilla y cocina");
           
-          // Primera impresión - Cocina
-          await fetch("/api/printdelivery", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre,
-              direccion,
-              observacion,
-              productos: productosParaImprimir,
-              total: pago === "link" ? totalMP : total,
-              hora,
-              fecha,
-              metodoPago: pago,
-              modo: "envio",
-              ip: "192.168.1.100", // IP de cocina
-            }),
-          });
-
-          // Segunda impresión - Parrilla
+          // Primera impresión - Parrilla
           await fetch("/api/printdelivery", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -246,11 +231,8 @@ export default function DeliveryForm() {
               ip: "192.168.1.101", // IP de parrilla
             }),
           });
-        } else {
-          // Si NO tiene brasas: 2 tickets a cocina
-          console.log("🍽️ Delivery sin brasas: enviando 2 tickets a cocina");
-          
-          // Primera impresión - Cocina
+
+          // Segunda impresión - Cocina
           await fetch("/api/printdelivery", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -267,8 +249,11 @@ export default function DeliveryForm() {
               ip: "192.168.1.100", // IP de cocina
             }),
           });
-
-          // Segunda impresión - Cocina (segunda vez)
+        } else {
+          // Si NO tiene brasas: solo 1 ticket para cocina
+          console.log("🍽️ Delivery sin brasas: enviando solo a cocina");
+          
+          // Una sola impresión - Cocina
           await fetch("/api/printdelivery", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -282,10 +267,11 @@ export default function DeliveryForm() {
               fecha,
               metodoPago: pago,
               modo: "envio",
-              ip: "192.168.1.100", // IP de cocina (segunda vez)
+              ip: "192.168.1.100", // IP de cocina
             }),
           });
         }
+        */
 
         Swal.fire("Pedido enviado correctamente", "", "success");
         resetFormulario();
