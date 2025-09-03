@@ -28,7 +28,7 @@ export default function RestauranteForm() {
   const [observacion, setObservacion] = useState("");
   // Observación por producto (para ticket/cocina)
   const [observacionProducto, setObservacionProducto] = useState("");
-  // const [modoPrueba, setModoPrueba] = useState(true); // 🧪 MODO PRUEBA: true = PDF, false = impresora real
+  const [modoPrueba, setModoPrueba] = useState(true); // 🧪 MODO PRUEBA: true = PDF, false = impresora real
 
   const productosFiltrados = productos.filter((p) =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -174,12 +174,12 @@ export default function RestauranteForm() {
 
         console.log("🔍 Debug impresión retiro:", { tieneBrasas, totalProductos: presupuesto.length });
 
-        // if (modoPrueba) {
-        //   // 🧪 MODO PRUEBA: Generar PDF en lugar de imprimir
-        //   console.log("🧪 MODO PRUEBA: Generando PDF del ticket");
-        //   generarPDFTicket(productosParaImprimir, totalParaImprimir, tieneBrasas);
-        // } else {
-        //   // 🖨️ MODO REAL: Imprimir en impresoras físicas
+        if (modoPrueba) {
+          // 🧪 MODO PRUEBA: Generar PDF en lugar de imprimir
+          console.log("🧪 MODO PRUEBA: Generando PDF del ticket");
+          generarPDFTicket(productosParaImprimir, totalParaImprimir, tieneBrasas);
+        } else {
+          // 🖨️ MODO REAL: Imprimir en impresoras físicas
           if (tieneBrasas) {
             // Si tiene brasas: 1 en cocina, 1 en parrilla
             console.log("🔥 Retiro con brasas: enviando a parrilla y cocina");
@@ -245,14 +245,9 @@ export default function RestauranteForm() {
               }),
             });
           }
-        // }
+        }
 
-        // if (modoPrueba) {
-        //   Swal.fire("PDF de Prueba Generado", "El ticket se mostró en una nueva ventana", "success");
-        // } else {
-        //   Swal.fire("Pedido enviado correctamente", "Se imprimió en las impresoras", "success");
-        // }
-        Swal.fire("Pedido enviado correctamente", "Se imprimió en las impresoras", "success");
+        Swal.fire("Pedido enviado correctamente", "", "success");
         resetFormulario();
       } else {
         Swal.fire("Error", "No se pudo enviar el pedido", "error");
@@ -431,32 +426,7 @@ export default function RestauranteForm() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* 🧪 Toggle Modo Prueba - COMENTADO
-      <div className="flex justify-center mb-6">
-        <div className="bg-black/20 p-3 rounded-xl border border-white/10">
-          <label className="flex items-center gap-3 text-white">
-            <input
-              type="checkbox"
-              checked={modoPrueba}
-              onChange={(e) => setModoPrueba(e.target.checked)}
-              className="w-4 h-4 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
-            />
-            <span className="font-semibold">
-              {modoPrueba ? "🧪 MODO PRUEBA (PDF)" : "🖨️ MODO REAL (Impresora)"}
-            </span>
-          </label>
-          <p className="text-xs text-gray-400 mt-1 text-center">
-            {modoPrueba 
-              ? "Genera PDF para verificar el formato del ticket" 
-              : "Envía a impresoras físicas reales"
-            }
-          </p>
-        </div>
-      </div>
-      */}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
       {/* LADO IZQUIERDO */}
       <div className="flex flex-col gap-4 bg-black/20 p-6 rounded-xl">
         {/* Productos */}
@@ -637,7 +607,6 @@ export default function RestauranteForm() {
         >
           {enviando ? 'Enviando...' : 'Hacer Pedido'}
         </button>
-      </div>
       </div>
     </div>
   );

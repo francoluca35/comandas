@@ -314,8 +314,7 @@ app.post("/print", async (req, res) => {
           orden: orden,
           hora: hora,
           fecha: fecha,
-          observacion: null,
-          total: req.body.total || 0 // Agregar el total del pedido
+          observacion: null
         });
         
         const resultado = await imprimirTicket(ip, ticket);
@@ -375,8 +374,7 @@ app.post("/print", async (req, res) => {
             orden: orden, // Usar la orden original del pedido
             hora: hora,   // Usar la hora original del pedido
             fecha: fecha, // Usar la fecha original del pedido
-            observacion: null,
-            total: req.body.total || 0 // Agregar el total del pedido
+            observacion: null
           });
           
           // ENVIAR EL MISMO TICKET DE PARA LLEVAR A AMBAS IMPRESORAS
