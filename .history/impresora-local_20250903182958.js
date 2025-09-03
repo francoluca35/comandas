@@ -280,7 +280,6 @@ function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observ
   
   ticket += "\n\n";
   // MOSTRAR precio para "para llevar" (como solicitó el usuario)
-  console.log("🔍 Debug generarTicketParaLlevar - total recibido:", total);
   ticket += `TOTAL:  $${total || 0.00} \n`;
   ticket += doble + "======================\n";
   ticket += normal;
@@ -305,7 +304,7 @@ app.post("/print", async (req, res) => {
                            (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
                            (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
       
-      console.log("🔍 Debug para llevar con IP:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa), total: total });
+      console.log("🔍 Debug para llevar con IP:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
       
       if (esParaLlevar) {
         // Para "para llevar" con IP específica, usar formato de para llevar
@@ -508,139 +507,6 @@ app.get("/status", (req, res) => {
       puerto: PUERTO
     }
   });
-});
-
-// 📋 Ruta para verificar versión del servidor (desde PC remoto)
-app.get("/version", (req, res) => {
-  const version = {
-    version: "1.2.0",
-    fecha: new Date().toISOString(),
-    cambios: [
-      "✅ Precio visible en tickets 'Para Llevar'",
-      "✅ Lógica corregida para detección de 'Para Llevar'",
-      "✅ Total extraído correctamente del req.body",
-      "✅ Tickets duplicados para brasas (parrilla + cocina)",
-      "✅ Tickets duplicados para no-brasas (2x cocina)"
-    ],
-    servidor: "impresora-local.js",
-    puerto: PORT,
-    impresoras: {
-      cocina: IP_COCINA,
-      parrilla: IP_PARRILLA
-    }
-  };
-  
-  res.json(version);
-});
-
-// 🔍 Ruta para debug completo del servidor
-app.get("/debug", (req, res) => {
-  const debugInfo = {
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memoria: process.memoryUsage(),
-    version: process.version,
-    plataforma: process.platform,
-    arch: process.arch,
-    pid: process.pid,
-    configuracion: {
-      puerto: PORT,
-      ip_cocina: IP_COCINA,
-      ip_parrilla: IP_PARRILLA,
-      puerto_impresora: PUERTO
-    },
-    funciones_disponibles: [
-      "generarTicketCocina",
-      "generarTicketDelivery", 
-      "generarTicketParaLlevar",
-      "imprimirTicket"
-    ]
-  };
-  
-  res.json(debugInfo);
-});
-
-// 🖨️ Ruta para verificar estado de las impresoras
-app.get("/check-printers", async (req, res) => {
-  try {
-    const resultados = {};
-    
-    // Verificar impresora de cocina
-    try {
-      const socketCocina = new net.Socket();
-      socketCocina.setTimeout(3000);
-      
-      await new Promise((resolve, reject) => {
-        socketCocina.connect(PUERTO, IP_COCINA, () => {
-          socketCocina.end();
-          resolve();
-        });
-        
-        socketCocina.on("error", reject);
-        socketCocina.on("timeout", () => {
-          socketCocina.destroy();
-          reject(new Error("Timeout"));
-        });
-      });
-      
-      resultados.cocina = {
-        ip: IP_COCINA,
-        estado: "✅ CONECTADA",
-        puerto: PUERTO
-      };
-    } catch (error) {
-      resultados.cocina = {
-        ip: IP_COCINA,
-        estado: "❌ DESCONECTADA",
-        puerto: PUERTO,
-        error: error.message
-      };
-    }
-    
-    // Verificar impresora de parrilla
-    try {
-      const socketParrilla = new net.Socket();
-      socketParrilla.setTimeout(3000);
-      
-      await new Promise((resolve, reject) => {
-        socketParrilla.connect(PUERTO, IP_PARRILLA, () => {
-          socketParrilla.end();
-          resolve();
-        });
-        
-        socketParrilla.on("error", reject);
-        socketParrilla.on("timeout", () => {
-          socketParrilla.destroy();
-          reject(new Error("Timeout"));
-        });
-      });
-      
-      resultados.parrilla = {
-        ip: IP_PARRILLA,
-        estado: "✅ CONECTADA",
-        puerto: PUERTO
-      };
-    } catch (error) {
-      resultados.parrilla = {
-        ip: IP_PARRILLA,
-        estado: "❌ DESCONECTADA",
-        puerto: PUERTO,
-        error: error.message
-      };
-    }
-    
-    res.json({
-      timestamp: new Date().toISOString(),
-      estado: "Verificación completada",
-      impresoras: resultados
-    });
-    
-  } catch (error) {
-    res.status(500).json({
-      error: "Error al verificar impresoras",
-      message: error.message
-    });
-  }
 });
 
 // 🔄 Ruta para actualización automática (webhook)
