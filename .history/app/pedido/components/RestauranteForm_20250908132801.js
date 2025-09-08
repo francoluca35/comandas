@@ -166,24 +166,14 @@ export default function RestauranteForm() {
         // Calcular el total para impresión
         const totalParaImprimir = pago === "qr" ? totalMP : total;
 
-        // Separar productos por categoría para tickets separados
-        const productosBrasas = productosParaImprimir.filter(p => {
-          const producto = productos.find(prod => prod.nombre === p.nombre);
+        // Lógica inteligente de impresión según tipo de pedido
+        const tieneBrasas = presupuesto.some(item => {
+          const producto = productos.find(p => p.nombre === (item.comida || item.bebida));
           return producto?.categoria?.toLowerCase() === "brasas";
         });
-        const productosNoBrasas = productosParaImprimir.filter(p => {
-          const producto = productos.find(prod => prod.nombre === p.nombre);
-          return producto?.categoria?.toLowerCase() !== "brasas";
-        });
-        
-        const tieneBrasas = productosBrasas.length > 0;
-        const tieneNoBrasas = productosNoBrasas.length > 0;
 
-        console.log("🔍 Debug impresión retiro mixta:", { 
+        console.log("🔍 Debug impresión retiro:", { 
           tieneBrasas, 
-          tieneNoBrasas,
-          productosBrasas: productosBrasas.length,
-          productosNoBrasas: productosNoBrasas.length,
           totalProductos: presupuesto.length, 
           totalParaImprimir, 
           pago, 
@@ -191,70 +181,79 @@ export default function RestauranteForm() {
           total 
         });
 
-        const enviarAImpresora = async (items, ip, tipoImpresora, mostrarPrecio = true) => {
-          if (items.length === 0) return;
-          
-          console.log(`📤 Enviando a ${tipoImpresora}:`, { ip, items: items.length, cliente: nombre, mostrarPrecio });
-          
-          try {
-            const res = await fetch("/api/print", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                mesa: nombre, // Usar nombre como mesa para compatibilidad
-                productos: items,
-                total: mostrarPrecio ? totalParaImprimir : null, // Solo enviar precio si mostrarPrecio es true
-                orden: Date.now(),
-                hora,
-                fecha,
-                metodoPago: pago,
-                ip,
-                mostrarPrecio, // Agregar el parámetro
-              }),
-            });
-            
-            console.log(`📥 Respuesta ${tipoImpresora}:`, { status: res.status, ok: res.ok });
-            
-            if (!res.ok) throw new Error();
-          } catch (err) {
-            console.error(`❌ Error al imprimir en ${tipoImpresora}:`, err);
-            Swal.fire("Error", `No se pudo imprimir el ticket de ${tipoImpresora}`, "error");
-          }
-        };
-
         // if (modoPrueba) {
         //   // 🧪 MODO PRUEBA: Generar PDF en lugar de imprimir
         //   console.log("🧪 MODO PRUEBA: Generando PDF del ticket");
         //   generarPDFTicket(productosParaImprimir, totalParaImprimir, tieneBrasas);
         // } else {
         //   // 🖨️ MODO REAL: Imprimir en impresoras físicas
-        if (tieneBrasas && tieneNoBrasas) {
-          // Productos mixtos: Parrilla solo brasas, Cocina 2 tickets (no brasas + todos juntos)
-          console.log("🔥🍽️ Retiro con productos mixtos: enviando tickets separados");
-          
-          // Ticket 1: Solo brasas para parrilla (SIN precio)
-          console.log("🔥 Enviando brasas a parrilla (192.168.1.101) - SIN precio");
-          await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla", false);
-          
-          // Ticket 2: Solo no brasas para cocina (SIN precio)
-          console.log("🍽️ Enviando no brasas a cocina (192.168.1.100) - SIN precio");
-          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina (solo no brasas)", false);
-          
-          // Ticket 3: TODOS los productos juntos para cocina (CON precio)
-          console.log("🍽️ Enviando TODOS los productos a cocina (192.168.1.100) - CON precio");
-          await enviarAImpresora(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)", true);
-          
-        } else if (tieneBrasas) {
-          // Solo brasas: 1 ticket en parrilla (SIN precio)
-          console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101) - SIN precio");
-          await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla", false);
-          
-        } else if (tieneNoBrasas) {
-          // Solo no brasas: 2 tickets en cocina (SIN precio el primero, CON precio el segundo)
-          console.log("🍽️ Solo no brasas: enviando 2 tickets a cocina");
-          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina", false);
-          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina (duplicado)", true);
-        }
+          if (tieneBrasas) {
+            // Si tiene brasas: 1 en cocina, 1 en parrilla
+            console.log("🔥 Retiro con brasas: enviando a parrilla y cocina");
+            const payloadParrilla = {
+              mesa: nombre, // Usar nombre como mesa para compatibilidad
+              productos: productosParaImprimir,
+              total: totalParaImprimir, // Agregar precio total
+              orden: Date.now(),
+              hora,
+              fecha,
+              metodoPago: pago,
+              ip: "192.168.1.101", // IP de parrilla
+            };
+            console.log("🖨️ Enviando a parrilla:", payloadParrilla);
+            await fetch("/api/print", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payloadParrilla),
+            });
+
+            await fetch("/api/print", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mesa: nombre, // Usar nombre como mesa para compatibilidad
+                productos: productosParaImprimir,
+                total: totalParaImprimir, // Agregar precio total
+                orden: Date.now(),
+                hora,
+                fecha,
+                metodoPago: pago,
+                ip: "192.168.1.100", // IP de cocina
+              }),
+            });
+          } else {
+            // Si NO tiene brasas: 2 en cocina, 0 en parrilla
+            console.log("🍽️ Retiro sin brasas: enviando 2 a cocina");
+            await fetch("/api/print", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mesa: nombre, // Usar nombre como mesa para compatibilidad
+                productos: productosParaImprimir,
+                total: totalParaImprimir, // Agregar precio total
+                orden: Date.now(),
+                hora,
+                fecha,
+                metodoPago: pago,
+                ip: "192.168.1.100", // IP de cocina
+              }),
+            });
+
+            await fetch("/api/print", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mesa: nombre, // Usar nombre como mesa para compatibilidad
+                productos: productosParaImprimir,
+                total: totalParaImprimir, // Agregar precio total
+                orden: Date.now(),
+                hora,
+                fecha,
+                metodoPago: pago,
+                ip: "192.168.1.100", // IP de cocina (segunda vez)
+              }),
+            });
+          }
         // }
 
         // if (modoPrueba) {
