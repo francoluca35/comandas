@@ -190,21 +190,19 @@ export default function RestauranteForm() {
           if (tieneBrasas) {
             // Si tiene brasas: 1 en cocina, 1 en parrilla
             console.log("🔥 Retiro con brasas: enviando a parrilla y cocina");
-            const payloadParrilla = {
-              mesa: nombre, // Usar nombre como mesa para compatibilidad
-              productos: productosParaImprimir,
-              total: totalParaImprimir, // Agregar precio total
-              orden: Date.now(),
-              hora,
-              fecha,
-              metodoPago: pago,
-              ip: "192.168.1.101", // IP de parrilla
-            };
-            console.log("🖨️ Enviando a parrilla:", payloadParrilla);
             await fetch("/api/print", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payloadParrilla),
+              body: JSON.stringify({
+                mesa: nombre, // Usar nombre como mesa para compatibilidad
+                productos: productosParaImprimir,
+                total: totalParaImprimir, // Agregar precio total
+                orden: Date.now(),
+                hora,
+                fecha,
+              metodoPago: pago,
+                ip: "192.168.1.101", // IP de parrilla
+              }),
             });
 
             await fetch("/api/print", {
