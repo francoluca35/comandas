@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const net = require("net");
-//franco
+
 const app = express();
 const PORT = 4000;
 
@@ -282,9 +282,7 @@ function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observ
   ticket += "\n\n";
   // MOSTRAR precio para "para llevar" (como solicitó el usuario)
   console.log("🔍 Debug generarTicketParaLlevar - total recibido:", total);
-  if (total !== null && total !== undefined) {
-    ticket += `TOTAL:  $${total || 0.00} \n`;
-  }
+  ticket += `TOTAL:  $${total || 0.00} \n`;
   ticket += doble + "======================\n";
   ticket += normal;
   ticket += "\n\n\n";
@@ -385,29 +383,8 @@ app.post("/print", async (req, res) => {
           });
           
           // ENVIAR EL MISMO TICKET DE PARA LLEVAR A AMBAS IMPRESORAS
-          // Pero con diferentes configuraciones de precio
-          const ticketParrilla = generarTicketParaLlevar({
-            nombre: mesa,
-            productos: productos,
-            orden: orden,
-            hora: hora,
-            fecha: fecha,
-            observacion: null,
-            total: null // Parrilla sin precio
-          });
-          
-          const ticketCocina = generarTicketParaLlevar({
-            nombre: mesa,
-            productos: productos,
-            orden: orden,
-            hora: hora,
-            fecha: fecha,
-            observacion: null,
-            total: total // Cocina con precio
-          });
-          
-          resultadoParrilla = await imprimirTicket(IP_PARRILLA, ticketParrilla);
-          resultadoCocina = await imprimirTicket(IP_COCINA, ticketCocina);
+          resultadoParrilla = await imprimirTicket(IP_PARRILLA, ticketParaImprimir);
+          resultadoCocina = await imprimirTicket(IP_COCINA, ticketParaImprimir);
         } else {
           // Para mesas normales, usar generarTicketCocina
           ticketParaImprimir = generarTicketCocina({
@@ -435,38 +412,10 @@ app.post("/print", async (req, res) => {
         hora,
         fecha,
         metodoPago,
-        mostrarPrecio: false, // Cocina sin precio
       });
       
       const resultadoCocinaNormal = await imprimirTicket(IP_COCINA, ticketCocina);
       resultadoCocina = resultadoCocinaNormal;
-    }
-    
-    // Para "para llevar" sin brasas, generar 2 tickets en cocina
-    if (cocina.length > 0 && esParaLlevar && parrilla.length === 0) {
-      const ticketCocinaSinPrecio = generarTicketParaLlevar({
-        nombre: mesa,
-        productos: cocina,
-        orden: orden,
-        hora: hora,
-        fecha: fecha,
-        observacion: null,
-        total: null // Sin precio
-      });
-      
-      const ticketCocinaConPrecio = generarTicketParaLlevar({
-        nombre: mesa,
-        productos: cocina,
-        orden: orden,
-        hora: hora,
-        fecha: fecha,
-        observacion: null,
-        total: total // Con precio
-      });
-      
-      // Enviar ambos tickets a cocina
-      await imprimirTicket(IP_COCINA, ticketCocinaSinPrecio);
-      resultadoCocina = await imprimirTicket(IP_COCINA, ticketCocinaConPrecio);
     }
 
     res.json({
@@ -527,56 +476,22 @@ app.post("/printdelivery", async (req, res) => {
         mostrarPrecio: false, // Parrilla sin precio
       });
       
-      // ENVIAR TICKETS CON DIFERENTES CONFIGURACIONES DE PRECIO
-      const ticketParrilla = generarTicketDelivery({
-        nombre,
-        direccion,
-        productos: productos,
-        total: null, // Parrilla sin precio
-        modo,
-        observacion,
-        mostrarPrecio: false,
-      });
-      
-      const ticketCocina = generarTicketDelivery({
-        nombre,
-        direccion,
-        productos: productos,
-        total: total, // Cocina con precio
-        modo,
-        observacion,
-        mostrarPrecio: true,
-      });
-      
-      resultadoParrilla = await imprimirTicket(IP_PARRILLA, ticketParrilla);
-      resultadoCocina = await imprimirTicket(IP_COCINA, ticketCocina);
+      // ENVIAR EL MISMO TICKET A AMBAS IMPRESORAS
+      resultadoParrilla = await imprimirTicket(IP_PARRILLA, ticketParaImprimir);
+      resultadoCocina = await imprimirTicket(IP_COCINA, ticketParaImprimir);
       
     } else if (cocina.length > 0) {
       // Solo productos de cocina (sin brasas) van solo a COCINA
-      // Generar 2 tickets: uno sin precio y otro con precio
-      const ticketCocinaSinPrecio = generarTicketDelivery({
+      const ticketCocina = generarTicketDelivery({
         nombre,
         direccion,
         productos: cocina,
-        total: null,
+        total: null, // No usar total predefinido, calcularlo internamente
         modo,
         observacion,
-        mostrarPrecio: false, // Sin precio
+        mostrarPrecio: false, // Cocina sin precio
       });
-      
-      const ticketCocinaConPrecio = generarTicketDelivery({
-        nombre,
-        direccion,
-        productos: cocina,
-        total: total,
-        modo,
-        observacion,
-        mostrarPrecio: true, // Con precio
-      });
-      
-      // Enviar ambos tickets a cocina
-      await imprimirTicket(IP_COCINA, ticketCocinaSinPrecio);
-      resultadoCocina = await imprimirTicket(IP_COCINA, ticketCocinaConPrecio);
+      resultadoCocina = await imprimirTicket(IP_COCINA, ticketCocina);
     }
 
     res.json({

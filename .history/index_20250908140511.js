@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const net = require("net");
-//franco
+//
 const app = express();
 const PORT = 4000;
 
@@ -440,33 +440,6 @@ app.post("/print", async (req, res) => {
       
       const resultadoCocinaNormal = await imprimirTicket(IP_COCINA, ticketCocina);
       resultadoCocina = resultadoCocinaNormal;
-    }
-    
-    // Para "para llevar" sin brasas, generar 2 tickets en cocina
-    if (cocina.length > 0 && esParaLlevar && parrilla.length === 0) {
-      const ticketCocinaSinPrecio = generarTicketParaLlevar({
-        nombre: mesa,
-        productos: cocina,
-        orden: orden,
-        hora: hora,
-        fecha: fecha,
-        observacion: null,
-        total: null // Sin precio
-      });
-      
-      const ticketCocinaConPrecio = generarTicketParaLlevar({
-        nombre: mesa,
-        productos: cocina,
-        orden: orden,
-        hora: hora,
-        fecha: fecha,
-        observacion: null,
-        total: total // Con precio
-      });
-      
-      // Enviar ambos tickets a cocina
-      await imprimirTicket(IP_COCINA, ticketCocinaSinPrecio);
-      resultadoCocina = await imprimirTicket(IP_COCINA, ticketCocinaConPrecio);
     }
 
     res.json({

@@ -263,28 +263,28 @@ export default function DeliveryForm() {
           // Productos mixtos: Parrilla solo brasas, Cocina 2 tickets (no brasas + todos juntos)
           console.log("🔥🍽️ Delivery con productos mixtos: enviando tickets separados");
           
-          // Ticket 1: Solo brasas para parrilla (SIN precio)
-          console.log("🔥 Enviando brasas a parrilla (192.168.1.101) - SIN precio");
-          await enviarAImpresoraDelivery(productosBrasas, "192.168.1.101", "parrilla", false);
+          // Ticket 1: Solo brasas para parrilla
+          console.log("🔥 Enviando brasas a parrilla (192.168.1.101)");
+          await enviarAImpresoraDelivery(productosBrasas, "192.168.1.101", "parrilla");
           
-          // Ticket 2: Solo no brasas para cocina (SIN precio)
-          console.log("🍽️ Enviando no brasas a cocina (192.168.1.100) - SIN precio");
-          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina (solo no brasas)", false);
+          // Ticket 2: Solo no brasas para cocina
+          console.log("🍽️ Enviando no brasas a cocina (192.168.1.100)");
+          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina (solo no brasas)");
           
-          // Ticket 3: TODOS los productos juntos para cocina (CON precio)
-          console.log("🍽️ Enviando TODOS los productos a cocina (192.168.1.100) - CON precio");
-          await enviarAImpresoraDelivery(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)", true);
+          // Ticket 3: TODOS los productos juntos para cocina
+          console.log("🍽️ Enviando TODOS los productos a cocina (192.168.1.100)");
+          await enviarAImpresoraDelivery(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)");
           
         } else if (tieneBrasas) {
-          // Solo brasas: 1 ticket en parrilla (SIN precio)
-          console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101) - SIN precio");
-          await enviarAImpresoraDelivery(productosBrasas, "192.168.1.101", "parrilla", false);
+          // Solo brasas: 1 ticket en parrilla
+          console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101)");
+          await enviarAImpresoraDelivery(productosBrasas, "192.168.1.101", "parrilla");
           
         } else if (tieneNoBrasas) {
-          // Solo no brasas: 2 tickets en cocina (SIN precio el primero, CON precio el segundo)
+          // Solo no brasas: 2 tickets en cocina (como antes)
           console.log("🍽️ Solo no brasas: enviando 2 tickets a cocina");
-          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina", false);
-          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina (duplicado)", true);
+          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina");
+          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina (duplicado)");
         }
 
         Swal.fire("Pedido enviado correctamente", "", "success");

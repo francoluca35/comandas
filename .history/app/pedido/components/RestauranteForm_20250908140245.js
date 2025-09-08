@@ -6,12 +6,10 @@ import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import QRCode from "react-qr-code";
 
-export default function DeliveryForm() {
+export default function RestauranteForm() {
   const { productos } = useProductos();
 
   const [nombre, setNombre] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [observacion, setObservacion] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidad, setCantidad] = useState(1);
@@ -20,33 +18,37 @@ export default function DeliveryForm() {
   const [externalReference, setExternalReference] = useState("");
   const [presupuesto, setPresupuesto] = useState([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const [esperandoPago, setEsperandoPago] = useState(false);
   const [comisionMP, setComisionMP] = useState(0);
-  const [observacionProducto, setObservacionProducto] = useState("");
-  const [total, setTotal] = useState(0);
   const [totalMP, setTotalMP] = useState(0);
   const [enviando, setEnviando] = useState(false); // Protección contra múltiples clics
-  const [linkGenerado, setLinkGenerado] = useState(false); // Control para evitar regenerar link
+  const [qrGenerado, setQrGenerado] = useState(false); // Control para evitar regenerar QR
 
-  // Calcular el total cada vez que cambia el presupuesto
-  useEffect(() => {
-    const t = presupuesto.reduce((total, item) => {
+  // Observación general del pedido (para el repartidor)
+  const [observacion, setObservacion] = useState("");
+  // Observación por producto (para ticket/cocina)
+  const [observacionProducto, setObservacionProducto] = useState("");
+  // const [modoPrueba, setModoPrueba] = useState(true); // 🧪 MODO PRUEBA: true = PDF, false = impresora real
+
+  const productosFiltrados = productos.filter((p) =>
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const calcularTotal = () => {
+    return presupuesto.reduce((total, item) => {
       const comidaProd = productos.find((p) => p.nombre === item.comida);
       const bebidaProd = productos.find((p) => p.nombre === item.bebida);
       const base = (comidaProd?.precio || 0) * (item.cantidad || 1);
       const bebidaPrecio = (bebidaProd?.precio || 0) * (item.cantidad || 1);
       return total + base + bebidaPrecio;
     }, 0);
-    setTotal(t);
-  }, [presupuesto, productos]);
+  };
 
-  // Calcular el total + comision si es link
+  const total = calcularTotal();
+
   useEffect(() => {
     setTotalMP(Math.round((Number(total) + Number(comisionMP)) * 100) / 100);
   }, [total, comisionMP]);
-
-  const productosFiltrados = productos.filter((p) =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
 
   const agregarProducto = () => {
     if (!productoSeleccionado || cantidad < 1) return;
@@ -57,7 +59,7 @@ export default function DeliveryForm() {
         comida: tipo !== "bebida" ? productoSeleccionado : "",
         bebida: tipo === "bebida" ? productoSeleccionado : "",
         cantidad,
-        observacion: observacionProducto,
+        observacion: observacionProducto, // Observación por producto
       },
     ]);
     setProductoSeleccionado("");
@@ -70,18 +72,18 @@ export default function DeliveryForm() {
     setPresupuesto((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Mercado Pago
-  const generarPagoDelivery = async () => {
-    // Evitar regenerar si ya existe un link
-    if (urlPago && linkGenerado) return;
+  // Adaptar QR para sumar la comision
+  const generarPagoQR = async () => {
+    // Evitar regenerar si ya existe un QR
+    if (urlPago && qrGenerado) return;
     
     try {
-      setLinkGenerado(true);
-      const res = await fetch("/api/mercado-pago/crear-pago-delivery", {
+      setQrGenerado(true);
+      const res = await fetch("/api/mercado-pago/crear-pago-qr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          total: totalMP, // Incluye la comisión!
+          total: totalMP, // Incluye la comisión
           nombreCliente: nombre || "Cliente",
         }),
       });
@@ -91,74 +93,37 @@ export default function DeliveryForm() {
       if (res.ok) {
         setUrlPago(data.init_point);
         setExternalReference(data.external_reference);
+        setEsperandoPago(true);
+        esperarConfirmacionPago(data.external_reference);
       } else {
-        console.error("Error al generar el link:", data.error);
-        setLinkGenerado(false);
+        Swal.fire("Error", "No se pudo generar el QR", "error");
+        setQrGenerado(false);
       }
-    } catch (err) {
-      console.error("Error en generarPagoDelivery:", err);
-      setLinkGenerado(false);
+    } catch (error) {
+      console.error("Error en generarPagoQR:", error);
+      setQrGenerado(false);
     }
   };
 
-  // useEffect optimizado para evitar múltiples llamadas
-  useEffect(() => {
-    if (pago === "link" && total > 0 && !linkGenerado) {
-      generarPagoDelivery();
-    }
-  }, [pago, totalMP, linkGenerado]); // Agregamos linkGenerado como dependencia
-
-  const esperarConfirmacionPago = () => {
+  const esperarConfirmacionPago = (ref) => {
     let intentos = 0;
     const interval = setInterval(async () => {
-      const res = await fetch(`/api/mercado-pago/estado/${externalReference}`);
+      const res = await fetch(`/api/mercado-pago/estado/${ref}`);
       const data = await res.json();
+
       if (data.status === "approved") {
         clearInterval(interval);
-        Swal.close();
+        setEsperandoPago(false);
         enviarPedidoFinal();
       }
+
       intentos++;
       if (intentos >= 24) {
         clearInterval(interval);
-        Swal.fire("Pago no confirmado", "Intenta nuevamente.", "error");
+        setEsperandoPago(false);
+        Swal.fire("Pago no confirmado", "Intenta nuevamente", "error");
       }
     }, 5000);
-  };
-
-  const enviarPedido = async () => {
-    // Protección contra múltiples clics
-    if (enviando) return;
-    
-    if (!nombre || !direccion || presupuesto.length === 0 || !pago) {
-      Swal.fire("Completa todos los campos", "", "warning");
-      return;
-    }
-
-    setEnviando(true);
-
-    try {
-      if (pago === "efectivo") {
-        await enviarPedidoFinal();
-      } else if (pago === "link") {
-        if (!urlPago) {
-          await generarPagoDelivery();
-        }
-        esperarConfirmacionPago();
-        Swal.fire({
-          title: "Esperando pago...",
-          html: "Por favor, espera mientras se confirma el pago.",
-          allowOutsideClick: false,
-          showConfirmButton: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Error en enviarPedido:", error);
-      setEnviando(false);
-    }
   };
 
   const enviarPedidoFinal = async () => {
@@ -170,16 +135,15 @@ export default function DeliveryForm() {
     const fecha = now.toLocaleDateString("es-AR");
 
     const payload = {
-      modoPedido: "delivery",
-      tipo: "delivery",
+      modoPedido: "restaurante",
+      tipo: "entregalocal",
       nombre,
-      direccion,
-      observacion,
+      observacion, // Observación general para el repartidor
       formaDePago: pago,
       comidas: presupuesto,
-      total: pago === "link" ? totalMP : total, // Si es link, suma comision
-      comision: pago === "link" ? comisionMP : 0,
-      modo: "envio",
+      total: pago === "qr" ? totalMP : total,
+      comision: pago === "qr" ? comisionMP : 0,
+      modo: "retiro",
       estado: "en curso",
       fecha: now.toLocaleString("es-AR"),
       timestamp: now,
@@ -193,17 +157,14 @@ export default function DeliveryForm() {
       });
 
       if (res.ok) {
-        const productosParaImprimir = presupuesto.map((item) => {
-          const producto = productos.find(p => p.nombre === (item.comida || item.bebida));
-          return {
-            nombre: item.comida || item.bebida,
-            cantidad: item.cantidad,
-            observacion: item.observacion, // Para ticket/cocina
-            precio: producto?.precio || 0, // Incluir el precio del producto
-            categoria: producto?.categoria || "", // Incluir la categoría para detectar brasas
-            adicionales: item.adicionales || [] // Incluir adicionales si los hay
-          };
-        });
+        const productosParaImprimir = presupuesto.map((item) => ({
+          nombre: item.comida || item.bebida,
+          cantidad: item.cantidad,
+          observacion: item.observacion, // Para ticket/cocina
+        }));
+
+        // Calcular el total para impresión
+        const totalParaImprimir = pago === "qr" ? totalMP : total;
 
         // Separar productos por categoría para tickets separados
         const productosBrasas = productosParaImprimir.filter(p => {
@@ -218,33 +179,35 @@ export default function DeliveryForm() {
         const tieneBrasas = productosBrasas.length > 0;
         const tieneNoBrasas = productosNoBrasas.length > 0;
 
-        console.log("🔍 Debug impresión delivery mixta:", { 
+        console.log("🔍 Debug impresión retiro mixta:", { 
           tieneBrasas, 
           tieneNoBrasas,
           productosBrasas: productosBrasas.length,
           productosNoBrasas: productosNoBrasas.length,
-          totalProductos: presupuesto.length 
+          totalProductos: presupuesto.length, 
+          totalParaImprimir, 
+          pago, 
+          totalMP, 
+          total 
         });
 
-        const enviarAImpresoraDelivery = async (items, ip, tipoImpresora, mostrarPrecio = true) => {
+        const enviarAImpresora = async (items, ip, tipoImpresora, mostrarPrecio = true) => {
           if (items.length === 0) return;
           
           console.log(`📤 Enviando a ${tipoImpresora}:`, { ip, items: items.length, cliente: nombre, mostrarPrecio });
           
           try {
-            const res = await fetch("/api/printdelivery", {
+            const res = await fetch("/api/print", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                nombre,
-                direccion,
-                observacion,
+                mesa: nombre, // Usar nombre como mesa para compatibilidad
                 productos: items,
-                total: mostrarPrecio ? (pago === "link" ? totalMP : total) : null,
+                total: mostrarPrecio ? totalParaImprimir : null, // Solo enviar precio si mostrarPrecio es true
+                orden: Date.now(),
                 hora,
                 fecha,
                 metodoPago: pago,
-                modo: "envio",
                 ip,
                 mostrarPrecio, // Agregar el parámetro
               }),
@@ -259,35 +222,47 @@ export default function DeliveryForm() {
           }
         };
 
+        // if (modoPrueba) {
+        //   // 🧪 MODO PRUEBA: Generar PDF en lugar de imprimir
+        //   console.log("🧪 MODO PRUEBA: Generando PDF del ticket");
+        //   generarPDFTicket(productosParaImprimir, totalParaImprimir, tieneBrasas);
+        // } else {
+        //   // 🖨️ MODO REAL: Imprimir en impresoras físicas
         if (tieneBrasas && tieneNoBrasas) {
           // Productos mixtos: Parrilla solo brasas, Cocina 2 tickets (no brasas + todos juntos)
-          console.log("🔥🍽️ Delivery con productos mixtos: enviando tickets separados");
+          console.log("🔥🍽️ Retiro con productos mixtos: enviando tickets separados");
           
-          // Ticket 1: Solo brasas para parrilla (SIN precio)
-          console.log("🔥 Enviando brasas a parrilla (192.168.1.101) - SIN precio");
-          await enviarAImpresoraDelivery(productosBrasas, "192.168.1.101", "parrilla", false);
+          // Ticket 1: Solo brasas para parrilla
+          console.log("🔥 Enviando brasas a parrilla (192.168.1.101)");
+          await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla");
           
-          // Ticket 2: Solo no brasas para cocina (SIN precio)
-          console.log("🍽️ Enviando no brasas a cocina (192.168.1.100) - SIN precio");
-          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina (solo no brasas)", false);
+          // Ticket 2: Solo no brasas para cocina
+          console.log("🍽️ Enviando no brasas a cocina (192.168.1.100)");
+          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina (solo no brasas)");
           
-          // Ticket 3: TODOS los productos juntos para cocina (CON precio)
-          console.log("🍽️ Enviando TODOS los productos a cocina (192.168.1.100) - CON precio");
-          await enviarAImpresoraDelivery(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)", true);
+          // Ticket 3: TODOS los productos juntos para cocina
+          console.log("🍽️ Enviando TODOS los productos a cocina (192.168.1.100)");
+          await enviarAImpresora(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)");
           
         } else if (tieneBrasas) {
-          // Solo brasas: 1 ticket en parrilla (SIN precio)
-          console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101) - SIN precio");
-          await enviarAImpresoraDelivery(productosBrasas, "192.168.1.101", "parrilla", false);
+          // Solo brasas: 1 ticket en parrilla
+          console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101)");
+          await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla");
           
         } else if (tieneNoBrasas) {
-          // Solo no brasas: 2 tickets en cocina (SIN precio el primero, CON precio el segundo)
+          // Solo no brasas: 2 tickets en cocina (como antes)
           console.log("🍽️ Solo no brasas: enviando 2 tickets a cocina");
-          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina", false);
-          await enviarAImpresoraDelivery(productosNoBrasas, "192.168.1.100", "cocina (duplicado)", true);
+          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina");
+          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina (duplicado)");
         }
+        // }
 
-        Swal.fire("Pedido enviado correctamente", "", "success");
+        // if (modoPrueba) {
+        //   Swal.fire("PDF de Prueba Generado", "El ticket se mostró en una nueva ventana", "success");
+        // } else {
+        //   Swal.fire("Pedido enviado correctamente", "Se imprimió en las impresoras", "success");
+        // }
+        Swal.fire("Pedido enviado correctamente", "Se imprimió en las impresoras", "success");
         resetFormulario();
       } else {
         Swal.fire("Error", "No se pudo enviar el pedido", "error");
@@ -302,8 +277,6 @@ export default function DeliveryForm() {
 
   const resetFormulario = () => {
     setNombre("");
-    setDireccion("");
-    setObservacion("");
     setBusqueda("");
     setProductoSeleccionado("");
     setCantidad(1);
@@ -311,16 +284,192 @@ export default function DeliveryForm() {
     setPresupuesto([]);
     setUrlPago("");
     setExternalReference("");
+    setEsperandoPago(false);
     setComisionMP(0);
-    setLinkGenerado(false);
+    setObservacion("");
+    setObservacionProducto("");
+    setQrGenerado(false); // Resetear el estado del QR
     setEnviando(false);
   };
 
+  // 🧪 FUNCIÓN DE PRUEBA: Generar PDF del ticket que se imprimiría
+  const generarPDFTicket = (productosParaImprimir, totalParaImprimir, tieneBrasas) => {
+    const now = new Date();
+    const hora = now.toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const fecha = now.toLocaleDateString("es-AR");
+    const orden = Date.now();
+
+    // Generar HTML del ticket (formato similar al que se imprimiría)
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Ticket Para Llevar - Prueba</title>
+          <style>
+            body {
+              font-family: 'Courier New', monospace;
+              width: 80mm;
+              margin: 0 auto;
+              padding: 10px;
+              background: white;
+              color: black;
+            }
+            .header {
+              text-align: center;
+              font-size: 18px;
+              font-weight: bold;
+              margin-bottom: 10px;
+              border-bottom: 2px solid black;
+              padding-bottom: 5px;
+            }
+            .info {
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            .divider {
+              border-top: 1px dashed black;
+              margin: 10px 0;
+            }
+            .producto {
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            .cantidad {
+              font-weight: bold;
+            }
+            .observacion {
+              font-style: italic;
+              color: #666;
+              margin-left: 20px;
+              font-size: 12px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              color: #666;
+            }
+            .impresora {
+              background: #f0f0f0;
+              padding: 5px;
+              margin: 10px 0;
+              border-radius: 5px;
+              font-size: 12px;
+              text-align: center;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">PARA LLEVAR</div>
+          
+          <div class="info"><strong>CLIENTE:</strong> ${nombre}</div>
+          <div class="info"><strong>ORDEN:</strong> ${orden}</div>
+          <div class="info"><strong>HORA:</strong> ${hora}</div>
+          <div class="info"><strong>FECHA:</strong> ${fecha}</div>
+          
+          <div class="divider"></div>
+          
+          <div class="info"><strong>cant   producto</strong></div>
+          ${productosParaImprimir.map(item => `
+            <div class="producto">
+              <span class="cantidad">${item.cantidad}</span> ${item.nombre.toUpperCase()}
+              ${item.observacion ? `<div class="observacion">📝 ${item.observacion}</div>` : ''}
+            </div>
+          `).join('')}
+          
+          <div class="divider"></div>
+          
+          <div class="info"><strong>TOTAL:</strong> $${totalParaImprimir.toFixed(2)}</div>
+          
+          <div class="divider"></div>
+          
+          ${tieneBrasas ? `
+            <div class="impresora">🖨️ IMPRESORA: Parrilla (192.168.1.101)</div>
+            <div class="impresora">🖨️ IMPRESORA: Cocina (192.168.1.100)</div>
+          ` : `
+            <div class="impresora">🖨️ IMPRESORA: Cocina (192.168.1.100) - 2 tickets</div>
+          `}
+          
+          <div class="footer">
+            <strong>🧪 MODO PRUEBA - PDF</strong><br>
+            Este es el ticket que se imprimiría en la impresora real
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Abrir en nueva ventana para imprimir como PDF
+    const ventana = window.open("", "", "width=400,height=600");
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+      
+      // Mostrar mensaje de éxito
+      Swal.fire({
+        icon: "success",
+        title: "PDF de Prueba Generado",
+        text: "Se abrió una nueva ventana con el ticket. Puedes imprimir como PDF desde ahí.",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    }
+  };
+
+  const manejarPedido = async () => {
+    if (!nombre || presupuesto.length === 0 || !pago) {
+      Swal.fire("Completa todos los campos", "", "warning");
+      return;
+    }
+
+    if (enviando) return; // Proteger contra múltiples clics
+    setEnviando(true);
+
+    try {
+      if (pago === "efectivo") {
+        await enviarPedidoFinal();
+      } else if (pago === "qr") {
+        await generarPagoQR();
+      }
+    } catch (error) {
+      console.error("Error en manejarPedido:", error);
+      setEnviando(false);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
+      {/* 🧪 Toggle Modo Prueba - COMENTADO
+      <div className="flex justify-center mb-6">
+        <div className="bg-black/20 p-3 rounded-xl border border-white/10">
+          <label className="flex items-center gap-3 text-white">
+            <input
+              type="checkbox"
+              checked={modoPrueba}
+              onChange={(e) => setModoPrueba(e.target.checked)}
+              className="w-4 h-4 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
+            />
+            <span className="font-semibold">
+              {modoPrueba ? "🧪 MODO PRUEBA (PDF)" : "🖨️ MODO REAL (Impresora)"}
+            </span>
+          </label>
+          <p className="text-xs text-gray-400 mt-1 text-center">
+            {modoPrueba 
+              ? "Genera PDF para verificar el formato del ticket" 
+              : "Envía a impresoras físicas reales"
+            }
+          </p>
+        </div>
+      </div>
+      */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* LADO IZQUIERDO */}
       <div className="flex flex-col gap-4 bg-black/20 p-6 rounded-xl">
-        {/* Bloque para agregar productos */}
+        {/* Productos */}
         <div className="flex flex-col gap-2">
           <input
             type="text"
@@ -358,14 +507,15 @@ export default function DeliveryForm() {
             onChange={(e) => setCantidad(Number(e.target.value))}
             className=" px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
           />
-
+          {/* Observación por producto */}
           <input
             type="text"
-            placeholder="Observación (opcional)"
+            placeholder="Obs. para cocina (opcional)"
             value={observacionProducto}
             onChange={(e) => setObservacionProducto(e.target.value)}
             className=" px-4 py-2 bg-white/10 text-white rounded-xl border border-white/20"
           />
+
           <button
             onClick={agregarProducto}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl mt-2"
@@ -413,26 +563,14 @@ export default function DeliveryForm() {
         <input
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
+          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
           placeholder="Nombre del cliente"
-          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
         />
-        <input
-          value={direccion}
-          onChange={(e) => setDireccion(e.target.value)}
-          placeholder="Dirección"
-          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
-        />
-        <textarea
-          value={observacion}
-          onChange={(e) => setObservacion(e.target.value)}
-          rows={2}
-          placeholder="Observación (opcional)"
-          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
-        />
+
         <select
           value={pago}
           onChange={(e) => setPago(e.target.value)}
-          className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20"
+          className="w-full px-4 py-3 mb-4 bg-white/10 text-white rounded-xl border border-white/20"
         >
           <option className="text-black" value="">
             Forma de pago
@@ -440,13 +578,14 @@ export default function DeliveryForm() {
           <option className="text-black" value="efectivo">
             Efectivo
           </option>
-          <option className="text-black" value="link">
-            Link de pago
+          <option className="text-black" value="qr">
+            Mercado Pago QR
           </option>
         </select>
 
-        {pago === "link" && (
-          <div className="my-4 text-center">
+        {/* Solo mostrar campo comisión si se elige QR */}
+        {pago === "qr" && (
+          <div className="mb-4 text-center">
             <label className="block text-gray-300 font-bold text-center mb-2">
               Agregar comisión Mercado Pago
             </label>
@@ -479,27 +618,16 @@ export default function DeliveryForm() {
                 Total a cobrar: ${totalMP.toFixed(2)}
               </span>
             </div>
-            {/* Mostrar link/QR solo si hay url */}
-            {urlPago && (
-              <>
-                <p className="text-sm text-white mb-2">Link generado:</p>
-                <a
-                  href={urlPago}
-                  target="_blank"
-                  className="block text-blue-300 underline mb-2 break-all"
-                >
-                  {urlPago}
-                </a>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(
-                    `Hola! Este es el link para pagar tu pedido: ${urlPago}`
-                  )}`}
-                  target="_blank"
-                  className="inline-block bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl"
-                >
-                  Enviar por WhatsApp
-                </a>
-              </>
+          </div>
+        )}
+
+        {pago === "qr" && urlPago && (
+          <div className="flex flex-col items-center gap-2 mb-4">
+            <QRCode value={urlPago} size={200} />
+            {esperandoPago && (
+              <p className="text-sm text-white mt-2">
+                Esperando confirmación de pago...
+              </p>
             )}
           </div>
         )}
@@ -509,7 +637,7 @@ export default function DeliveryForm() {
         </p>
 
         <button
-          onClick={enviarPedido}
+          onClick={manejarPedido}
           disabled={enviando}
           className={`w-full text-white font-bold py-3 rounded-xl ${
             enviando 
@@ -519,6 +647,7 @@ export default function DeliveryForm() {
         >
           {enviando ? 'Enviando...' : 'Hacer Pedido'}
         </button>
+      </div>
       </div>
     </div>
   );
