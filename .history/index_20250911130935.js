@@ -15,22 +15,28 @@ const PUERTO = 9100;
 // Función para enviar a impresora
 function imprimirTicket(ip, contenido) {
   return new Promise((resolve, reject) => {
+    console.log(`🖨️ Intentando conectar con impresora ${ip}:${PUERTO}`);
+    
     const socket = new net.Socket();
     
     socket.setTimeout(10000); // 10 segundos de timeout
     
     socket.connect(PUERTO, ip, () => {
+      console.log(`✅ Conectado exitosamente a ${ip}:${PUERTO}`);
       socket.write(contenido, "binary", () => {
+        console.log(`📄 Contenido enviado a ${ip}`);
         socket.end();
         resolve(`Ticket enviado a ${ip}`);
       });
     });
     
     socket.on("error", (err) => {
+      console.error(`❌ Error de conexión con ${ip}:${PUERTO}`, err.message);
       reject(`Error al imprimir en ${ip}: ${err.message}`);
     });
     
     socket.on("timeout", () => {
+      console.error(`⏰ Timeout al conectar con ${ip}:${PUERTO}`);
       socket.destroy();
       reject(`Timeout al conectar con ${ip}`);
     });
@@ -183,9 +189,11 @@ function generarTicketDelivery({ nombre, direccion, productos, total, modo, obse
     ticket += normal + `${observacion.trim()}\n`;
   }
   
-  ticket += "\n\n";
+    ticket += "\n\n";
   // Calcular el total si no se proporciona, o usar el proporcionado
   // SOLO mostrar precio para DELIVERY, NO para "para llevar", y solo si mostrarPrecio es true
+  console.log(`🔍 Debug generarTicketDelivery:`, { modo, mostrarPrecio, total, condicion: modo !== "retiro" && mostrarPrecio });
+  
   if (modo !== "retiro" && mostrarPrecio) {
     let totalFinal;
     if (total !== null && total !== undefined && total > 0) {
@@ -219,7 +227,7 @@ function generarTicketDelivery({ nombre, direccion, productos, total, modo, obse
   return ticket;
 }
 
-//    Generador de ticket para llevar (basado en delivery pero CON precio)
+// 🧾 Generador de ticket para llevar (basado en delivery pero CON precio)
 function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observacion, total }) {
   const doble = "\x1D\x21\x11";
   const normal = "\x1D\x21\x00";
@@ -294,7 +302,7 @@ function generarTicketParaLlevar({ nombre, productos, orden, hora, fecha, observ
   return ticket;
 }
 
-//    Ruta para pedidos restaurante
+// 📦 Ruta para pedidos restaurante
 app.post("/print", async (req, res) => {
   try {
     const { mesa, productos, orden, hora, fecha, metodoPago, ip, total, mostrarPrecio = true } = req.body;
@@ -367,7 +375,7 @@ app.post("/print", async (req, res) => {
                          (typeof mesa === 'string' && /[a-zA-Z]/.test(mesa)) ||
                          (typeof mesa === 'string' && mesa.trim().length > 0 && !mesa.match(/^\d+$/));
     
-    console.log("   Debug para llevar:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
+    console.log("🔍 Debug para llevar:", { mesa, tipo: typeof mesa, esParaLlevar, isNaN: isNaN(mesa) });
 
     if (parrilla.length > 0) {
       let ticketParaImprimir;
@@ -485,6 +493,14 @@ app.post("/printdelivery", async (req, res) => {
 
     // Si se especifica una IP específica, enviar solo a esa impresora
     if (ip) {
+      console.log(`🔍 Debug printdelivery:`, { 
+        ip, 
+        mostrarPrecio, 
+        total, 
+        modo, 
+        productosCount: productos.length 
+      });
+      
       const ticket = generarTicketDelivery({
         nombre,
         direccion,
@@ -495,12 +511,21 @@ app.post("/printdelivery", async (req, res) => {
         mostrarPrecio,
       });
       
-      const resultado = await imprimirTicket(ip, ticket);
-      return res.json({
-        success: true,
-        results: [resultado],
-        ip: ip
-      });
+      try {
+        const resultado = await imprimirTicket(ip, ticket);
+        return res.json({
+          success: true,
+          results: [resultado],
+          ip: ip
+        });
+      } catch (error) {
+        console.error(`❌ Error al imprimir en ${ip}:`, error);
+        return res.json({
+          success: false,
+          error: error,
+          ip: ip
+        });
+      }
     }
 
     // Para delivery, los formularios ya manejan la lógica de tickets separados
@@ -516,7 +541,7 @@ app.post("/printdelivery", async (req, res) => {
   }
 });
 
-//    Ruta de estado del servidor
+// 🖨️ Ruta de estado del servidor
 app.get("/status", (req, res) => {
   res.json({
     status: "running",
@@ -552,7 +577,7 @@ app.get("/version", (req, res) => {
   res.json(version);
 });
 
-//    Ruta para debug completo del servidor
+// 🔍 Ruta para debug completo del servidor
 app.get("/debug", (req, res) => {
   const debugInfo = {
     timestamp: new Date().toISOString(),
@@ -579,7 +604,7 @@ app.get("/debug", (req, res) => {
   res.json(debugInfo);
 });
 
-//    Ruta para verificar estado de las impresoras
+// 🖨️ Ruta para verificar estado de las impresoras
 app.get("/check-printers", async (req, res) => {
   try {
     const resultados = {};
@@ -698,7 +723,7 @@ app.post("/trigger-update", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(
-    `🖨  Servidor local de impresión corriendo en http://localhost:${PORT}`
+    `🖨️  Servidor local de impresión corriendo en http://localhost:${PORT}`
   );
 });
 

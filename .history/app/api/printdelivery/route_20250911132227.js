@@ -22,7 +22,6 @@ export async function POST(req) {
           metodoPago,
           modo,
           ip,
-          mostrarPrecio,
         }),
       }
     );
