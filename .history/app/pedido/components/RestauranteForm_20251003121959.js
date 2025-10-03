@@ -28,6 +28,7 @@ export default function RestauranteForm() {
   const [observacion, setObservacion] = useState("");
   // Observación por producto (para ticket/cocina)
   const [observacionProducto, setObservacionProducto] = useState("");
+  // const [modoPrueba, setModoPrueba] = useState(true); // 🧪 MODO PRUEBA: true = PDF, false = impresora real
 
   const productosFiltrados = productos.filter((p) =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -162,83 +163,109 @@ export default function RestauranteForm() {
           observacion: item.observacion, // Para ticket/cocina
         }));
 
-        // Lógica inteligente de impresión según tipo de pedido
-        const tieneBrasas = presupuesto.some(item => {
-          const producto = productos.find(p => p.nombre === (item.comida || item.bebida));
+        // Calcular el total para impresión
+        const totalParaImprimir = pago === "qr" ? totalMP : total;
+
+        // Separar productos por categoría para tickets separados
+        const productosBrasas = productosParaImprimir.filter(p => {
+          const producto = productos.find(prod => prod.nombre === p.nombre);
           return producto?.categoria?.toLowerCase() === "brasas";
         });
+        const productosNoBrasas = productosParaImprimir.filter(p => {
+          const producto = productos.find(prod => prod.nombre === p.nombre);
+          return producto?.categoria?.toLowerCase() !== "brasas";
+        });
+        
+        const tieneBrasas = productosBrasas.length > 0;
+        const tieneNoBrasas = productosNoBrasas.length > 0;
 
-        console.log("🔍 Debug impresión retiro:", { tieneBrasas, totalProductos: presupuesto.length });
+        console.log("🔍 Debug impresión retiro mixta:", { 
+          tieneBrasas, 
+          tieneNoBrasas,
+          productosBrasas: productosBrasas.length,
+          productosNoBrasas: productosNoBrasas.length,
+          totalProductos: presupuesto.length, 
+          totalParaImprimir, 
+          pago, 
+          totalMP, 
+          total 
+        });
 
-        if (tieneBrasas) {
-          // Si tiene brasas: 1 en cocina, 1 en parrilla
-          console.log("🔥 Retiro con brasas: enviando a parrilla y cocina");
-          await fetch("/api/print", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mesa: nombre, // Usar nombre como mesa para compatibilidad
-              productos: productosParaImprimir,
-              orden: Date.now(),
-              hora,
-              fecha,
-              metodoPago: pago,
-              ip: "192.168.1.101", // IP de parrilla
-            }),
-          });
+        const enviarAImpresora = async (items, ip, tipoImpresora, mostrarPrecio = true) => {
+          if (items.length === 0) return;
+          
+          console.log(`📤 Enviando a ${tipoImpresora}:`, { ip, items: items.length, cliente: nombre, mostrarPrecio });
+          
+          try {
+            const res = await fetch("/api/print", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mesa: nombre, // Usar nombre como mesa para compatibilidad
+                productos: items,
+                total: mostrarPrecio ? totalParaImprimir : null, // Solo enviar precio si mostrarPrecio es true
+                orden: Date.now(),
+                hora,
+                fecha,
+                metodoPago: pago,
+                ip,
+                mostrarPrecio, // Agregar el parámetro
+              }),
+            });
+            
+            console.log(`📥 Respuesta ${tipoImpresora}:`, { status: res.status, ok: res.ok });
+            
+            if (!res.ok) throw new Error();
+          } catch (err) {
+            console.error(`❌ Error al imprimir en ${tipoImpresora}:`, err);
+            Swal.fire("Error", `No se pudo imprimir el ticket de ${tipoImpresora}`, "error");
+          }
+        };
 
-          await fetch("/api/print", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mesa: nombre, // Usar nombre como mesa para compatibilidad
-              productos: productosParaImprimir,
-              orden: Date.now(),
-              hora,
-              fecha,
-              metodoPago: pago,
-              ip: "192.168.1.100", // IP de cocina
-            }),
-          });
-        } else {
-          // Si NO tiene brasas: 2 en cocina, 0 en parrilla
-          console.log("🍽️ Retiro sin brasas: enviando 2 a cocina");
-          await fetch("/api/print-ip", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre,
-              observacion, // Agregar observación general del pedido
-              productos: productosParaImprimir,
-              total: pago === "qr" ? totalMP : total,
-              hora,
-              fecha,
-              metodoPago: pago,
-              modo: "retiro",
-              tipoTicket: "para_llevar", // Identificar que es para llevar
-              ip: "192.168.1.100", // IP de cocina
-            }),
-          });
-
-          await fetch("/api/print-ip", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre,
-              observacion, // Agregar observación general del pedido
-              productos: productosParaImprimir,
-              total: pago === "qr" ? totalMP : total,
-              hora,
-              fecha,
-              metodoPago: pago,
-              modo: "retiro",
-              tipoTicket: "para_llevar", // Identificar que es para llevar
-              ip: "192.168.1.100", // IP de cocina (segunda vez)
-            }),
-          });
+        // if (modoPrueba) {
+        //   // 🧪 MODO PRUEBA: Generar PDF en lugar de imprimir
+        //   console.log("🧪 MODO PRUEBA: Generando PDF del ticket");
+        //   generarPDFTicket(productosParaImprimir, totalParaImprimir, tieneBrasas);
+        // } else {
+        //   // 🖨️ MODO REAL: Imprimir en impresoras físicas
+        if (tieneBrasas && tieneNoBrasas) {
+          // Productos mixtos: Parrilla solo brasas, Cocina 2 tickets (no brasas + todos juntos)
+          console.log("🔥🍽️ Retiro con productos mixtos: enviando tickets separados");
+          
+          // Ticket 1: Solo brasas para parrilla (SIN precio)
+          console.log("🔥 Enviando brasas a parrilla (192.168.1.101) - SIN precio");
+          await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla", false);
+          
+          // Ticket 2: Solo no brasas para cocina (SIN precio)
+          console.log("🍽️ Enviando no brasas a cocina (192.168.1.100) - SIN precio");
+          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina (solo no brasas)", false);
+          
+          // Ticket 3: TODOS los productos juntos para cocina (CON precio)
+          console.log("🍽️ Enviando TODOS los productos a cocina (192.168.1.100) - CON precio");
+          await enviarAImpresora(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)", true);
+          
+        } else if (tieneBrasas) {
+          // Solo brasas: 1 ticket en parrilla (SIN precio) y 1 ticket en cocina (CON precio)
+          console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101) - SIN precio");
+          await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla", false);
+          
+          console.log("🍽️ Solo brasas: enviando también a cocina (192.168.1.100) - CON precio");
+          await enviarAImpresora(productosBrasas, "192.168.1.100", "cocina", true);
+          
+        } else if (tieneNoBrasas) {
+          // Solo no brasas: 2 tickets en cocina (SIN precio el primero, CON precio el segundo)
+          console.log("🍽️ Solo no brasas: enviando 2 tickets a cocina");
+          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina", false);
+          await enviarAImpresora(productosNoBrasas, "192.168.1.100", "cocina (duplicado)", true);
         }
+        // }
 
-        Swal.fire("Pedido enviado correctamente", "", "success");
+        // if (modoPrueba) {
+        //   Swal.fire("PDF de Prueba Generado", "El ticket se mostró en una nueva ventana", "success");
+        // } else {
+        //   Swal.fire("Pedido enviado correctamente", "Se imprimió en las impresoras", "success");
+        // }
+        Swal.fire("Pedido enviado correctamente", "Se imprimió en las impresoras", "success");
         resetFormulario();
       } else {
         Swal.fire("Error", "No se pudo enviar el pedido", "error");
@@ -268,6 +295,133 @@ export default function RestauranteForm() {
     setEnviando(false);
   };
 
+  // 🧪 FUNCIÓN DE PRUEBA: Generar PDF del ticket que se imprimiría
+  const generarPDFTicket = (productosParaImprimir, totalParaImprimir, tieneBrasas) => {
+    const now = new Date();
+    const hora = now.toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const fecha = now.toLocaleDateString("es-AR");
+    const orden = Date.now();
+
+    // Generar HTML del ticket (formato similar al que se imprimiría)
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Ticket Para Llevar - Prueba</title>
+          <style>
+            body {
+              font-family: 'Courier New', monospace;
+              width: 80mm;
+              margin: 0 auto;
+              padding: 10px;
+              background: white;
+              color: black;
+            }
+            .header {
+              text-align: center;
+              font-size: 18px;
+              font-weight: bold;
+              margin-bottom: 10px;
+              border-bottom: 2px solid black;
+              padding-bottom: 5px;
+            }
+            .info {
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            .divider {
+              border-top: 1px dashed black;
+              margin: 10px 0;
+            }
+            .producto {
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            .cantidad {
+              font-weight: bold;
+            }
+            .observacion {
+              font-style: italic;
+              color: #666;
+              margin-left: 20px;
+              font-size: 12px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              color: #666;
+            }
+            .impresora {
+              background: #f0f0f0;
+              padding: 5px;
+              margin: 10px 0;
+              border-radius: 5px;
+              font-size: 12px;
+              text-align: center;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">PARA LLEVAR</div>
+          
+          <div class="info"><strong>CLIENTE:</strong> ${nombre}</div>
+          <div class="info"><strong>ORDEN:</strong> ${orden}</div>
+          <div class="info"><strong>HORA:</strong> ${hora}</div>
+          <div class="info"><strong>FECHA:</strong> ${fecha}</div>
+          
+          <div class="divider"></div>
+          
+          <div class="info"><strong>cant   producto</strong></div>
+          ${productosParaImprimir.map(item => `
+            <div class="producto">
+              <span class="cantidad">${item.cantidad}</span> ${item.nombre.toUpperCase()}
+              ${item.observacion ? `<div class="observacion">📝 ${item.observacion}</div>` : ''}
+            </div>
+          `).join('')}
+          
+          <div class="divider"></div>
+          
+          <div class="info"><strong>TOTAL:</strong> $${totalParaImprimir.toFixed(2)}</div>
+          
+          <div class="divider"></div>
+          
+          ${tieneBrasas ? `
+            <div class="impresora">🖨️ IMPRESORA: Parrilla (192.168.1.101)</div>
+            <div class="impresora">🖨️ IMPRESORA: Cocina (192.168.1.100)</div>
+          ` : `
+            <div class="impresora">🖨️ IMPRESORA: Cocina (192.168.1.100) - 2 tickets</div>
+          `}
+          
+          <div class="footer">
+            <strong>🧪 MODO PRUEBA - PDF</strong><br>
+            Este es el ticket que se imprimiría en la impresora real
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Abrir en nueva ventana para imprimir como PDF
+    const ventana = window.open("", "", "width=400,height=600");
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+      
+      // Mostrar mensaje de éxito
+      Swal.fire({
+        icon: "success",
+        title: "PDF de Prueba Generado",
+        text: "Se abrió una nueva ventana con el ticket. Puedes imprimir como PDF desde ahí.",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    }
+  };
+
   const manejarPedido = async () => {
     if (!nombre || presupuesto.length === 0 || !pago) {
       Swal.fire("Completa todos los campos", "", "warning");
@@ -290,7 +444,32 @@ export default function RestauranteForm() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
+      {/* 🧪 Toggle Modo Prueba - COMENTADO
+      <div className="flex justify-center mb-6">
+        <div className="bg-black/20 p-3 rounded-xl border border-white/10">
+          <label className="flex items-center gap-3 text-white">
+            <input
+              type="checkbox"
+              checked={modoPrueba}
+              onChange={(e) => setModoPrueba(e.target.checked)}
+              className="w-4 h-4 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
+            />
+            <span className="font-semibold">
+              {modoPrueba ? "🧪 MODO PRUEBA (PDF)" : "🖨️ MODO REAL (Impresora)"}
+            </span>
+          </label>
+          <p className="text-xs text-gray-400 mt-1 text-center">
+            {modoPrueba 
+              ? "Genera PDF para verificar el formato del ticket" 
+              : "Envía a impresoras físicas reales"
+            }
+          </p>
+        </div>
+      </div>
+      */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* LADO IZQUIERDO */}
       <div className="flex flex-col gap-4 bg-black/20 p-6 rounded-xl">
         {/* Productos */}
@@ -471,6 +650,7 @@ export default function RestauranteForm() {
         >
           {enviando ? 'Enviando...' : 'Hacer Pedido'}
         </button>
+      </div>
       </div>
     </div>
   );

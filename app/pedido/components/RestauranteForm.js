@@ -245,9 +245,12 @@ export default function RestauranteForm() {
           await enviarAImpresora(productosParaImprimir, "192.168.1.100", "cocina (todos juntos)", true);
           
         } else if (tieneBrasas) {
-          // Solo brasas: 1 ticket en parrilla (SIN precio)
+          // Solo brasas: 1 ticket en parrilla (SIN precio) y 1 ticket en cocina (CON precio)
           console.log("🔥 Solo brasas: enviando a parrilla (192.168.1.101) - SIN precio");
           await enviarAImpresora(productosBrasas, "192.168.1.101", "parrilla", false);
+          
+          console.log("🍽️ Solo brasas: enviando también a cocina (192.168.1.100) - CON precio");
+          await enviarAImpresora(productosBrasas, "192.168.1.100", "cocina", true);
           
         } else if (tieneNoBrasas) {
           // Solo no brasas: 2 tickets en cocina (SIN precio el primero, CON precio el segundo)
